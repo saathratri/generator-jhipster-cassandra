@@ -7,17 +7,17 @@ import { MaterialModule } from '../../shared/material.module';
 
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
-  selector: 'app-edit-boolean-dialog-component',
+  selector: 'app-map-boolean-edit-dialog-component',
   standalone: true,
   imports: [MaterialModule, CommonModule, ReactiveFormsModule, MatDialogModule, MatSlideToggleModule],
-  templateUrl: './edit-boolean-dialog-component.component.html',
-  styleUrls: ['./edit-boolean-dialog-component.component.css'],
+  templateUrl: './map-boolean-edit-dialog-component.component.html',
+  styleUrls: ['./map-boolean-edit-dialog-component.component.css'],
 })
-export class EditBooleanDialogComponent {
+export class MapBooleanEditDialogComponent {
   form: FormGroup;
 
   constructor(
-    public dialogRef: MatDialogRef<EditBooleanDialogComponent>,
+    public dialogRef: MatDialogRef<MapBooleanEditDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: { key: string; value: boolean }
   ) {
     this.form = new FormGroup({

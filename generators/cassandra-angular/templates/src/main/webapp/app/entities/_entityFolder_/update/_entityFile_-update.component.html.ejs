@@ -328,10 +328,10 @@ _%>
                     </div>
     <%_ } _%>
     <%_ if (field.fieldTypeSetSaathratri) { _%>
-            <app-set-component 
+            <app-set-string-component 
                 [inputFields]="inputFields<%= this._.upperFirst(field.fieldName) %>" 
                 (dataChange)="handle<%= this._.upperFirst(field.fieldName) %>InputChange($event)">
-            </app-set-component>
+            </app-set-string-component>
     <%_ } else if (field.fieldTypeMapBooleanSaathratri) { _%>
             <app-map-boolean-component 
                 [inputFields]="inputFields<%= this._.upperFirst(field.fieldName) %>" 

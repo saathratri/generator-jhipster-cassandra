@@ -37,7 +37,7 @@ import { dateLongToFormattedString, datetimeLongToFormattedString } from '../../
 import { DateTimeComponent } from 'app/components/date-time/date-time.component';
 <%_ } _%>
 <%_ if (anyFieldIsSetSaathratri) { _%>
-import { SetComponent } from 'app/components/set-component/set-component.component';
+import { SetStringComponent } from 'app/components/set-string-component/set-string-component.component';
 <%_ } _%>
 <%_ if (anyFieldIsMapBooleanSaathratri) { _%>
 import { MapBooleanComponent } from 'app/components/map-boolean-component/map-boolean-component.component';
@@ -74,7 +74,7 @@ import { v1 as uuidv1 } from 'uuid'; // Import TimeUUID (UUID v1)
     standalone: true,
     selector: '<%= jhiPrefixDashed %>-<%= entityFileName %>-update',
     templateUrl: './<%= entityFileName %>-update.component.html',
-    imports: [ SharedModule, FormsModule, ReactiveFormsModule, MaterialModule <%_ if (anyFieldIsTimeDerived || anyFieldIsTimeDerivedSaathratri) { _%>, DateTimeComponent<%_ } _%> <%_ if (anyFieldIsSetSaathratri) { _%>, SetComponent<%_ } _%> <%_ if (anyFieldIsMapBooleanSaathratri) { _%>, MapBooleanComponent<%_ } _%> <%_ if (anyFieldIsMapNumberSaathratri) { _%>, MapNumberComponent<%_ } _%> <%_ if (anyFieldIsMapStringSaathratri) { _%>, MapStringComponent<%_ } _%> <%_ if (anyFieldIsMapDayjsSaathratri) { _%>, MapDayjsComponent<%_ } _%>],
+    imports: [ SharedModule, FormsModule, ReactiveFormsModule, MaterialModule <%_ if (anyFieldIsTimeDerived || anyFieldIsTimeDerivedSaathratri) { _%>, DateTimeComponent<%_ } _%> <%_ if (anyFieldIsSetSaathratri) { _%>, SetStringComponent<%_ } _%> <%_ if (anyFieldIsMapBooleanSaathratri) { _%>, MapBooleanComponent<%_ } _%> <%_ if (anyFieldIsMapNumberSaathratri) { _%>, MapNumberComponent<%_ } _%> <%_ if (anyFieldIsMapStringSaathratri) { _%>, MapStringComponent<%_ } _%> <%_ if (anyFieldIsMapDayjsSaathratri) { _%>, MapDayjsComponent<%_ } _%>],
 })
 export class <%= entityAngularName %>UpdateComponent implements OnInit {
     isSaving = false;

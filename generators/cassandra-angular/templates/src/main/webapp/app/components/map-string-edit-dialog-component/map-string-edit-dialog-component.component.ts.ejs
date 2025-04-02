@@ -6,17 +6,17 @@ import { MaterialModule } from '../../shared/material.module';
 
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
-  selector: 'app-edit-string-dialog-component',
+  selector: 'app-map-string-edit-dialog-component',
   standalone: true,
   imports: [MaterialModule, CommonModule, ReactiveFormsModule, MatDialogModule], // ✅ Use ReactiveFormsModule
-  templateUrl: './edit-string-dialog-component.component.html',
-  styleUrls: ['./edit-string-dialog-component.component.css'],
+  templateUrl: './map-string-edit-dialog-component.component.html',
+  styleUrls: ['./map-string-edit-dialog-component.component.css'],
 })
-export class EditStringDialogComponent {
+export class MapStringEditDialogComponent {
   form: FormGroup;
 
   constructor(
-    public dialogRef: MatDialogRef<EditStringDialogComponent>,
+    public dialogRef: MatDialogRef<MapStringEditDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: { key: string; value: string }
   ) {
     this.form = new FormGroup({

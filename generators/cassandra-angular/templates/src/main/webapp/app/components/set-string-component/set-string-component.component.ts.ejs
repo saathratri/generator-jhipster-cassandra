@@ -2,27 +2,29 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormArray, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MaterialModule } from '../../shared/material.module';
+import { SetStringEditDialogComponent } from '../set-string-edit-dialog-component/set-string-edit-dialog-component.component';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
-  selector: 'app-set-component',
+  selector: 'app-set-string-component',
   standalone: true,
   imports: [MaterialModule, CommonModule, ReactiveFormsModule],
-  templateUrl: './set-component.component.html',
-  styleUrls: ['./set-component.component.css'],
+  templateUrl: './set-string-component.component.html',
+  styleUrls: ['./set-string-component.component.css'],
 })
-export class SetComponent {
+export class SetStringComponent {
   @Input() inputFields: Set<string> = new Set<string>();
   @Output() dataChange = new EventEmitter<Set<string>>();
 
   form: FormGroup;
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: FormBuilder, private dialog: MatDialog) {
     this.form = this.fb.group({
-      fields: this.fb.array([]), // ✅ Reactive FormArray
+      fields: this.fb.array([]),
     });
-
-    this.populateFormArray(); // ✅ Populate FormArray with inputFields
+  
+    this.populateFormArray();
   }
 
   get fields(): FormArray {
@@ -53,11 +55,18 @@ export class SetComponent {
 
   openEditDialog(index: number): void {
     const currentValue = this.fields.at(index).value;
-    const newValue = prompt('Edit Field:', currentValue);
-    if (newValue !== null && newValue.trim() !== '') {
-      this.fields.at(index).setValue(newValue.trim());
-      this.emitChange();
-    }
+    const dialogRef = this.dialog.open(SetStringEditDialogComponent, {
+      width: '400px',
+      height: '250px',
+      data: { value: currentValue },
+    });
+  
+    dialogRef.afterClosed().subscribe(result => {
+      if (result !== undefined && result.trim() !== '') {
+        this.fields.at(index).setValue(result.trim());
+        this.emitChange();
+      }
+    });
   }
 
   getFormControl(index: number): FormControl {

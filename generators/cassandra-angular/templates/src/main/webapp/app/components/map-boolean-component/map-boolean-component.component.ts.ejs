@@ -17,7 +17,7 @@ import {
   ReactiveFormsModule
 } from '@angular/forms';
 import { MaterialModule } from '../../shared/material.module';
-import { EditBooleanDialogComponent } from '../edit-boolean-dialog-component/edit-boolean-dialog-component.component';
+import { MapBooleanEditDialogComponent } from '../map-boolean-edit-dialog-component/map-boolean-edit-dialog-component.component';
 import { MatDialog } from '@angular/material/dialog';
 
 @Component({
@@ -28,7 +28,7 @@ import { MatDialog } from '@angular/material/dialog';
     MaterialModule,
     CommonModule,
     ReactiveFormsModule,
-    EditBooleanDialogComponent
+    MapBooleanEditDialogComponent
   ],
   templateUrl: './map-boolean-component.component.html',
   styleUrls: ['./map-boolean-component.component.css']
@@ -97,7 +97,7 @@ export class MapBooleanComponent implements OnInit, OnChanges {
     const key = keyControl.value;
     const currentValue = valueControl.value;
   
-    const dialogRef = this.dialog.open(EditBooleanDialogComponent, {
+    const dialogRef = this.dialog.open(MapBooleanEditDialogComponent, {
       width: '500px',
       height: '300px',
       maxHeight: '90vh',

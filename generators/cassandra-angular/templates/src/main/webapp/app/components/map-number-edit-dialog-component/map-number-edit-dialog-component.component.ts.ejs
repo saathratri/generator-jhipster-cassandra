@@ -6,17 +6,17 @@ import { MaterialModule } from '../../shared/material.module';
 
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
-  selector: 'app-edit-number-dialog-component',
+  selector: 'app-map-number-edit-dialog-component',
   standalone: true,
   imports: [MaterialModule, CommonModule, ReactiveFormsModule, MatDialogModule],
-  templateUrl: './edit-number-dialog-component.component.html',
-  styleUrls: ['./edit-number-dialog-component.component.css'],
+  templateUrl: './map-number-edit-dialog-component.component.html',
+  styleUrls: ['./map-number-edit-dialog-component.component.css'],
 })
-export class EditNumberDialogComponent {
+export class MapNumberEditDialogComponent {
   form: FormGroup;
 
   constructor(
-    public dialogRef: MatDialogRef<EditNumberDialogComponent>,
+    public dialogRef: MatDialogRef<MapNumberEditDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: { key: string; value: number }
   ) {
     this.form = new FormGroup({
