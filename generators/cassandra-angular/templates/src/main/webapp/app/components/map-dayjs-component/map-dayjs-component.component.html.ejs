@@ -1,0 +1,54 @@
+<div class="container">
+  <!-- Loop through existing data rows -->
+  <div *ngFor="let entry of mapDetails | keyvalue" class="input-row">
+    <mat-form-field appearance="outline" class="form-field">
+      <mat-label>Key</mat-label>
+      <input matInput [value]="entry.key" readonly />
+    </mat-form-field>
+
+    <app-date-time
+      [formControl]="getControlForEntry(entry)"
+      dateTimeLabel="Value"
+      [labelClass]="'form-label'"
+      [isRequired]="true"
+      [disabled]="true"
+      (isValid)="onDateTimeValid(entry.key, $event)"
+      (dirtyStateChange)="updateDirtyState($event)"
+      class="form-field">
+    </app-date-time>
+
+    <div class="action-buttons">
+      <button type="button" mat-icon-button (click)="openEditDayjsDialog(entry.key, entry.value)">
+        <mat-icon>edit</mat-icon>
+      </button>
+      <button type="button" mat-icon-button (click)="deleteRow(entry.key)">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- Add new key-value pair -->
+  <form [formGroup]="form" class="input-row">
+    <mat-form-field appearance="outline" class="form-field">
+      <mat-label>Key</mat-label>
+      <input matInput formControlName="newKey" (blur)="form.controls['newKey'].markAsTouched()" />
+      <mat-error *ngIf="form.controls['newKey'].invalid && form.controls['newKey'].touched">
+        Key is required
+      </mat-error>
+    </mat-form-field>
+
+    <app-date-time
+      formControlName="newValue"
+      dateTimeLabel="Value"
+      [labelClass]="'form-label'"
+      [isRequired]="true"
+      (isValid)="onDateTimeValid('newValue', $event)"
+      (dirtyStateChange)="updateDirtyState($event)"
+      class="form-field">
+    </app-date-time>
+
+    <button type="button" mat-raised-button color="primary" [disabled]="form.invalid" (click)="addNewRow()" class="add-button">
+      Add
+    </button>
+  </form>
+</div>

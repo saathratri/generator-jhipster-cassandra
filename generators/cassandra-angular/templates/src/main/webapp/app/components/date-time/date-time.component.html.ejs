@@ -1,0 +1,69 @@
+<div class="date-time-wrapper">
+    <!-- Dynamic Label -->
+    <div class="date-time-label" [ngClass]="labelClass">
+      <label>{{ dateTimeLabel }}</label>
+    </div>
+  
+    <form [formGroup]="editForm" class="date-time-container">
+      <!-- Time Inputs -->
+      <div class="date-time-inputs">
+        <!-- Date Picker -->
+        <mat-form-field appearance="outline" class="wide-box">
+          <mat-label>Select Date</mat-label>
+          <input matInput [matDatepicker]="picker" formControlName="date" />
+          <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+          <mat-datepicker #picker></mat-datepicker>
+          <mat-error *ngIf="editForm.get('date')?.invalid">Date is required</mat-error>
+        </mat-form-field>
+  
+        <!-- Hours -->
+        <mat-form-field appearance="outline" class="wide-box">
+          <mat-label>Hours (01-12)</mat-label>
+          <input
+            matInput
+            type="number"
+            formControlName="hours"
+            placeholder="hh"
+            min="01"
+            max="12"
+            (input)="onInput($event, 'hours')"
+          />
+          <mat-error *ngIf="editForm.get('hours')?.hasError('required')"> Hours are required </mat-error>
+          <mat-error *ngIf="editForm.get('hours')?.hasError('min')"> Hours must be at least 1 </mat-error>
+          <mat-error *ngIf="editForm.get('hours')?.hasError('max')"> Hours cannot exceed 12 </mat-error>
+        </mat-form-field>
+  
+        <!-- Minutes -->
+        <mat-form-field appearance="outline" class="wide-box">
+          <mat-label>Minutes (00-59)</mat-label>
+          <input
+            matInput
+            type="number"
+            formControlName="minutes"
+            placeholder="mm"
+            min="00"
+            max="59"
+            (input)="onInput($event, 'minutes')"
+          />
+          <mat-error *ngIf="editForm.get('minutes')?.hasError('required')"> Minutes are required </mat-error>
+          <mat-error *ngIf="editForm.get('minutes')?.hasError('min')"> Minutes must be at least 0 </mat-error>
+          <mat-error *ngIf="editForm.get('minutes')?.hasError('max')"> Minutes cannot exceed 59 </mat-error>
+        </mat-form-field>
+  
+        <!-- AM/PM Selector -->
+        <mat-form-field appearance="outline" class="wide-box">
+          <mat-label>AM/PM</mat-label>
+          <mat-select formControlName="amPm">
+            <mat-option value="AM">AM</mat-option>
+            <mat-option value="PM">PM</mat-option>
+          </mat-select>
+          <mat-error *ngIf="editForm.get('amPm')?.invalid">AM/PM is required</mat-error>
+        </mat-form-field>
+      </div>
+  
+      <!-- Hidden Fields for Seconds and Milliseconds -->
+      <input type="hidden" formControlName="seconds" />
+      <input type="hidden" formControlName="milliseconds" />
+    </form>
+  </div>
+  
