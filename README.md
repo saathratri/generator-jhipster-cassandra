@@ -1,69 +1,148 @@
 # generator-jhipster-cassandra
 
-> JHipster blueprint, cassandra blueprint for JHipster.
+> A JHipster blueprint for Cassandra with advanced support for composite primary keys, sets, and maps.
 
-# Introduction
+## Introduction
 
-This is a [JHipster](https://www.jhipster.tech/) blueprint, that is meant to be used in a JHipster application.
+This is a [JHipster](https://www.jhipster.tech/) blueprint designed to extend JHipster’s capabilities to support **Apache Cassandra**, particularly with **composite primary keys**, `SET`, and `MAP` types.
 
-The generator-jhipster-cassandra is an open-source project that extends JHipster’s capabilities to support Cassandra databases with composite primary keys. This generator provides functionality to define and use composite primary keys in Cassandra entities, which are essential when designing schemas that require multiple fields as part of the primary key.
+The `generator-jhipster-cassandra` blueprint provides powerful schema modeling tools tailored for Cassandra, including fine-grained control over **partition** and **clustering** keys, along with native support for complex Cassandra collections like **sets** and **maps**.
 
-Key Features:
-- Support for Composite Primary Keys:
-	  Allows defining entities with composite primary keys, which consist of multiple columns, enabling more complex data modeling in Cassandra.
-- Custom Code Generation:
-	  Generates JHipster entities and associated files tailored to work with composite primary keys.
-- Integration with Cassandra:
-	  Ensures seamless integration with Cassandra’s specific requirements for primary key design, including partition keys and clustering columns.
-- Simplified Development:
-	  Automates boilerplate code creation, reducing the effort needed to configure composite primary keys manually.
+---
 
-Use Case:
+## 🔑 Key Features
 
-This generator is particularly useful in scenarios where Cassandra is used as the database, and the application needs to:
-- Group data using partition keys for efficient queries.
-- Use clustering columns to organize data within partitions.
+- **Composite Primary Key Support**
+  - Define entities with multiple primary key fields.
+  - Use `@customAnnotation("PrimaryKeyType.PARTITIONED")` and `@customAnnotation("PrimaryKeyType.CLUSTERED")` to clearly specify partition and clustering columns.
+  - Auto-generate query methods for equality, range, and filtering on clustering columns.
 
-Example:
+- **Set & Map Field Support**
+  - Native Cassandra collection types are now fully supported:
+    - `CassandraType.Name.SET`
+	  - Supports `TEXT`
+    - `CassandraType.Name.MAP`
+      - Supports various key-value types: `TEXT`, `BOOLEAN`, `DECIMAL`, and `BIGINT`.
 
-If you’re designing an entity, such as Order, that requires both orderId and productId to uniquely identify an order, this generator can help you define these fields as a composite primary key.
+- **Custom Annotations**
+  - Annotations like `@customAnnotation("UTC_DATE")` or `@customAnnotation("TIMEUUID")` support consistent metadata across entity fields.
 
-For further details or updates, you can visit the npm page of the generator.
+- **Optimized for Microservices**
+  - Seamless integration with the JHipster microservice architecture.
+  - Supports JDL files with complex schemas.
 
-# Prerequisites
+---
 
-As this is a [JHipster](https://www.jhipster.tech/) blueprint, we expect you have JHipster and its related tools already installed:
+## 🧑‍💻 Example Use Cases
 
-- [Installing JHipster](https://www.jhipster.tech/installation/)
+- Model a `Post` entity using a composite primary key (`createdDate`, `addedDateTime`, `postId`) and additional attributes like `title` and `content`.
+- Use `SET` to tag entities with multiple string values.
+- Use `MAP` to represent dynamic metadata or key-value configurations (e.g., `addOnDetailsBoolean`, `addOnDetailsDecimal`).
 
-# Installation
+---
 
-To install or update this blueprint:
+## 🧪 JDL Examples
 
-```console
+### Composite Key Example
+
+```jdl
+entity Post {
+  @Id @customAnnotation("PrimaryKeyType.PARTITIONED") createdDate Long
+  @customAnnotation("PrimaryKeyType.CLUSTERED") addedDateTime Long
+  @customAnnotation("PrimaryKeyType.CLUSTERED") postId UUID
+  title String required
+  content String required
+}
+```
+
+### Entity with `SET` Example
+
+```jdl
+entity SaathratriEntity3 {
+  @Id @customAnnotation("PrimaryKeyType.PARTITIONED") entityType String
+  @customAnnotation("PrimaryKeyType.CLUSTERED") createdTimeId UUID
+  tags String @customAnnotation("CassandraType.Name.SET")
+}
+```
+
+### Entity with `MAP` Examples
+
+```jdl
+entity SaathratriEntity5 {
+  @Id @customAnnotation("PrimaryKeyType.PARTITIONED") organizationId UUID
+  addOnDetailsText String @customAnnotation("CassandraType.Name.MAP") @customAnnotation("CassandraType.Name.TEXT")
+  addOnDetailsBoolean Boolean @customAnnotation("CassandraType.Name.MAP") @customAnnotation("CassandraType.Name.BOOLEAN")
+}
+```
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Java 21+
+- Node.js 20+
+- Docker Desktop
+- JHipster 8.6.0+
+
+### Installation
+
+```bash
 npm install -g generator-jhipster-cassandra
 ```
 
-# Usage
+### Usage
 
-To use this blueprint, run the below command
-
-```console
+```bash
 jhipster --blueprints cassandra
 ```
 
-You can look for updated cassandra blueprint specific options by running
+---
 
-```console
-jhipster app --blueprints cassandra --help
+## 🎡 Example Project
+
+- Full example repo with Cassandra composite key entities and JDL:
+  👉 [https://github.com/amarpatel-xx/jhipster-cassandra-example](https://github.com/amarpatel-xx/jhipster-cassandra-example)
+
+### Generate Code
+
+```bash
+git clone https://github.com/amarpatel-xx/jhipster-cassandra-example.git
+cd jhipster-cassandra-example
+sh saathratri-generate-code-dev-cassandra.sh
 ```
 
-And looking for `(blueprint option: cassandra)` like
+---
 
-# Open Source Software - See the Code
+## 🔐 Identity Providers
 
-☕️ Find the example code to run this blueprint/generator on GitHub:
-[https://github.com/amarpatel-xx/jhipster-cassandra-example](https://github.com/amarpatel-xx/jhipster-cassandra-example)
+This blueprint supports Keycloak by default. You can switch to Okta using:
 
-☕️ Find the JHipster blueprint/generator code on GitHub:
-[https://github.com/amarpatel-xx/generator-jhipster-cassandra](https://github.com/amarpatel-xx/generator-jhipster-cassandra)
+```bash
+okta apps create jhipster
+```
+
+---
+
+## 🧐 Learn More
+
+- 📘 [Cassandra Data Modeling](https://cassandra.apache.org/doc/latest/data-modeling/)
+- 📘 [JHipster Blueprints](https://www.jhipster.tech/modules/creating-a-blueprint/)
+- 🧓 [Matt Raible on Micro Frontends](https://auth0.com/blog/micro-frontends-for-java-microservices/)
+
+---
+
+## 👏 Acknowledgements
+
+Huge thanks to:
+- [yelhouti](https://github.com/yelhouti)
+- [Jeremy Artero](https://www.linkedin.com/in/jeremyartero/)
+- [Matt Raible](https://github.com/mraible)
+- [Gaël Marziou](https://github.com/gmarziou)
+- [Cedrick Lunven](https://www.linkedin.com/in/clunven/)
+- [Christophe Borne](https://www.linkedin.com/in/christophe-bornet-bab1193/)
+- [Disha Patel](https://www.linkedin.com/in/dishapatel860/)
+- [Catherine Guevara](https://www.linkedin.com/in/catherine-guevara-1a5375b1/)
+
+---
