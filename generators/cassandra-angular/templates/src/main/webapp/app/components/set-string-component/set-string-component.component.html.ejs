@@ -1,31 +1,40 @@
 <div class="container">
   <form [formGroup]="form">
-    <!-- Loop through existing data rows -->
+    <!-- Existing fields -->
     <div *ngFor="let control of fields.controls; let i = index" class="input-row">
-      
-      <!-- Text Field -->
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Field</mat-label>
+      <mat-form-field appearance="outline">
+        <mat-label>Value</mat-label>
         <input matInput [formControl]="getFormControl(i)" />
         <mat-error *ngIf="getFormControl(i).invalid && getFormControl(i).touched">
           Field is required
         </mat-error>
       </mat-form-field>
 
-      <!-- Edit Icon (Edit) -->
-      <button type="button" mat-icon-button (click)="openEditDialog(i)">
-        <mat-icon>edit</mat-icon>
-      </button>
+      <!-- Action Buttons (10%) -->
+      <div class="action-buttons">
+        <button type="button" mat-icon-button (click)="openEditDialog(i)">
+          <mat-icon>edit</mat-icon>
+        </button>
 
-      <!-- Delete Icon (Remove) -->
-      <button type="button" mat-icon-button (click)="removeInputField(i)">
-        <mat-icon>close</mat-icon>
-      </button>
+        <button type="button" mat-icon-button (click)="removeInputField(i)">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
     </div>
 
-    <!-- Always present add button -->
-    <button type="button" mat-raised-button color="primary" (click)="addInputField()" class="add-button">
-      <mat-icon>add</mat-icon> Add Field
-    </button>
+    <!-- New Field Row (Always visible) -->
+    <div class="input-row">
+      <mat-form-field appearance="outline">
+        <mat-label>New Value</mat-label>
+        <input matInput [formControl]="newFieldControl" />
+        <mat-error *ngIf="newFieldControl.invalid && newFieldControl.touched">
+          Field is required
+        </mat-error>
+      </mat-form-field>
+
+      <button type="button" mat-raised-button color="primary" [disabled]="newFieldControl.invalid" (click)="addNewField()" class="add-button">
+        Add
+      </button>
+    </div>
   </form>
 </div>

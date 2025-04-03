@@ -306,8 +306,9 @@ export class <%= entityAngularName %>Service {
                 },
             <%_ } _%>
     <%_ for (const field of fields.filter(field => !field.isCompositePrimaryKeyField)) { _%>
-        <%_ if(field.fieldTypeMapDayjsSaathratri) { _%>
-           
+        <%_ if (field.fieldTypeSetSaathratri) { _%>
+            <%= field.fieldName %>: <%= entityInstance %>.<%= field.fieldName %> ? Array.from(<%= entityInstance %>.<%= field.fieldName %>) : [],
+        <%_ } else if(field.fieldTypeMapDayjsSaathratri) { _%>
             <%= field.fieldName %>: <%= entityInstance %>.<%= field.fieldName %> 
                 // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
                 ? Object.fromEntries(Object.entries(<%= entityInstance %>.<%= field.fieldName %>).map(([k, v]) => [k, v?.valueOf()])) : {},
@@ -337,7 +338,9 @@ export class <%= entityAngularName %>Service {
                 },
             <%_ } _%>
     <%_ for (const field of fields.filter(field => !field.isCompositePrimaryKeyField)) { _%>
-        <%_ if (field.fieldTypeMapDayjsSaathratri) { _%>
+        <%_ if (field.fieldTypeSetSaathratri) { _%>
+            <%= field.fieldName %>: rest<%= entityAngularName %>.<%= field.fieldName %> ? new Set(rest<%= entityAngularName %>.<%= field.fieldName %>) : new Set<string>(),
+        <%_ } else if (field.fieldTypeMapDayjsSaathratri) { _%>
             <%= field.fieldName %>: rest<%= entityAngularName %>.<%= field.fieldName %> 
                 // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
                 ? Object.fromEntries(Object.entries(rest<%= entityAngularName %>.<%= field.fieldName %>).map(([k, v]) => [k, dayjs(v)])) : {},

@@ -233,14 +233,15 @@ _%>
         const <%= entityInstance %> = this.<%= entityInstance %>FormService.get<%= entityAngularName %>(this.editForm);
        
         <%_ for (const field of fields) {
-                if (field.fieldTypeMapSaathratri) {
                 const fieldName = field.fieldName;
                 const fieldType = field.fieldType;
+
+                if (field.fieldTypeMapSaathratri || field.fieldTypeSetSaathratri) {
         _%>
-            <%= entityInstance %>.<%=  fieldName %> = this.inputFields<%= this._.upperFirst(fieldName) %>;
+                    <%= entityInstance %>.<%=  fieldName %> = this.inputFields<%= this._.upperFirst(fieldName) %>;
         <%_ 
-            } 
-        }
+                }
+            }
         _%>
 
         <%_ if(primaryKeySaathratri.composite) { _%>
@@ -414,21 +415,25 @@ _%>
         this.<%= entityInstance %> = <%= entityInstance %>;
         this.<%= entityInstance %>FormService.resetForm(this.editForm, <%= entityInstance %>);
 
-        <%_ if (anyFieldIsUUIDSaathratri || anyFieldIsTimeUUIDSaathratri) { _%>
-            Object.keys(this.editForm.controls).forEach((field) => {
-                this.lastSavedValues[field] = this.editForm.get(field)?.value;
-            });
-        <%_ } _%>
-
         <%_ for (const field of fields) {
-                if (field.fieldTypeMapSaathratri) {
-                    const fieldName = field.fieldName;
+                const fieldName = field.fieldName;
+                if (field.fieldTypeSetSaathratri) {
+        _%>
+                    this.inputFields<%= this._.upperFirst(fieldName) %> = <%= entityInstance %>.<%= fieldName %> ? new Set(<%= entityInstance %>.<%= fieldName %>) : new Set<string>();       
+        <%_
+                } else if (field.fieldTypeMapSaathratri) {
         _%>
                     this.inputFields<%= this._.upperFirst(fieldName) %> = { ...(<%= entityInstance %>.<%= fieldName %> ?? {}) };
         <%_ 
                 }
             } 
         _%>
+
+        <%_ if (anyFieldIsUUIDSaathratri || anyFieldIsTimeUUIDSaathratri) { _%>
+            Object.keys(this.editForm.controls).forEach((field) => {
+                this.lastSavedValues[field] = this.editForm.get(field)?.value;
+            });
+        <%_ } _%>
     }
 
     protected initializeResetButtonStates(): void {

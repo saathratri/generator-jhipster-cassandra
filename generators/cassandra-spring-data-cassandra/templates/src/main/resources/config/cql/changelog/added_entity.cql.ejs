@@ -20,7 +20,9 @@
 CREATE TABLE IF NOT EXISTS <%= entityInstanceSnakeCase %> (
 <%_ for (const field of fields) {
   const fieldNameUnderscored = field.fieldNameUnderscored; _%>
-  <%_ if (field.fieldTypeMapSaathratri) { _%>
+  <%_ if (field.fieldTypeSetSaathratri) { _%>
+    <%= fieldNameUnderscored %> set<text>,
+  <%_ } else if (field.fieldTypeMapSaathratri) { _%>
     <%_ if (field.fieldTypeMapBooleanSaathratri) { _%>
       <%= fieldNameUnderscored %> map<text, boolean>,
     <%_ } else if(field.fieldTypeMapNumberSaathratri) { _%>

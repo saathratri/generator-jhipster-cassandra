@@ -133,6 +133,16 @@ _%>
     <%_ } else if (field.fieldIsEnum) { _%>
                     <%# TODO: import enum and use its key as label _%>
                     <td<% if (field.id) { %>><a<%- routerLink %><% } %>>__jhiTranslateTagEnum__('<%= frontendAppName %>.<%= fieldType %>', { "value": "<%= entityInstance %>.<%= fieldName %> ?? 'null'" })<% if (field.id) { %></a><% } %></td>
+    <%_ } else if (primaryKeySaathratri.composite && !field.isCompositePrimaryKeyField && field.fieldTypeSetSaathratri) { 
+            // Composite Primary Key Code
+    _%>
+            <td>
+                <dl *ngIf="<%= entityInstance %>.<%= fieldName %>">
+                    <div *ngFor="let tag of toArray(<%= entityInstance %>.<%= fieldName %>)">
+                        <dt>{{ tag }}</dt>
+                    </div>
+                </dl>
+            </td>
     <%_ } else if (primaryKeySaathratri.composite && !field.isCompositePrimaryKeyField && field.fieldTypeMapSaathratri) { 
             // Composite Primary Key Code
     _%>

@@ -49,6 +49,12 @@ export class <%= entityAngularName %>DetailComponent {
     }
 <%_ } _%>
 
+<%_ if (anyFieldIsSetSaathratri) { _%>
+    toArray(set: Set<string> | null | undefined): string[] {
+        return set ? Array.from(set) : [];
+      }
+<%_ } _%>
+
     previousState(): void {
         window.history.back();
     }

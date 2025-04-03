@@ -53,6 +53,14 @@ _%>
             <a (click)="openFile(<%= entityInstance %>Ref.<%= fieldName %> ?? '', <%= entityInstance %>Ref.<%= fieldName %>ContentType)">__jhiTranslateTag__('entity.action.open')</a>
             {{ <%= entityInstance %>Ref.<%= fieldName %>ContentType }}, {{ byteSize(<%= entityInstance %>Ref.<%= fieldName %> ?? '') }}
           </div>
+    <%_ } else if (primaryKeySaathratri.composite && !field.isCompositePrimaryKeyField && field.fieldTypeSetSaathratri) { 
+                    // Composite Primary Key Code
+    _%>   
+          <dl *ngIf="<%= entityInstance %>Ref.<%= fieldName %>">
+            <div *ngFor="let item of toArray(<%= entityInstance %>Ref.<%= fieldName %>)">
+              <dt>{{ item }}</dt>
+            </div>
+          </dl>
     <%_ } else if (primaryKeySaathratri.composite && !field.isCompositePrimaryKeyField && field.fieldTypeMapSaathratri) { 
                     // Composite Primary Key Code
     _%>

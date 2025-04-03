@@ -10,12 +10,19 @@
   gap: 10px;
 }
 
-.full-width {
-  width: 100%;
+mat-form-field {
+  width: 90%; /* ✅ Key and Value fields get 45% each */
+}
+
+.action-buttons {
+  width: 10%; /* ✅ Icons (Edit & Delete) get 10% */
+  display: flex;
+  gap: 5px;
+  justify-content: center;
 }
 
 .add-button {
-  margin-top: 10px;
+  width: 10%; /* ✅ Icons (Edit & Delete) get 10% */
   display: flex;
   align-items: center;
   gap: 8px;

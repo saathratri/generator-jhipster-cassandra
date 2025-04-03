@@ -263,6 +263,13 @@ export class <%= componentName %> implements OnInit {
     }
 
 <%_ } _%>
+
+<%_ if (anyFieldIsSetSaathratri) { _%>
+  toArray(set: Set<string> | null | undefined): string[] {
+    return set ? Array.from(set) : [];
+  }
+<%_ } _%>
+
     protected fillComponentAttributeFromRoute(params: ParamMap, data: Data): void {
 <%_ if (paginationPagination) { _%>
       const page = params.get(PAGE_HEADER);
