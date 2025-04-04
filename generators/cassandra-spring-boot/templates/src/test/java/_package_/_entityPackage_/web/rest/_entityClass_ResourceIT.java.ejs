@@ -70,11 +70,15 @@ import <%= packageName %>.web.rest.TestUtil;
 <% } %>
 <%_ if (primaryKeySaathratri.composite) { _%>
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.Set;
-import java.util.Map;
-import java.util.TreeSet;
-import java.util.HashMap;
 import <%= entityAbsolutePackage %>.domain.<%= persistClass %>Id;
+<%_ } _%>
+<%_ if (anyFieldIsSetSaathratri) { _%> 
+import java.util.Set;
+import java.util.TreeSet;
+<%_ } _%>
+<%_ if (anyFieldIsMapSaathratri) { _%> 
+  import java.util.Map;
+  import java.util.HashMap;
 <%_ } _%>
 import <%= packageName %>.IntegrationTest;
 import <%= entityAbsolutePackage %>.domain.<%= persistClass %>;

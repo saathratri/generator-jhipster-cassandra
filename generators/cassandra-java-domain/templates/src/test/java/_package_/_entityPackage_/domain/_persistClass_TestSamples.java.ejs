@@ -84,7 +84,7 @@ public class <%= persistClass %>TestSamples {
         <%_ if (primaryKeySaathratri.composite) { %> return new <%= persistClass %> _%>().<%= primaryKeySaathratri.name %>( new <%= persistClass %>Id()<%_ sampleFields.forEach(field => { _%><%_ if (field.isCompositePrimaryKeyField) { _%>.<%- field.fieldName %>(<%- field.javaValueGenerator %>)<%_ } } ) _%>)
         <%_ sampleFields.forEach(field => { _%><%_ if (!field.isCompositePrimaryKeyField && field.fieldName !== 'id') { _%>.<%- field.fieldName %>(<%- field.javaValueSample1 %>)<%_ } } ) _%>;
         <%_ } else { _%>
-        return new <%= persistClass %>()<% sampleFields.forEach(field => { %>.<%- field.fieldName %>(<%- field.javaValueGenerator %>)<% }) %>;
+        return new <%= persistClass %>()<% sampleFields.forEach(field => { %>.<%- field.fieldName %>(<%_ if(field.fieldTypeMapSaathratri) { _%><%- field.javaValueSample1 %><%_ } else { _%><%- field.javaValueGenerator %><%_ } _%>)<% }) %>;
         <%_ } _%>
 <%_ } else { _%>
         <%= persistClass %> <%= persistInstance %> = new <%= persistClass %>();

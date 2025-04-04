@@ -133,7 +133,7 @@ _%>
     <%_ } else if (field.fieldIsEnum) { _%>
                     <%# TODO: import enum and use its key as label _%>
                     <td<% if (field.id) { %>><a<%- routerLink %><% } %>>__jhiTranslateTagEnum__('<%= frontendAppName %>.<%= fieldType %>', { "value": "<%= entityInstance %>.<%= fieldName %> ?? 'null'" })<% if (field.id) { %></a><% } %></td>
-    <%_ } else if (primaryKeySaathratri.composite && !field.isCompositePrimaryKeyField && field.fieldTypeSetSaathratri) { 
+    <%_ } else if (field.fieldTypeSetSaathratri) { 
             // Composite Primary Key Code
     _%>
             <td>
@@ -143,7 +143,7 @@ _%>
                     </div>
                 </dl>
             </td>
-    <%_ } else if (primaryKeySaathratri.composite && !field.isCompositePrimaryKeyField && field.fieldTypeMapSaathratri) { 
+    <%_ } else if (field.fieldTypeMapSaathratri) { 
             // Composite Primary Key Code
     _%>
             <td>

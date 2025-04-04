@@ -329,11 +329,11 @@ _%>
     <%_ } _%>
   <%_ } else { _%>
   <%_ for (field of fields) {
-        const { fieldName, fieldTypeBoolean, fieldTypeTimed, fieldTypeLocalDate } = field;
+        const { fieldName, fieldTypeBoolean, fieldTypeTimed, fieldTypeLocalDate, fieldTypeSetSaathratri, fieldTypeMapSaathratri } = field;
   _%>
     <%_ if (field.id) { _%>
       <%= fieldName %>: '',
-    <%_ } else if (fieldTypeBoolean) { _%>
+    <%_ } else if (fieldTypeBoolean && !fieldTypeSetSaathratri && !fieldTypeMapSaathratri) { _%>
       <%= fieldName %>: false,
   <%_ } _%>
     <%_ } _%>
@@ -377,7 +377,16 @@ _%>
 <%_ for (field of fields) {
       const { fieldName, fieldTypeTimed } = field;
 _%>
-  <%_ if (fieldTypeTimed || field.fieldTypeTimedSaathratri) { _%>
+  <%_ if (field.fieldTypeMapDayjsSaathratri) { _%>
+    <%= fieldName %>: raw<%= entityAngularName %>.<%= fieldName %>
+      ? Object.fromEntries(
+          Object.entries(raw<%= entityAngularName %>.<%= fieldName %>).map(([key, value]) => [
+            key,
+            dayjs(value, DATE_TIME_FORMAT),
+          ])
+        )
+      : {},
+  <%_ } else if (fieldTypeTimed || field.fieldTypeTimedSaathratri) { _%>
       <%= fieldName %>: dayjs(raw<%= entityAngularName %>.<%= fieldName %>, DATE_TIME_FORMAT),
   <%_ } _%>
 <%_ } _%>
@@ -419,7 +428,16 @@ _%>
   <%_ for (field of fields) {
       const { fieldName, fieldTypeTimed } = field;
 _%>
-  <%_ if (fieldTypeTimed || field.fieldTypeTimedSaathratri) { _%>
+  <%_ if(field.fieldTypeMapDayjsSaathratri) { _%>
+    <%= fieldName %>: <%= entityInstance %>.<%= fieldName %>
+      ? Object.fromEntries(
+          Object.entries(<%= entityInstance %>.<%= fieldName %>).map(([key, value]) => [
+            key,
+            value.format(DATE_TIME_FORMAT),
+          ])
+        )
+      : {},
+  <%_ } else if (fieldTypeTimed || field.fieldTypeTimedSaathratri) { _%>
       <%= fieldName %>: <%= entityInstance %>.<%= fieldName %> ? <%= entityInstance %>.<%= fieldName %>.format(DATE_TIME_FORMAT) : undefined,
   <%_ } _%>
 <%_ } _%>
