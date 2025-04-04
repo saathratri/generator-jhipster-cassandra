@@ -309,9 +309,10 @@ export class <%= entityAngularName %>Service {
         <%_ if (field.fieldTypeSetSaathratri) { _%>
             <%= field.fieldName %>: <%= entityInstance %>.<%= field.fieldName %> ? Array.from(<%= entityInstance %>.<%= field.fieldName %>) : [],
         <%_ } else if(field.fieldTypeMapDayjsSaathratri) { _%>
+            /* eslint-disable @typescript-eslint/no-unnecessary-condition */
             <%= field.fieldName %>: <%= entityInstance %>.<%= field.fieldName %> 
-                // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
                 ? Object.fromEntries(Object.entries(<%= entityInstance %>.<%= field.fieldName %>).map(([k, v]) => [k, v?.valueOf()])) : {},
+            /* eslint-enable @typescript-eslint/no-unnecessary-condition */
         <%_ } else if (field.fieldTypeTimedSaathratri) { _%>
             <%= field.fieldName %>: <%= entityInstance %>.<%= field.fieldName %> ? <%= entityInstance %>.<%= field.fieldName %>.valueOf() : null,
         <%_ } else if (field.fieldTypeLocalDateSaathratri) { _%>
