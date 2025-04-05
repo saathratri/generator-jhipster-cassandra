@@ -99,8 +99,8 @@ Below are various examples of defining JDL entities using the @customAnnotation 
       @customAnnotation("") @customAnnotation("CassandraType.Name.TEXT") @customAnnotation("") attributeValue String
     }
 
-    // Example showing text/string, boolean, numeric and date-time maps.
-    entity SaathratriEntity5 {
+        // Example showing text/string, boolean, numeric and date-time maps.
+    entity AddOnsAvailableByOrganization {
       @Id @customAnnotation("PrimaryKeyType.PARTITIONED") @customAnnotation("CassandraType.Name.UUID") @customAnnotation("") organizationId UUID
       @customAnnotation("PrimaryKeyType.PARTITIONED") @customAnnotation("CassandraType.Name.TEXT") @customAnnotation("") entityType String
       @customAnnotation("PrimaryKeyType.PARTITIONED") @customAnnotation("CassandraType.Name.UUID") @customAnnotation("") entityId UUID
@@ -113,7 +113,7 @@ Below are various examples of defining JDL entities using the @customAnnotation 
     }
 
     // Another example showing text/string, boolean, numeric and date-time maps.
-    entity SaathratriEntity6 {
+    entity AddOnsSelectedByOrganization {
       @Id @customAnnotation("PrimaryKeyType.PARTITIONED") @customAnnotation("CassandraType.Name.UUID") @customAnnotation("") organizationId UUID
       @customAnnotation("PrimaryKeyType.CLUSTERED") @customAnnotation("CassandraType.Name.BIGINT") @customAnnotation("UTC_DATE") arrivalDate Long
       @customAnnotation("PrimaryKeyType.CLUSTERED") @customAnnotation("CassandraType.Name.TEXT") @customAnnotation("") accountNumber String
@@ -133,7 +133,7 @@ Below are various examples of defining JDL entities using the @customAnnotation 
     }
 
     // Single-value Primary Key with Maps
-    entity SaathratriEntity7 {
+    entity LandingPageByOrganization {
       @Id @customAnnotation("PrimaryKeyType.PARTITIONED") @customAnnotation("CassandraType.Name.UUID") @customAnnotation("") organizationId UUID
       @customAnnotation("CassandraType.Name.MAP") @customAnnotation("CassandraType.Name.TEXT") @customAnnotation("") detailsText String
       @customAnnotation("CassandraType.Name.MAP") @customAnnotation("CassandraType.Name.DECIMAL") @customAnnotation("") detailsDecimal BigDecimal
@@ -142,7 +142,7 @@ Below are various examples of defining JDL entities using the @customAnnotation 
     }
 
     // Single-value Primary Key with Set
-    entity SaathratriEntity8 {
+    entity SetEntityByOrganization {
       @Id @customAnnotation("PrimaryKeyType.PARTITIONED") @customAnnotation("CassandraType.Name.UUID") @customAnnotation("") organizationId UUID
       @customAnnotation("CassandraType.Name.SET") @customAnnotation("CassandraType.Name.TEXT") @customAnnotation("") tags String
     }
