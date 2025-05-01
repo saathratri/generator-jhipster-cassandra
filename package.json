@@ -1,6 +1,6 @@
 {
   "name": "generator-jhipster-cassandra",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "description": "Description for Cassandra Composite Primary Keys",
   "keywords": [
     "yeoman-generator",
@@ -40,7 +40,7 @@
     "vitest": "vitest"
   },
   "dependencies": {
-    "generator-jhipster": "8.7.3"
+    "generator-jhipster": "8.10.0"
   },
   "devDependencies": {
     "ejs-lint": "^2.0.0",
