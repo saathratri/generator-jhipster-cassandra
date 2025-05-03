@@ -4,7 +4,6 @@ import command from './command.js';
 import { javaSaathratriUtils } from '../cassandra-java-domain/cassandra-java-domain-utils.js';
 import { springDataCassandraSaathratriUtils } from '../cassandra-spring-data-cassandra/cassandra-spring-data-cassandra-utils.js';
 import { cassandraSpringBootUtils } from './cassandra-spring-boot-utils.js';
-import { buildJavaGetter, buildJavaSetter, buildJavaGet, getPrimaryKeyValue } from 'generator-jhipster/generators/server/support';
 import { snakeCase } from 'lodash-es';
 
 export default class extends BaseApplicationGenerator {
@@ -184,7 +183,7 @@ export default class extends BaseApplicationGenerator {
                 }
               ],
             },
-            context: { ...application, ...entity, ...cassandraSpringBootUtils, ...springDataCassandraSaathratriUtils, ...javaSaathratriUtils, ...cassandraSpringBootUtils, buildJavaGetter, buildJavaSetter, buildJavaGet, getPrimaryKeyValue, entityInstanceSnakeCase: snakeCase(entity.entityInstance) },
+            context: { ...application, ...entity, ...cassandraSpringBootUtils, ...springDataCassandraSaathratriUtils, ...javaSaathratriUtils, ...cassandraSpringBootUtils, entityInstanceSnakeCase: snakeCase(entity.entityInstance) },
           });
         }
       },

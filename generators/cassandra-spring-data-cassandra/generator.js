@@ -142,7 +142,6 @@ export default class extends BaseApplicationGenerator {
               ...entity, 
               ...cassandraSpringBootUtils, 
               ...springDataCassandraSaathratriUtils, 
-              getJavaValueGeneratorForType, 
               entityInstanceSnakeCase: snakeCase(entity.entityInstance), 
               primaryKeyNameSnakeCase: snakeCase(entity.primaryKey.name),},
           });

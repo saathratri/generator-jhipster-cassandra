@@ -578,5 +578,95 @@ export const cassandraSpringBootUtils = {
             console.error(`Failed to update port data: ${error.message}`);
             throw error;
         }
+    },
+
+    /**
+     * @private
+     * Convert to Java bean name case
+     *
+     * Handle the specific case when the second letter is capitalized
+     * See http://stackoverflow.com/questions/2948083/naming-convention-for-getters-setters-in-java
+     *
+     * @param beanName
+     * @return
+     */
+    javaBeanCase(beanName) {
+        const secondLetter = beanName.charAt(1);
+        if (secondLetter && secondLetter === secondLetter.toUpperCase()) {
+        return beanName;
+        }
+        return _.upperFirst(beanName);
+    },
+
+    /**
+     * @private
+     * Create a java getter of reference.
+     *
+     * @param {object|string[]} reference
+     * @return {string}
+     */
+    buildJavaGet(reference) {
+        let refPath;
+        if (typeof reference === 'string') {
+        refPath = [reference];
+        } else if (Array.isArray(reference)) {
+        refPath = reference;
+        } else {
+        refPath = [reference.name];
+        }
+        return refPath.map(partialPath => `get${this.javaBeanCase(partialPath)}()`).join('.');
+    },
+
+    /**
+     * @private
+     * Create a java getter method of reference.
+     *
+     * @param {object} reference
+     * @param {string} type
+     * @return {string}
+     */
+    buildJavaGetter(reference, type = reference.type) {
+        return `${type} get${this.javaBeanCase(reference.name)}()`;
+    },
+
+    /**
+     * @private
+     * Create a java setter method of reference.
+     *
+     * @param {object} reference
+     * @param {string} valueDefinition
+     * @return {string}
+     */
+    buildJavaSetter(reference, valueDefinition = `${reference.type} ${reference.name}`) {
+        return `set${this.javaBeanCase(reference.name)}(${valueDefinition})`;
+    },
+
+    /**
+     * @private
+     * Returns the primary key value based on the primary key type, DB and default value
+     *
+     * @param {string} primaryKey - the primary key type
+     * @param {string} databaseType - the database type
+     * @param {number} defaultValue - default value
+     * @returns {string} java primary key value
+     */
+    getPrimaryKeyValue (primaryKey, databaseType, defaultValue = 1) {
+        if (typeof primaryKey === 'object' && primaryKey.composite) {
+        return `new ${primaryKey.type}(${primaryKey.references
+            .map(ref => getPrimaryKeyValue(ref.type, databaseType, defaultValue))
+            .join(', ')})`;
+        }
+        const primaryKeyType = typeof primaryKey === 'string' ? primaryKey : primaryKey.type;
+        if (primaryKeyType === 'string') {
+            if (databaseType === SQL && defaultValue === 0) {
+                return this.getJavaValueGeneratorForType(primaryKeyType);
+            }
+            return `"id${defaultValue}"`;
+        }
+        if (primaryKeyType === 'UUID') {
+            return this.getJavaValueGeneratorForType(primaryKeyType);
+        }
+        
+        return `${defaultValue}L`;
     }
- }
+};

@@ -1,6 +1,5 @@
 import BaseApplicationGenerator from 'generator-jhipster/generators/base-application';
 import { javaMainPackageTemplatesBlock, javaTestPackageTemplatesBlock } from 'generator-jhipster/generators/java/support';
-import { buildJavaGetter, buildJavaSetter, buildJavaGet, getPrimaryKeyValue } from 'generator-jhipster/generators/server/support';
 import command from './command.js';
 import { javaSaathratriUtils } from './cassandra-java-domain-utils.js';
 import { cassandraSpringBootUtils } from '../cassandra-spring-boot/cassandra-spring-boot-utils.js';
@@ -131,7 +130,7 @@ export default class extends BaseApplicationGenerator {
                 }
               ],
             },
-            context: { ...application, ...entity, ...cassandraSpringBootUtils, ...javaSaathratriUtils, buildJavaGetter, buildJavaSetter, buildJavaGet, getPrimaryKeyValue },
+            context: { ...application, ...entity, ...cassandraSpringBootUtils, ...javaSaathratriUtils },
           });
         }
       },
