@@ -72,23 +72,7 @@ export const cassandraSpringBootUtils = {
      **************************************/
     getCompositePrimaryKeyInstanceVariableInitializationsFromDTOTest(primaryKey) {
         return primaryKey.ids.map(pk => {
-
-        let initializationValue = null;
-
-        if (  pk.fieldType === 'Boolean' ) {
-            initializationValue = 'false';
-        } 
-        else if (pk.fieldType  === 'Integer') {
-            initializationValue = 'intCount.incrementAndGet()';
-        }
-        else if (pk.fieldType  === 'Long') {
-            initializationValue = 'longCount.incrementAndGet()';
-        } 
-        else {
-            initializationValue = this.getPrimaryKeyValue(pk.fieldType);
-        }
-
-        return `${initializationValue}`;
+            return `${this.getPrimaryKeyValue(pk.fieldType)}`;
         }).join(', \n');
     },
     
@@ -650,23 +634,14 @@ export const cassandraSpringBootUtils = {
      * @param {number} defaultValue - default value
      * @returns {string} java primary key value
      */
-    getPrimaryKeyValue (primaryKey, databaseType, defaultValue = 1) {
+    getPrimaryKeyValue(primaryKey, databaseType, defaultValue = 1) {
         if (typeof primaryKey === 'object' && primaryKey.composite) {
-        return `new ${primaryKey.type}(${primaryKey.references
-            .map(ref => getPrimaryKeyValue(ref.type, databaseType, defaultValue))
-            .join(', ')})`;
+            return `new ${primaryKey.type}(${primaryKey.references
+                .map(ref => this.getPrimaryKeyValue(ref, databaseType, defaultValue))
+                .join(', ')})`;
         }
+    
         const primaryKeyType = typeof primaryKey === 'string' ? primaryKey : primaryKey.type;
-        if (primaryKeyType === 'string') {
-            if (databaseType === SQL && defaultValue === 0) {
-                return this.getJavaValueGeneratorForType(primaryKeyType);
-            }
-            return `"id${defaultValue}"`;
-        }
-        if (primaryKeyType === 'UUID') {
-            return this.getJavaValueGeneratorForType(primaryKeyType);
-        }
-        
-        return `${defaultValue}L`;
-    }
+        return this.getJavaValueGeneratorForType(primaryKeyType);
+    }    
 };
