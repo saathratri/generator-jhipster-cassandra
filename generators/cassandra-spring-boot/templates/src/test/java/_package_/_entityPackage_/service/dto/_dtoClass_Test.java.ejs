@@ -35,7 +35,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicInteger;
     <%_ } _%>
 <%_ } else { _%>
-    <%_ if (primaryKey && primaryKey.hasUUID) { _%>
+    <%_ if ((primaryKey && primaryKey.hasUUID) || primaryKey.hasString) { _%>
 import java.util.UUID;
     <%_ } _%>
 <%_ } _%>
