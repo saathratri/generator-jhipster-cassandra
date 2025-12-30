@@ -75,6 +75,9 @@ import org.springframework.data.domain.Pageable;
   <%_ if (reactive) { _%>
 import org.springframework.data.domain.PageImpl;
   <%_ } _%>
+  <%_ if (primaryKeySaathratri.composite) { _%>
+import org.springframework.data.domain.Slice;
+  <%_ } _%>
 import org.springframework.http.HttpHeaders;
   <%_ if (reactive) { _%>
 import org.springframework.http.server.reactive.ServerHttpRequest;

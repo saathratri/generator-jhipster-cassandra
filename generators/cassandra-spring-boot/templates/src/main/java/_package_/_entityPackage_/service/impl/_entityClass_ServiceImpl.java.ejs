@@ -60,6 +60,9 @@ import org.springframework.data.domain.Page;
   <%_ } _%>
 import org.springframework.data.domain.Pageable;
 <%_ } _%>
+<%_ if (primaryKeySaathratri.composite) { _%>
+import org.springframework.data.domain.Slice;
+<%_ } _%>
 import org.springframework.stereotype.Service;
 <%_ if (databaseTypeSql) { _%>
 import org.springframework.transaction.annotation.Transactional;

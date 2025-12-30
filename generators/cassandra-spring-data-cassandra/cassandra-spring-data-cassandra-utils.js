@@ -74,6 +74,7 @@ export const springDataCassandraSaathratriUtils = {
     },
     
     addMethodDeclarations(methodsCode, entityClass, entityInstanceSnakeCase, methodType, components, fileType) {
+        // EXISTING: Generate non-paginated methods
         if (fileType === 'Service') {
             methodsCode.push(this.getPrimaryKeyMethodSignature(entityClass, methodType, components.name, '', components.paramsDecl) + ';');
         } else if (fileType === 'Repository') {
@@ -82,8 +83,23 @@ export const springDataCassandraSaathratriUtils = {
             methodsCode.push(this.generatePrimaryKeyServiceMethodImplementation(entityClass, methodType, components.name, '', components.paramsDecl, components.paramsInst));
         } else if (fileType === 'Resource') {
             methodsCode.push(this.generatePrimaryKeyResourceMethodImplementation(
-                entityClass, methodType, components.name, '', components.paramsInst, components.urlSubst, 
+                entityClass, methodType, components.name, '', components.paramsInst, components.urlSubst,
                 components.resourceParamsDecl, components.logSubst, components.javaDocParams, entityClass));
+        }
+
+        // NEW: Generate paginated methods for findAllBy
+        if (methodType === 'findAllBy') {
+            if (fileType === 'Repository') {
+                methodsCode.push(this.getPaginatedRepositoryMethodSignature(entityClass, methodType, components.name, components.paramsDecl) + ';');
+            } else if (fileType === 'Service') {
+                methodsCode.push(this.getPaginatedServiceMethodSignature(entityClass, methodType, components.name, components.paramsDecl) + ';');
+            } else if (fileType === 'ServiceImpl') {
+                methodsCode.push(this.generatePaginatedServiceMethodImplementation(entityClass, methodType, components.name, components.paramsDecl, components.paramsInst));
+            } else if (fileType === 'Resource') {
+                methodsCode.push(this.generatePaginatedResourceMethodImplementation(
+                    entityClass, methodType, components.name, components.paramsInst, components.urlSubst,
+                    components.resourceParamsDecl, components.logSubst, components.javaDocParams));
+            }
         }
     },
     
@@ -183,5 +199,113 @@ export const springDataCassandraSaathratriUtils = {
 
     getCompositePrimaryKeyResourceClassMethodQueryParameters(primaryKey) {
         return primaryKey.ids.map(pk => `@RequestParam(name = "${pk.fieldName}", required = true) final ${pk.fieldType} ${pk.fieldName}`).join(', \n');
+    },
+
+    /****************************************************
+     * Pagination Helper Functions (New - for Cassandra Slice-based pagination)
+     ****************************************************/
+
+    /**
+     * Generate paginated repository method signature (Slice-based for Cassandra)
+     * @param {string} entityClass - Entity class name
+     * @param {string} methodType - Method type (e.g., 'findAllBy')
+     * @param {string} methodName - Method name suffix
+     * @param {string} params - Method parameters
+     * @returns {string} Repository method signature
+     */
+    getPaginatedRepositoryMethodSignature(entityClass, methodType, methodName, params) {
+        const paginatedParams = params ? `${params}, Pageable pageable` : 'Pageable pageable';
+        return `Slice<${entityClass}> ${methodType}${methodName}Pageable(${paginatedParams})`;
+    },
+
+    /**
+     * Generate paginated service method signature
+     * @param {string} entityClass - Entity class name
+     * @param {string} methodType - Method type (e.g., 'findAllBy')
+     * @param {string} methodName - Method name suffix
+     * @param {string} params - Method parameters
+     * @returns {string} Service method signature
+     */
+    getPaginatedServiceMethodSignature(entityClass, methodType, methodName, params) {
+        const paginatedParams = params ? `${params}, Pageable pageable` : 'Pageable pageable';
+        return `Slice<${entityClass}DTO> ${methodType}${methodName}Pageable(${paginatedParams})`;
+    },
+
+    /**
+     * Generate paginated service implementation
+     * @param {string} entityClass - Entity class name
+     * @param {string} methodType - Method type (e.g., 'findAllBy')
+     * @param {string} methodName - Method name suffix
+     * @param {string} params - Method parameter declarations
+     * @param {string} paramsInst - Method parameter instances
+     * @returns {string} Service method implementation
+     */
+    generatePaginatedServiceMethodImplementation(entityClass, methodType, methodName, params, paramsInst) {
+        const paginatedParams = params ? `${params}, Pageable pageable` : 'Pageable pageable';
+        const paginatedParamsInst = paramsInst ? `${paramsInst}, pageable` : 'pageable';
+
+        let impl = `@Override\n`;
+        impl += `public ${this.getPaginatedServiceMethodSignature(entityClass, methodType, methodName, params)} {\n`;
+        impl += `    LOG.debug("Request to ${methodType}${methodName}Pageable service in ${entityClass}ServiceImpl with pagination.");\n`;
+        impl += `    return ${_.lowerFirst(entityClass)}Repository.${methodType}${methodName}Pageable(${paginatedParamsInst})\n`;
+        impl += `        .map(${_.lowerFirst(entityClass)}Mapper::toDto);\n`;
+        impl += `}\n`;
+
+        return impl;
+    },
+
+    /**
+     * Generate paginated resource method implementation
+     * @param {string} entityClass - Entity class name
+     * @param {string} methodType - Method type
+     * @param {string} methodName - Method name suffix
+     * @param {string} paramsInst - Parameter instances
+     * @param {string} urlSubst - URL substitution parameters
+     * @param {string} resourceParams - Resource parameter declarations
+     * @param {string} logSubst - Log substitution parameters
+     * @param {string} javaDocParams - JavaDoc parameters
+     * @returns {string} Resource method implementation
+     */
+    generatePaginatedResourceMethodImplementation(
+        entityClass,
+        methodType,
+        methodName,
+        paramsInst,
+        urlSubst,
+        resourceParams,
+        logSubst,
+        javaDocParams
+    ) {
+        const methodNameFull = `${methodType}${methodName}Pageable`;
+        const urlPath = this.getCompositePrimaryKeyGetMappingUrl(methodNameFull);
+        const paginatedResourceParams = resourceParams ?
+            `${resourceParams}, @org.springdoc.core.annotations.ParameterObject Pageable pageable` :
+            '@org.springdoc.core.annotations.ParameterObject Pageable pageable';
+        const paginatedParamsInst = paramsInst ? `${paramsInst}, pageable` : 'pageable';
+
+        let impl = `/**\n`;
+        impl += ` * {@code GET /${urlPath}${urlSubst}} : get paginated entities by composite key.\n`;
+        impl += ` *\n`;
+        impl += `${javaDocParams}`;
+        impl += ` * @param pageable the pagination information.\n`;
+        impl += ` * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of entities in body.\n`;
+        impl += ` */\n`;
+        impl += `@GetMapping("/${urlPath}")\n`;
+        impl += `public ResponseEntity<List<${entityClass}DTO>> ${methodNameFull}(${paginatedResourceParams}) {\n`;
+        impl += `    LOG.debug("REST request to get paginated ${entityClass}s with parameters ${logSubst}", ${paramsInst});\n`;
+        impl += `    Slice<${entityClass}DTO> slice = ${_.lowerFirst(entityClass)}Service.${methodNameFull}(${paginatedParamsInst});\n`;
+        impl += `    \n`;
+        impl += `    // Generate Slice pagination headers (Cassandra-optimized - no total count)\n`;
+        impl += `    HttpHeaders headers = new HttpHeaders();\n`;
+        impl += `    headers.add("X-Has-Next-Page", String.valueOf(slice.hasNext()));\n`;
+        impl += `    headers.add("X-Has-Previous-Page", String.valueOf(slice.hasPrevious()));\n`;
+        impl += `    headers.add("X-Page-Number", String.valueOf(slice.getNumber()));\n`;
+        impl += `    headers.add("X-Page-Size", String.valueOf(slice.getSize()));\n`;
+        impl += `    headers.add("X-Total-Count", "unknown"); // Cassandra doesn't provide efficient total counts\n`;
+        impl += `    \n`;
+        impl += `    return ResponseEntity.ok().headers(headers).body(slice.getContent());\n`;
+        impl += `}\n`;
+
+        return impl;
     },
 }
