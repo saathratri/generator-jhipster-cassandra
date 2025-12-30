@@ -71,13 +71,11 @@ import org.springframework.security.access.prepost.PreAuthorize;
 <%_ } _%>
 <%_ if (!paginationNo) { _%>
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
   <%_ if (reactive) { _%>
 import org.springframework.data.domain.PageImpl;
   <%_ } _%>
-  <%_ if (primaryKeySaathratri.composite) { _%>
-import org.springframework.data.domain.Slice;
-  <%_ } _%>
+<%_ } _%>
+<%_ if (!paginationNo || primaryKeySaathratri.composite) { _%>
 import org.springframework.http.HttpHeaders;
   <%_ if (reactive) { _%>
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -87,6 +85,12 @@ import org.springframework.web.util.ForwardedHeaderUtils;
   <%_ } else { _%>
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
   <%_ } _%>
+<%_ } _%>
+<%_ if (!paginationNo || primaryKeySaathratri.composite) { _%>
+import org.springframework.data.domain.Pageable;
+<%_ } _%>
+<%_ if (primaryKeySaathratri.composite) { _%>
+import org.springframework.data.domain.Slice;
 <%_ } _%>
 <%_ if (reactive || (!jpaMetamodelFiltering && !paginationNo)) { _%>
 import org.springframework.http.HttpStatus;

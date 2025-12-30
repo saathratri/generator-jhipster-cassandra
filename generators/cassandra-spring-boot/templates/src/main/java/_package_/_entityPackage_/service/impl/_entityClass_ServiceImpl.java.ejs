@@ -58,6 +58,8 @@ import org.slf4j.LoggerFactory;
   <%_ if (!reactive) { _%>
 import org.springframework.data.domain.Page;
   <%_ } _%>
+<%_ } _%>
+<%_ if (!paginationNo || implementsEagerLoadApis || primaryKeySaathratri.composite) { _%>
 import org.springframework.data.domain.Pageable;
 <%_ } _%>
 <%_ if (primaryKeySaathratri.composite) { _%>
