@@ -263,4 +263,33 @@ angular-cli removes postcss-rtl processed inline css, processed rules must be ad
     }
   }
 }
+<%_ if (paginationInfiniteScroll) { _%>
+/* ==========================================================================
+Infinite Scroll Styles
+========================================================================== */
+/* Custom scrollbar for infinite scroll containers (WebKit browsers) */
+.table-entities::-webkit-scrollbar {
+  width: 8px;
+}
+
+.table-entities::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.table-entities::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.table-entities::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Firefox scrollbar styles */
+.table-entities {
+  scrollbar-width: thin;
+  scrollbar-color: #888 #f1f1f1;
+}
+<%_ } _%>
 /* jhipster-needle-scss-add-main JHipster will add new css style */

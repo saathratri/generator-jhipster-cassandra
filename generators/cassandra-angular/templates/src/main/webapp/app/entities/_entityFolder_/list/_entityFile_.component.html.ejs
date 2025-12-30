@@ -71,7 +71,11 @@
 }
 
 @if (<%= entityInstancePlural %> && <%= entityInstancePlural %>.length > 0) {
+<%_ if (paginationInfiniteScroll) { _%>
+    <div class="table-responsive table-entities" id="entities" #scrollContainer (scroll)="onScroll($event)" style="max-height: calc(100vh - 320px); overflow-y: auto;">
+<%_ } else { _%>
     <div class="table-responsive table-entities" id="entities">
+<%_ } _%>
         <table class="table table-striped" aria-describedby="page-heading">
             <thead>
                 <tr <%= jhiPrefix %>Sort [sortState]="sortState()" (sortChange)="navigateToWithComponentValues($event)">
@@ -260,6 +264,26 @@ _%>
             }
             </tbody>
         </table>
+<%_ if (paginationInfiniteScroll) { _%>
+
+        <!-- Loading More Indicator (Infinite Scroll) -->
+        @if (isLoadingMore) {
+            <div class="d-flex justify-content-center align-items-center p-3">
+                <div class="spinner-border spinner-border-sm me-2" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <span class="text-muted">__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.loadingMore')</span>
+            </div>
+        }
+
+        <!-- End of List Indicator -->
+        @if (!isLoadingMore && !hasMorePage() && <%= entityInstancePlural %> && <%= entityInstancePlural %>.length > 0) {
+            <div class="d-flex justify-content-center align-items-center p-3 text-muted">
+                <fa-icon icon="check-circle" class="me-2"></fa-icon>
+                <span>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.endOfList')</span>
+            </div>
+        }
+<%_ } _%>
     </div>
 }
 <%_ if (paginationPagination) { _%>

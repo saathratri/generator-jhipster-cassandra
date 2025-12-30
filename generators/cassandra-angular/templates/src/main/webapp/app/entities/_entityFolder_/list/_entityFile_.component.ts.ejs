@@ -29,7 +29,7 @@
 
   const componentName = entityAngularName + 'Component';
 _%>
-import { Component, computed, NgZone, inject, OnInit, signal, WritableSignal } from '@angular/core';
+import { Component, computed, NgZone, inject, OnInit, signal, WritableSignal<%_ if (paginationInfiniteScroll) { _%>, HostListener, ViewChild, ElementRef<%_ } _%> } from '@angular/core';
 <%_ if (!paginationNo) { _%>
 import { HttpHeaders } from '@angular/common/http';
 <%_ } _%>
@@ -126,6 +126,9 @@ export class <%= componentName %> implements OnInit {
     subscription: Subscription | null = null;
     <%= entityInstancePlural %>?: I<%= entityAngularName %>[];
     isLoading = false;
+<%_ if (paginationInfiniteScroll) { _%>
+    isLoadingMore = false;
+<%_ } _%>
 
     sortState = sortStateSignal({});
 <%_ if (searchEngineAny) { _%>
@@ -142,6 +145,7 @@ export class <%= componentName %> implements OnInit {
     links: WritableSignal<Record<string, undefined | Record<string, string | undefined>>> = signal({});
     hasMorePage = computed(() => !!this.links().next);
     isFirstFetch = computed(() => Object.keys(this.links()).length === 0);
+    @ViewChild('scrollContainer', { read: ElementRef }) scrollContainer?: ElementRef;
 <%_ } _%>
 
     public readonly router = inject(Router);
@@ -197,6 +201,26 @@ export class <%= componentName %> implements OnInit {
       this.load();
     }
 
+    /**
+     * Detect scroll position and load more when near bottom (alternative to infinite-scroll directive)
+     * Use this for Material Design tables or when you need more control over scroll behavior
+     */
+    @HostListener('scroll', ['$event'])
+    onScroll(event: any): void {
+      const container = event.target;
+      const scrollTop = container.scrollTop;
+      const scrollHeight = container.scrollHeight;
+      const offsetHeight = container.offsetHeight;
+      const scrollThreshold = 200; // Load more when 200px from bottom
+
+      const isNearBottom = scrollTop + offsetHeight >= scrollHeight - scrollThreshold;
+
+      if (isNearBottom && !this.isLoading && !this.isLoadingMore && this.hasMorePage()) {
+        this.isLoadingMore = true;
+        this.loadNextPage();
+      }
+    }
+
 <%_ } _%>
 <%_ if (searchEngineAny) { _%>
     search(query: string): void {
@@ -249,6 +273,9 @@ export class <%= componentName %> implements OnInit {
       this.queryBackend().subscribe({
         next: (res: EntityArrayResponseType) => {
           this.onResponseSuccess(res);
+<%_ if (paginationInfiniteScroll) { _%>
+          this.isLoadingMore = false;
+<%_ } _%>
         }
       });
     }

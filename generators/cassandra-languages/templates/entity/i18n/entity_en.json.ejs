@@ -29,7 +29,9 @@
 <%_ if (searchEngineAny) { _%>
                 "search": "Search for <%= entityClassHumanized %>",
 <%_ } _%>
-                "notFound": "No <%= entityClassPluralHumanized %> found"
+                "notFound": "No <%= entityClassPluralHumanized %> found"<%_ if (paginationInfiniteScroll) { _%>,
+                "loadingMore": "Loading more <%= entityClassPluralHumanized.toLowerCase() %>...",
+                "endOfList": "You've reached the end of the list"<%_ } _%>
             },
 <%_ if (!microserviceAppName && !readOnly) { _%>
             "created": "A new <%= entityClassHumanized %> is created with identifier {{ param }}",
