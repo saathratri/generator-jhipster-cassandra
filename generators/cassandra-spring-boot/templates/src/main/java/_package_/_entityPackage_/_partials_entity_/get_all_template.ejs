@@ -151,6 +151,6 @@ _%>
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(<% if (reactive) { %>ForwardedHeaderUtils.adaptFromForwardedHeaders(request.getURI(), request.getHeaders())<% } else { %>ServletUriComponentsBuilder.fromCurrentRequest()<% } %>, page);
         return ResponseEntity.ok().headers(headers).body(page.getContent());
     <%_ } _%>
-  <%_ } _%>
     }
+  <%_ } _%>
 <%_ } _%>
