@@ -137,8 +137,8 @@ export class <%= componentName %> implements OnInit {
 <%_ if (databaseTypeCassandra && paginationNo) { _%>
     isLoadingMore = false;
 
-    // Cassandra Slice pagination state
-    currentPage = 0;
+    // Cassandra Slice pagination state (cursor-based)
+    pagingState: string | null = null;
     pageSize = 20;
     hasNextPage = false;
 <%_ } _%>
@@ -298,7 +298,7 @@ export class <%= componentName %> implements OnInit {
 
 <%_ if (databaseTypeCassandra && paginationNo) { _%>
     reset(): void {
-      this.currentPage = 0;
+      this.pagingState = null;
       this.hasNextPage = false;
       this.<%= entityInstancePlural %> = [];
       this.load();
@@ -307,7 +307,6 @@ export class <%= componentName %> implements OnInit {
     loadMore(): void {
       if (this.hasNextPage && !this.isLoadingMore) {
         this.isLoadingMore = true;
-        this.currentPage++;
         this.queryBackend().subscribe({
           next: (res: EntityArrayResponseType) => {
             this.onResponseSuccess(res, true);
@@ -315,7 +314,6 @@ export class <%= componentName %> implements OnInit {
           },
           error: () => {
             this.isLoadingMore = false;
-            this.currentPage--; // Revert page increment on error
           },
         });
       }
@@ -404,6 +402,10 @@ export class <%= componentName %> implements OnInit {
     protected extractPaginationHeaders(headers: HttpHeaders): void {
       const hasNextPage = headers.get('X-Has-Next-Page');
       this.hasNextPage = hasNextPage === 'true';
+
+      // Extract paging state for next request (cursor-based pagination)
+      const pagingStateHeader = headers.get('X-Paging-State');
+      this.pagingState = pagingStateHeader || null;
     }
 
 <%_ } _%>
@@ -521,7 +523,7 @@ export class <%= componentName %> implements OnInit {
         size: this.itemsPerPage,
 <%_ } _%>
 <%_ if (databaseTypeCassandra && paginationNo) { _%>
-        page: this.currentPage,
+        pagingState: this.pagingState,
         size: this.pageSize,
 <%_ } _%>
 <%_ if(implementsEagerLoadApis || containsBagRelationships) { _%>
@@ -578,7 +580,7 @@ export class <%= componentName %> implements OnInit {
 <%_ } _%>
 <%_ if (databaseTypeCassandra && paginationNo) { _%>
       // Reset pagination and clear data when sort changes
-      this.currentPage = 0;
+      this.pagingState = null;
       this.hasNextPage = false;
       this.<%= entityInstancePlural %> = [];
 
