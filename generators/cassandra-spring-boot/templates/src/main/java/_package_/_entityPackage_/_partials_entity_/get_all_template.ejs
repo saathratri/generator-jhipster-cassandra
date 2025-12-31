@@ -124,11 +124,16 @@ _%>
         HttpHeaders headers = new HttpHeaders();
         headers.add("X-Has-Next-Page", String.valueOf(slice.hasNext()));
         headers.add("X-Page-Size", String.valueOf(size));
-        if (slice instanceof org.springframework.data.cassandra.core.query.CassandraPageRequest.CassandraSlice) {
-            org.springframework.data.cassandra.core.query.CassandraPageRequest.CassandraSlice<?> cassandraSlice =
-                (org.springframework.data.cassandra.core.query.CassandraPageRequest.CassandraSlice<?>) slice;
-            if (cassandraSlice.getPagingState() != null) {
-                headers.add("X-Paging-State", Base64.getEncoder().encodeToString(cassandraSlice.getPagingState().array()));
+
+        // Extract paging state from next pageable for cursor-based pagination
+        if (slice.hasNext()) {
+            Pageable nextPageable = slice.nextPageable();
+            if (nextPageable instanceof CassandraPageRequest) {
+                CassandraPageRequest nextCassandraPageRequest = (CassandraPageRequest) nextPageable;
+                ByteBuffer pagingState = nextCassandraPageRequest.getPagingState();
+                if (pagingState != null) {
+                    headers.add("X-Paging-State", Base64.getEncoder().encodeToString(pagingState.array()));
+                }
             }
         }
         return ResponseEntity.ok().headers(headers).body(slice.getContent());
@@ -138,11 +143,16 @@ _%>
         HttpHeaders headers = new HttpHeaders();
         headers.add("X-Has-Next-Page", String.valueOf(slice.hasNext()));
         headers.add("X-Page-Size", String.valueOf(size));
-        if (slice instanceof org.springframework.data.cassandra.core.query.CassandraPageRequest.CassandraSlice) {
-            org.springframework.data.cassandra.core.query.CassandraPageRequest.CassandraSlice<?> cassandraSlice =
-                (org.springframework.data.cassandra.core.query.CassandraPageRequest.CassandraSlice<?>) slice;
-            if (cassandraSlice.getPagingState() != null) {
-                headers.add("X-Paging-State", Base64.getEncoder().encodeToString(cassandraSlice.getPagingState().array()));
+
+        // Extract paging state from next pageable for cursor-based pagination
+        if (slice.hasNext()) {
+            Pageable nextPageable = slice.nextPageable();
+            if (nextPageable instanceof CassandraPageRequest) {
+                CassandraPageRequest nextCassandraPageRequest = (CassandraPageRequest) nextPageable;
+                ByteBuffer pagingState = nextCassandraPageRequest.getPagingState();
+                if (pagingState != null) {
+                    headers.add("X-Paging-State", Base64.getEncoder().encodeToString(pagingState.array()));
+                }
             }
         }
         return ResponseEntity.ok().headers(headers).body(dtoList);
@@ -151,11 +161,16 @@ _%>
         HttpHeaders headers = new HttpHeaders();
         headers.add("X-Has-Next-Page", String.valueOf(slice.hasNext()));
         headers.add("X-Page-Size", String.valueOf(size));
-        if (slice instanceof org.springframework.data.cassandra.core.query.CassandraPageRequest.CassandraSlice) {
-            org.springframework.data.cassandra.core.query.CassandraPageRequest.CassandraSlice<?> cassandraSlice =
-                (org.springframework.data.cassandra.core.query.CassandraPageRequest.CassandraSlice<?>) slice;
-            if (cassandraSlice.getPagingState() != null) {
-                headers.add("X-Paging-State", Base64.getEncoder().encodeToString(cassandraSlice.getPagingState().array()));
+
+        // Extract paging state from next pageable for cursor-based pagination
+        if (slice.hasNext()) {
+            Pageable nextPageable = slice.nextPageable();
+            if (nextPageable instanceof CassandraPageRequest) {
+                CassandraPageRequest nextCassandraPageRequest = (CassandraPageRequest) nextPageable;
+                ByteBuffer pagingState = nextCassandraPageRequest.getPagingState();
+                if (pagingState != null) {
+                    headers.add("X-Paging-State", Base64.getEncoder().encodeToString(pagingState.array()));
+                }
             }
         }
         return ResponseEntity.ok().headers(headers).body(slice.getContent());
