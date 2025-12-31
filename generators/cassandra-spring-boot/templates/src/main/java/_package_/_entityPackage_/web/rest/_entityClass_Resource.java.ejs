@@ -90,7 +90,9 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.springframework.data.domain.Pageable;
 <%_ } _%>
 <%_ if (databaseTypeCassandra && paginationNo) { _%>
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.cassandra.core.query.CassandraPageRequest;
+import java.nio.ByteBuffer;
+import java.util.Base64;
 <%_ } _%>
 <%_ if (primaryKeySaathratri.composite || (databaseTypeCassandra && paginationNo)) { _%>
 import org.springframework.data.domain.Slice;

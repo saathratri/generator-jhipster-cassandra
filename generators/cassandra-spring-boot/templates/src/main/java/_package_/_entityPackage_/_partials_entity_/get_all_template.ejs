@@ -93,41 +93,71 @@ _%>
 <%_ if (databaseTypeCassandra) { _%>
 
     /**
-     * {@code GET  /<%= entityApiUrl %>/slice} : get a slice of <%= entityInstancePlural %> (Cassandra pagination).
+     * {@code GET  /<%= entityApiUrl %>/slice} : get a slice of <%= entityInstancePlural %> (Cassandra cursor-based pagination).
      *
-     * @param page the page number (0-indexed).
+     * @param pagingState the paging state from previous request (Base64 encoded), null for first page.
      * @param size the page size.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of <%= entityInstancePlural %> in body, with custom pagination headers.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of <%= entityInstancePlural %> in body, with pagination headers.
      */
     @GetMapping("/slice")
     public ResponseEntity<List<<%= instanceType %>>> getAll<%= entityClassPlural %>Slice(
-        @RequestParam(name = "page", defaultValue = "0") int page,
+        @RequestParam(name = "pagingState", required = false) String pagingState,
         @RequestParam(name = "size", defaultValue = "20") int size<% if (fieldsContainNoOwnerOneToOne) { %>,
         @RequestParam(name = "filter", required = false) String filter<% } %><% if (implementsEagerLoadApis) { %>,
         @RequestParam(name = "eagerload", required = false, defaultValue = "true") boolean eagerload<% } %>) {
-        LOG.debug("REST request to get a slice of <%= entityClassPlural %> (Cassandra pagination)");
-        PageRequest pageRequest = PageRequest.of(page, size);
+        LOG.debug("REST request to get a slice of <%= entityClassPlural %> (Cassandra pagination) with pagingState: {}", pagingState != null ? "present" : "null");
+
+        CassandraPageRequest cassandraPageRequest;
+        if (pagingState == null || pagingState.isEmpty()) {
+            cassandraPageRequest = CassandraPageRequest.first(size);
+        } else {
+            try {
+                ByteBuffer pagingStateBuffer = ByteBuffer.wrap(Base64.getDecoder().decode(pagingState));
+                cassandraPageRequest = CassandraPageRequest.of(pagingStateBuffer, size);
+            } catch (IllegalArgumentException e) {
+                LOG.error("Invalid paging state", e);
+                cassandraPageRequest = CassandraPageRequest.first(size);
+            }
+        }
 <%_ if (viaService) { _%>
-        Slice<<%= instanceType %>> slice = <%= entityInstance %>Service.findAllSlice(pageRequest);
+        Slice<<%= instanceType %>> slice = <%= entityInstance %>Service.findAllSlice(cassandraPageRequest);
         HttpHeaders headers = new HttpHeaders();
         headers.add("X-Has-Next-Page", String.valueOf(slice.hasNext()));
-        headers.add("X-Page-Number", String.valueOf(page));
         headers.add("X-Page-Size", String.valueOf(size));
+        if (slice instanceof org.springframework.data.cassandra.core.query.CassandraPageRequest.CassandraSlice) {
+            org.springframework.data.cassandra.core.query.CassandraPageRequest.CassandraSlice<?> cassandraSlice =
+                (org.springframework.data.cassandra.core.query.CassandraPageRequest.CassandraSlice<?>) slice;
+            if (cassandraSlice.getPagingState() != null) {
+                headers.add("X-Paging-State", Base64.getEncoder().encodeToString(cassandraSlice.getPagingState().array()));
+            }
+        }
         return ResponseEntity.ok().headers(headers).body(slice.getContent());
 <%_ } else if (dtoMapstruct) { _%>
-        Slice<<%= persistClass %>> slice = <%= entityInstance %>Repository.findAll(pageRequest);
+        Slice<<%= persistClass %>> slice = <%= entityInstance %>Repository.findAll(cassandraPageRequest);
         List<<%= instanceType %>> dtoList = <%= entityListToDtoListReference %>(slice.getContent());
         HttpHeaders headers = new HttpHeaders();
         headers.add("X-Has-Next-Page", String.valueOf(slice.hasNext()));
-        headers.add("X-Page-Number", String.valueOf(page));
         headers.add("X-Page-Size", String.valueOf(size));
+        if (slice instanceof org.springframework.data.cassandra.core.query.CassandraPageRequest.CassandraSlice) {
+            org.springframework.data.cassandra.core.query.CassandraPageRequest.CassandraSlice<?> cassandraSlice =
+                (org.springframework.data.cassandra.core.query.CassandraPageRequest.CassandraSlice<?>) slice;
+            if (cassandraSlice.getPagingState() != null) {
+                headers.add("X-Paging-State", Base64.getEncoder().encodeToString(cassandraSlice.getPagingState().array()));
+            }
+        }
         return ResponseEntity.ok().headers(headers).body(dtoList);
 <%_ } else { _%>
-        Slice<<%= instanceType %>> slice = <%= entityInstance %>Repository.findAll(pageRequest);
+        Slice<<%= instanceType %>> slice = <%= entityInstance %>Repository.findAll(cassandraPageRequest);
         HttpHeaders headers = new HttpHeaders();
         headers.add("X-Has-Next-Page", String.valueOf(slice.hasNext()));
-        headers.add("X-Page-Number", String.valueOf(page));
         headers.add("X-Page-Size", String.valueOf(size));
+        if (slice instanceof org.springframework.data.cassandra.core.query.CassandraPageRequest.CassandraSlice) {
+            org.springframework.data.cassandra.core.query.CassandraPageRequest.CassandraSlice<?> cassandraSlice =
+                (org.springframework.data.cassandra.core.query.CassandraPageRequest.CassandraSlice<?>) slice;
+            if (cassandraSlice.getPagingState() != null) {
+                headers.add("X-Paging-State", Base64.getEncoder().encodeToString(cassandraSlice.getPagingState().array()));
+            }
+        }
         return ResponseEntity.ok().headers(headers).body(slice.getContent());
 <%_ } _%>
     }
