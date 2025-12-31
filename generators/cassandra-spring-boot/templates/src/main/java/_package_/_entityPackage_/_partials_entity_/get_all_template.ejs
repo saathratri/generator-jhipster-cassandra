@@ -130,9 +130,9 @@ _%>
             Pageable nextPageable = slice.nextPageable();
             if (nextPageable instanceof CassandraPageRequest) {
                 CassandraPageRequest nextCassandraPageRequest = (CassandraPageRequest) nextPageable;
-                ByteBuffer pagingState = nextCassandraPageRequest.getPagingState();
-                if (pagingState != null) {
-                    headers.add("X-Paging-State", Base64.getEncoder().encodeToString(pagingState.array()));
+                ByteBuffer nextPagingState = nextCassandraPageRequest.getPagingState();
+                if (nextPagingState != null) {
+                    headers.add("X-Paging-State", Base64.getEncoder().encodeToString(nextPagingState.array()));
                 }
             }
         }
@@ -149,9 +149,9 @@ _%>
             Pageable nextPageable = slice.nextPageable();
             if (nextPageable instanceof CassandraPageRequest) {
                 CassandraPageRequest nextCassandraPageRequest = (CassandraPageRequest) nextPageable;
-                ByteBuffer pagingState = nextCassandraPageRequest.getPagingState();
-                if (pagingState != null) {
-                    headers.add("X-Paging-State", Base64.getEncoder().encodeToString(pagingState.array()));
+                ByteBuffer nextPagingState = nextCassandraPageRequest.getPagingState();
+                if (nextPagingState != null) {
+                    headers.add("X-Paging-State", Base64.getEncoder().encodeToString(nextPagingState.array()));
                 }
             }
         }
@@ -167,9 +167,9 @@ _%>
             Pageable nextPageable = slice.nextPageable();
             if (nextPageable instanceof CassandraPageRequest) {
                 CassandraPageRequest nextCassandraPageRequest = (CassandraPageRequest) nextPageable;
-                ByteBuffer pagingState = nextCassandraPageRequest.getPagingState();
-                if (pagingState != null) {
-                    headers.add("X-Paging-State", Base64.getEncoder().encodeToString(pagingState.array()));
+                ByteBuffer nextPagingState = nextCassandraPageRequest.getPagingState();
+                if (nextPagingState != null) {
+                    headers.add("X-Paging-State", Base64.getEncoder().encodeToString(nextPagingState.array()));
                 }
             }
         }
