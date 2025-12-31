@@ -28,6 +28,11 @@
       .join(', ');
 
   const componentName = entityAngularName + 'Component';
+
+  // Saathratri: Get composite key field names for sorting
+  const compositeKeyFieldNames = primaryKeySaathratri.composite
+    ? fields.filter(f => f.isCompositePrimaryKeyField).map(f => `'${f.fieldName}'`).join(', ')
+    : '';
 _%>
 import { Component, computed, NgZone, inject, OnInit, signal, WritableSignal<%_ if (paginationInfiniteScroll || (databaseTypeCassandra && paginationNo)) { _%>, HostListener<%_ } _%><%_ if (paginationInfiniteScroll) { _%>, ViewChild, ElementRef<%_ } _%> } from '@angular/core';
 <%_ if (!paginationNo || (databaseTypeCassandra && paginationNo)) { _%>
@@ -412,7 +417,7 @@ export class <%= componentName %> implements OnInit {
 
 <%_ if (databaseTypeCassandra && primaryKeySaathratri.composite) { _%>
       // Composite key fields that are nested in compositeId
-      const compositeKeyFields = [<%= primaryKeySaathratri.fields.map(f => `'${f.fieldName}'`).join(', ') %>];
+      const compositeKeyFields = [<%= compositeKeyFieldNames %>];
 
       return data.sort((a, b) => {
         let aVal: any;
