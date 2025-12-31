@@ -104,7 +104,7 @@ _%>
         @RequestParam(name = "page", defaultValue = "0") int page,
         @RequestParam(name = "size", defaultValue = "20") int size<% if (fieldsContainNoOwnerOneToOne) { %>,
         @RequestParam(name = "filter", required = false) String filter<% } %><% if (implementsEagerLoadApis) { %>,
-        @RequestParam(name = "eagerload", required = false, defaultValue = "true") boolean eagerload<% } %>) {<%- include('get_all_stream_template', {viaService: viaService}); -%>
+        @RequestParam(name = "eagerload", required = false, defaultValue = "true") boolean eagerload<% } %>) {
         LOG.debug("REST request to get a slice of <%= entityClassPlural %> (Cassandra pagination)");
         PageRequest pageRequest = PageRequest.of(page, size);
     <%_ if (viaService) { _%>
