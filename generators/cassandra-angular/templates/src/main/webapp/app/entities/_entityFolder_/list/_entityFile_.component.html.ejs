@@ -284,6 +284,14 @@ _%>
             </div>
         }
 <%_ } _%>
+<%_ if (databaseTypeCassandra && paginationNo) { _%>
+        <!-- Cassandra Slice Pagination: Infinite Scroll Loading Indicator -->
+        @if (isLoadingMore) {
+            <div class="d-flex justify-content-center mt-3 mb-3">
+                <fa-icon icon="sync" [animation]="'spin'" size="2x" class="text-primary"></fa-icon>
+            </div>
+        }
+<%_ } _%>
     </div>
 }
 <%_ if (paginationPagination) { _%>

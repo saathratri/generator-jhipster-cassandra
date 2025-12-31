@@ -29,8 +29,8 @@
 
   const componentName = entityAngularName + 'Component';
 _%>
-import { Component, computed, NgZone, inject, OnInit, signal, WritableSignal<%_ if (paginationInfiniteScroll) { _%>, HostListener, ViewChild, ElementRef<%_ } _%> } from '@angular/core';
-<%_ if (!paginationNo) { _%>
+import { Component, computed, NgZone, inject, OnInit, signal, WritableSignal<%_ if (paginationInfiniteScroll || (databaseTypeCassandra && paginationNo)) { _%>, HostListener<%_ } _%><%_ if (paginationInfiniteScroll) { _%>, ViewChild, ElementRef<%_ } _%> } from '@angular/core';
+<%_ if (!paginationNo || (databaseTypeCassandra && paginationNo)) { _%>
 import { HttpHeaders } from '@angular/common/http';
 <%_ } _%>
 import { ActivatedRoute, Data, ParamMap, Router, RouterModule } from '@angular/router';
@@ -128,6 +128,14 @@ export class <%= componentName %> implements OnInit {
     isLoading = false;
 <%_ if (paginationInfiniteScroll) { _%>
     isLoadingMore = false;
+<%_ } _%>
+<%_ if (databaseTypeCassandra && paginationNo) { _%>
+    isLoadingMore = false;
+
+    // Cassandra Slice pagination state
+    currentPage = 0;
+    pageSize = 20;
+    hasNextPage = false;
 <%_ } _%>
 
     sortState = sortStateSignal({});
@@ -283,6 +291,44 @@ export class <%= componentName %> implements OnInit {
       });
     }
 
+<%_ if (databaseTypeCassandra && paginationNo) { _%>
+    reset(): void {
+      this.currentPage = 0;
+      this.hasNextPage = false;
+      this.<%= entityInstancePlural %> = [];
+      this.load();
+    }
+
+    loadMore(): void {
+      if (this.hasNextPage && !this.isLoadingMore) {
+        this.isLoadingMore = true;
+        this.currentPage++;
+        this.queryBackend().subscribe({
+          next: (res: EntityArrayResponseType) => {
+            this.onResponseSuccess(res, true);
+            this.isLoadingMore = false;
+          },
+          error: () => {
+            this.isLoadingMore = false;
+            this.currentPage--; // Revert page increment on error
+          },
+        });
+      }
+    }
+
+    @HostListener('window:scroll', ['$event'])
+    onScroll(): void {
+      // Check if user has scrolled near the bottom of the page
+      const scrollPosition = window.scrollY + window.innerHeight;
+      const pageHeight = document.documentElement.scrollHeight;
+      const threshold = 200; // Trigger 200px before bottom
+
+      if (scrollPosition >= pageHeight - threshold && this.hasNextPage && !this.isLoadingMore && !this.isLoading) {
+        this.loadMore();
+      }
+    }
+
+<%_ } _%>
     navigateToWithComponentValues(event: SortState): void {
       this.handleNavigation(<% if (paginationPagination) { %>this.page, <% } %>event<% if (jpaMetamodelFiltering && paginationPagination) { %>, this.filters.filterOptions<% } %><% if (searchEngineAny) { %>, this.currentSearch<% } %>);
     }
@@ -322,17 +368,38 @@ export class <%= componentName %> implements OnInit {
 <%_ } _%>
     }
 
-    protected onResponseSuccess(response: EntityArrayResponseType): void {
+    protected onResponseSuccess(response: EntityArrayResponseType, append = false): void {
 <%_ if (!paginationNo) { _%>
       this.fillComponentAttributesFromResponseHeader(response.headers);
 <%_ } _%>
+<%_ if (databaseTypeCassandra && paginationNo) { _%>
+      this.extractPaginationHeaders(response.headers);
+<%_ } _%>
       const dataFromBody = this.fillComponentAttributesFromResponseBody(response.body);
 <%_ if (paginationNo) { _%>
+<%_ if (databaseTypeCassandra) { _%>
+      if (append && this.<%= entityInstancePlural %>) {
+        // Append new data for "Load More" functionality
+        this.<%= entityInstancePlural %> = [...this.<%= entityInstancePlural %>, ...dataFromBody];
+      } else {
+        // Replace data for initial load or refresh
+        this.<%= entityInstancePlural %> = this.refineData(dataFromBody);
+      }
+<%_ } else { _%>
       this.<%= entityInstancePlural %> = this.refineData(dataFromBody);
+<%_ } _%>
 <%_ } else { _%>
       this.<%= entityInstancePlural %> = dataFromBody;
 <%_ } _%>
     }
+
+<%_ if (databaseTypeCassandra && paginationNo) { _%>
+    protected extractPaginationHeaders(headers: HttpHeaders): void {
+      const hasNextPage = headers.get('X-Has-Next-Page');
+      this.hasNextPage = hasNextPage === 'true';
+    }
+
+<%_ } _%>
 
 <%_ if (paginationNo) { _%>
     protected refineData(data: I<%= entityAngularName %>[]): I<%= entityAngularName %>[] {
@@ -397,12 +464,16 @@ export class <%= componentName %> implements OnInit {
 <%_ if (paginationPagination) { _%>
       const pageToLoad: number = page;
 <%_ } _%>
-      const queryObject<% if ((jpaMetamodelFiltering && paginationPagination) || searchEngine) { %>: any <% } %> = {
+      const queryObject<% if ((jpaMetamodelFiltering && paginationPagination) || searchEngine || (databaseTypeCassandra && paginationNo)) { %>: any <% } %> = {
 <%_ if (paginationPagination) { _%>
         page: pageToLoad - 1,
 <%_ } _%>
 <%_ if (!paginationNo) { _%>
         size: this.itemsPerPage,
+<%_ } _%>
+<%_ if (databaseTypeCassandra && paginationNo) { _%>
+        page: this.currentPage,
+        size: this.pageSize,
 <%_ } _%>
 <%_ if(implementsEagerLoadApis || containsBagRelationships) { _%>
         eagerload: true,
@@ -447,6 +518,12 @@ export class <%= componentName %> implements OnInit {
     protected handleNavigation(<% if (paginationPagination) { %>page: number, <% } %>sortState: SortState<% if (jpaMetamodelFiltering && paginationPagination) { %>, filterOptions?: IFilterOption[]<% } %><% if (searchEngineAny) { %>, currentSearch?: string<% } %>): void {
 <%_ if (paginationInfiniteScroll) { _%>
       this.links.set({});
+
+<%_ } _%>
+<%_ if (databaseTypeCassandra && paginationNo) { _%>
+      // Reset pagination when sort changes
+      this.currentPage = 0;
+      this.hasNextPage = false;
 
 <%_ } _%>
       const queryParamsObj<%_ if (jpaMetamodelFiltering && paginationPagination) { _%>: any<%_ } _%> = {
