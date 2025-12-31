@@ -215,7 +215,7 @@ export const springDataCassandraSaathratriUtils = {
      */
     getPaginatedRepositoryMethodSignature(entityClass, methodType, methodName, params) {
         const paginatedParams = params ? `${params}, Pageable pageable` : 'Pageable pageable';
-        return `Slice<${entityClass}> ${methodType}${methodName}Pageable(${paginatedParams})`;
+        return `Slice<${entityClass}> ${methodType}${methodName}(${paginatedParams})`;
     },
 
     /**
@@ -247,7 +247,7 @@ export const springDataCassandraSaathratriUtils = {
         let impl = `@Override\n`;
         impl += `public ${this.getPaginatedServiceMethodSignature(entityClass, methodType, methodName, params)} {\n`;
         impl += `    LOG.debug("Request to ${methodType}${methodName}Pageable service in ${entityClass}ServiceImpl with pagination.");\n`;
-        impl += `    return ${_.lowerFirst(entityClass)}Repository.${methodType}${methodName}Pageable(${paginatedParamsInst})\n`;
+        impl += `    return ${_.lowerFirst(entityClass)}Repository.${methodType}${methodName}(${paginatedParamsInst})\n`;
         impl += `        .map(${_.lowerFirst(entityClass)}Mapper::toDto);\n`;
         impl += `}\n`;
 
