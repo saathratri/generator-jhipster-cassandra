@@ -555,10 +555,17 @@ export class <%= componentName %> implements OnInit {
           );
       } else {
 <%_ } _%>
+    <%_ if (databaseTypeCassandra && paginationNo) { _%>
+        return this.<%= entityInstance %>Service.querySlice(queryObject)
+          .pipe(
+            tap(() => this.isLoading = false)
+          );
+    <%_ } else { _%>
         return this.<%= entityInstance %>Service.query(queryObject)
           .pipe(
             tap(() => this.isLoading = false)
           );
+    <%_ } _%>
 <%_ if (searchEngineAny) { _%>
       }
 <%_ } _%>

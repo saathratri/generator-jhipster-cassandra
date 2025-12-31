@@ -218,6 +218,15 @@ export class <%= entityAngularName %>Service {
             <% if (anyFieldIsDateDerived || anyFieldIsDateDerivedSaathratri) { %>.pipe(map(res => this.convertResponseArrayFromServer(res)))<% } %>
             <% if (builtInUserManagement) { %>.pipe(map(res => this.convertUserManagementResponseArrayFromServer(res)))<% } %>;
     }
+<%_ if (databaseTypeCassandra && paginationNo) { _%>
+
+    querySlice(req?: any): Observable<EntityArrayResponseType> {
+        const options = createRequestOption(req);
+        return this.http.get<<%= entityRestName %>[]>(`${this.resourceUrl}/slice`, { params: options, observe: 'response' })
+            <% if (anyFieldIsDateDerived || anyFieldIsDateDerivedSaathratri) { %>.pipe(map(res => this.convertResponseArrayFromServer(res)))<% } %>
+            <% if (builtInUserManagement) { %>.pipe(map(res => this.convertUserManagementResponseArrayFromServer(res)))<% } %>;
+    }
+<%_ } _%>
 
 <%_ if (!readOnly) { _%>
     <%_ 

@@ -93,14 +93,20 @@ public interface <%= entityClass %>Service {
 
     /**
      * Get all the <%= entityInstancePlural %>.
-     *<% if (!paginationNo || databaseTypeCassandra) { %>
+     *<% if (!paginationNo) { %>
      * @param pageable the pagination information.<% } %>
      * @return the list of entities.
      */
-    <%_ if (databaseTypeCassandra && paginationNo) { _%>
-    Slice<<%= instanceType %>> findAll(Pageable pageable);
-    <%_ } else { _%>
     <% if (paginationNo) { %><%= listOrFlux %><% } else { %><%= pageOrFlux %><% } %><<%= instanceType %>> findAll(<% if (!paginationNo) { %>Pageable pageable<% } %>);
+    <%_ if (databaseTypeCassandra && paginationNo) { _%>
+
+    /**
+     * Get a slice of <%= entityInstancePlural %> (Cassandra pagination).
+     *
+     * @param pageable the pagination information.
+     * @return the slice of entities.
+     */
+    Slice<<%= instanceType %>> findAllSlice(Pageable pageable);
     <%_ } _%>
 
 <%_ } _%>

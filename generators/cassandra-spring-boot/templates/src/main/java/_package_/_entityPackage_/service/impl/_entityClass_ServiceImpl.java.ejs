@@ -173,20 +173,6 @@ public class <%= serviceClassName %><% if (serviceImpl) { %> implements <%= enti
   <%_ if (databaseTypeSql) { _%>
     @Transactional(readOnly = true)
   <%_ } _%>
-    <%_ if (databaseTypeCassandra && paginationNo) { _%>
-    public Slice<<%= instanceType %>> findAll(Pageable pageable) {
-        LOG.debug("Request to get a slice of <%= entityClassPlural %> (Cassandra pagination)");
-        Slice<<%= persistClass %>> slice = <%= entityInstance %>Repository.findAll(pageable);
-      <%_ if (dtoMapstruct) { _%>
-        List<<%= instanceType %>> dtoList = slice.getContent().stream()
-            .map(<%= entityToDtoReference %>)
-            .collect(Collectors.toList());
-        return new org.springframework.data.domain.SliceImpl<>(dtoList, pageable, slice.hasNext());
-      <%_ } else { _%>
-        return slice;
-      <%_ } _%>
-    }
-    <%_ } else { _%>
     public <% if (paginationNo) { %><%= listOrFlux %><% } else { %><%= pageOrFlux %><% } %><<%= instanceType %>> findAll(<% if (!paginationNo) { %>Pageable pageable<% } %>) {
         LOG.debug("Request to get all <%= entityClassPlural %>");
   <%_ if (paginationNo) { _%>
@@ -197,6 +183,23 @@ public class <%= serviceClassName %><% if (serviceImpl) { %> implements <%= enti
         return <%= entityInstance %>Repository.findAll<% if (reactive) { %>By<% } %>(pageable)<% if (!dtoMapstruct) { %>;<% } else { %>
             .map(<%= entityToDtoReference %>);<% } %>
   <%_ } _%>
+    }
+    <%_ if (databaseTypeCassandra && paginationNo) { _%>
+
+    <%_ if (serviceImpl) { _%>
+    @Override
+    <%_ } _%>
+    public Slice<<%= instanceType %>> findAllSlice(Pageable pageable) {
+        LOG.debug("Request to get a slice of <%= entityClassPlural %> (Cassandra pagination)");
+        Slice<<%= persistClass %>> slice = <%= entityInstance %>Repository.findAll(pageable);
+      <%_ if (dtoMapstruct) { _%>
+        List<<%= instanceType %>> dtoList = slice.getContent().stream()
+            .map(<%= entityToDtoReference %>)
+            .collect(Collectors.toList());
+        return new org.springframework.data.domain.SliceImpl<>(dtoList, pageable, slice.hasNext());
+      <%_ } else { _%>
+        return slice;
+      <%_ } _%>
     }
     <%_ } _%>
 <%_ } _%>

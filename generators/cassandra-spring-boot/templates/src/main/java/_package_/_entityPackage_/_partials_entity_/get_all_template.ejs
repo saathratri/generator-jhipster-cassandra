@@ -75,8 +75,32 @@ _%>
     }
 <%_ } else { _%>
   <%_ if (paginationNo) { _%>
+    public <% if (reactive) { %>Mono<<% } %>List<<%= instanceType %>><% if (reactive) { %>><% } %> getAll<%= entityClassPlural %>(<% if (fieldsContainNoOwnerOneToOne) { %>@RequestParam(name = "filter", required = false) String filter<% } %><% if (implementsEagerLoadApis && fieldsContainNoOwnerOneToOne) { %>,<% } %><% if (implementsEagerLoadApis) { %>@RequestParam(name = "eagerload", required = false, defaultValue = "true") boolean eagerload<% } %>) {<%- include('get_all_stream_template', {viaService: viaService}); -%>
+        LOG.debug("REST request to get all <%= entityClassPlural %>");
+    <%_ if (viaService) { _%>
+        return <%= entityInstance %>Service.findAll()<% if (reactive) { %>.collectList()<% } %>;
+    <%_ } else if (dtoMapstruct) { _%>
+        <%= reactive ? 'Flux' : 'List' %><<%= persistClass %>> <%= entityInstancePlural %> = <%= entityInstance %>Repository.findAll();
+      <%_ if (reactive) { _%>
+        return <%= entityInstancePlural %>.map(<%= entityToDtoReference %>).collectList();
+      <%_ } else { _%>
+        return <%= entityListToDtoListReference %>(<%= entityInstancePlural %>);
+      <%_ } _%>
+    <%_ } else { _%>
+            return <%= entityInstance %>Repository.findAll()<% if (reactive) { %>.collectList()<% } %>;
+    <%_ } _%>
+    }
     <%_ if (databaseTypeCassandra) { _%>
-    public <% if (reactive) { %>Mono<ResponseEntity<List<<%= instanceType %>>>><% } else { %>ResponseEntity<List<<%= instanceType %>>><% } %> getAll<%= entityClassPlural %>(
+
+    /**
+     * {@code GET  /<%= entityApiUrl %>/slice} : get a slice of <%= entityInstancePlural %> (Cassandra pagination).
+     *
+     * @param page the page number (0-indexed).
+     * @param size the page size.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of <%= entityInstancePlural %> in body, with custom pagination headers.
+     */
+    @GetMapping("/slice")
+    public <% if (reactive) { %>Mono<ResponseEntity<List<<%= instanceType %>>>><% } else { %>ResponseEntity<List<<%= instanceType %>>><% } %> getAll<%= entityClassPlural %>Slice(
         @RequestParam(name = "page", defaultValue = "0") int page,
         @RequestParam(name = "size", defaultValue = "20") int size<% if (fieldsContainNoOwnerOneToOne) { %>,
         @RequestParam(name = "filter", required = false) String filter<% } %><% if (implementsEagerLoadApis) { %>,
@@ -85,7 +109,7 @@ _%>
         PageRequest pageRequest = PageRequest.of(page, size);
     <%_ if (viaService) { _%>
       <%_ if (reactive) { _%>
-        return <%= entityInstance %>Service.findAll(pageRequest)
+        return <%= entityInstance %>Service.findAllSlice(pageRequest)
                 .collectList()
                 .map(slice -> {
                     HttpHeaders headers = new HttpHeaders();
@@ -95,7 +119,7 @@ _%>
                     return ResponseEntity.ok().headers(headers).body(slice.getContent());
                 });
       <%_ } else { _%>
-        Slice<<%= instanceType %>> slice = <%= entityInstance %>Service.findAll(pageRequest);
+        Slice<<%= instanceType %>> slice = <%= entityInstance %>Service.findAllSlice(pageRequest);
         HttpHeaders headers = new HttpHeaders();
         headers.add("X-Has-Next-Page", String.valueOf(slice.hasNext()));
         headers.add("X-Page-Number", String.valueOf(page));
@@ -143,21 +167,7 @@ _%>
         return ResponseEntity.ok().headers(headers).body(slice.getContent());
       <%_ } _%>
     <%_ } _%>
-    <%_ } else { _%>
-    public <% if (reactive) { %>Mono<<% } %>List<<%= instanceType %>><% if (reactive) { %>><% } %> getAll<%= entityClassPlural %>(<% if (fieldsContainNoOwnerOneToOne) { %>@RequestParam(name = "filter", required = false) String filter<% } %><% if (implementsEagerLoadApis && fieldsContainNoOwnerOneToOne) { %>,<% } %><% if (implementsEagerLoadApis) { %>@RequestParam(name = "eagerload", required = false, defaultValue = "true") boolean eagerload<% } %>) {<%- include('get_all_stream_template', {viaService: viaService}); -%>
-        LOG.debug("REST request to get all <%= entityClassPlural %>");
-    <%_ if (viaService) { _%>
-        return <%= entityInstance %>Service.findAll()<% if (reactive) { %>.collectList()<% } %>;
-    <%_ } else if (dtoMapstruct) { _%>
-        <%= reactive ? 'Flux' : 'List' %><<%= persistClass %>> <%= entityInstancePlural %> = <%= entityInstance %>Repository.findAll();
-      <%_ if (reactive) { _%>
-        return <%= entityInstancePlural %>.map(<%= entityToDtoReference %>).collectList();
-      <%_ } else { _%>
-        return <%= entityListToDtoListReference %>(<%= entityInstancePlural %>);
-      <%_ } _%>
-    <%_ } else { _%>
-            return <%= entityInstance %>Repository.findAll()<% if (reactive) { %>.collectList()<% } %>;
-    <%_ } _%>
+    }
     <%_ } _%>
   <%_ } else { _%>
     public <% if (reactive) { %>Mono<ResponseEntity<List<<%= instanceType %>>>><% } else { %>ResponseEntity<List<<%= instanceType %>>><% } %> getAll<%= entityClassPlural %>(@org.springdoc.core.annotations.ParameterObject Pageable pageable<% if (reactive) { %>, ServerHttpRequest request<% } %><% if (fieldsContainNoOwnerOneToOne) { %>, @RequestParam(name = "filter", required = false) String filter<% } %><% if (implementsEagerLoadApis) { %>, @RequestParam(name = "eagerload", required = false, defaultValue = "true") boolean eagerload<% } %>) {<%- include('get_all_stream_template', {viaService: viaService}); -%>
