@@ -319,17 +319,18 @@ export class <%= componentName %> implements OnInit {
       }
     }
 
-    @HostListener('window:scroll', ['$event'])
-    onScroll(): void {
-      // Check if user has scrolled near the bottom of the page
-      const scrollPosition = window.scrollY + window.innerHeight;
-      const pageHeight = document.documentElement.scrollHeight;
-      const threshold = 200; // Trigger 200px before bottom
+    // Disabled automatic scroll - using Load More button instead
+    // @HostListener('window:scroll', ['$event'])
+    // onScroll(): void {
+    //   // Check if user has scrolled near the bottom of the page
+    //   const scrollPosition = window.scrollY + window.innerHeight;
+    //   const pageHeight = document.documentElement.scrollHeight;
+    //   const threshold = 200; // Trigger 200px before bottom
 
-      if (scrollPosition >= pageHeight - threshold && this.hasNextPage && !this.isLoadingMore && !this.isLoading) {
-        this.loadMore();
-      }
-    }
+    //   if (scrollPosition >= pageHeight - threshold && this.hasNextPage && !this.isLoadingMore && !this.isLoading) {
+    //     this.loadMore();
+    //   }
+    // }
 
 <%_ } _%>
     navigateToWithComponentValues(event: SortState): void {
