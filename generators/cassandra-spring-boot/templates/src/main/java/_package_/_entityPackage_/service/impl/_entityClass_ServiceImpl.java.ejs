@@ -59,10 +59,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
   <%_ } _%>
 <%_ } _%>
-<%_ if (!paginationNo || implementsEagerLoadApis || primaryKeySaathratri.composite) { _%>
+<%_ if (!paginationNo || implementsEagerLoadApis || primaryKeySaathratri.composite || (databaseTypeCassandra && paginationNo)) { _%>
 import org.springframework.data.domain.Pageable;
 <%_ } _%>
-<%_ if (primaryKeySaathratri.composite) { _%>
+<%_ if (primaryKeySaathratri.composite || (databaseTypeCassandra && paginationNo)) { _%>
 import org.springframework.data.domain.Slice;
 <%_ } _%>
 import org.springframework.stereotype.Service;
@@ -86,7 +86,7 @@ import java.util.Optional;
 <%_ if (primaryKey.typeUUID || (primaryKeySaathratri.composite && primaryKeySaathratri.hasUUID) || (primaryKeySaathratri.composite && primaryKeySaathratri.hasTimeUUID)) { _%>
 import java.util.UUID;
 <%_ } _%>
-<%_ if (fieldsContainNoOwnerOneToOne || (paginationNo && ((searchEngine) || dtoMapstruct))) { _%>
+<%_ if (fieldsContainNoOwnerOneToOne || (paginationNo && ((searchEngine) || dtoMapstruct)) || (databaseTypeCassandra && paginationNo && dtoMapstruct)) { _%>
 import java.util.stream.Collectors;
 <%_ } _%>
 <%_ if (fieldsContainNoOwnerOneToOne || (paginationNo && searchEngineElasticsearch)) { _%>

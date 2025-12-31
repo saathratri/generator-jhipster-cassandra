@@ -43,10 +43,10 @@ import java.util.UUID;
 import org.springframework.data.domain.Page;
   <%_ } _%>
 <%_ } _%>
-<%_ if (!paginationNo || implementsEagerLoadApis || primaryKeySaathratri.composite) { _%>
+<%_ if (!paginationNo || implementsEagerLoadApis || primaryKeySaathratri.composite || (databaseTypeCassandra && paginationNo)) { _%>
 import org.springframework.data.domain.Pageable;
 <%_ } _%>
-<%_ if (primaryKeySaathratri.composite) { _%>
+<%_ if (primaryKeySaathratri.composite || (databaseTypeCassandra && paginationNo)) { _%>
 import org.springframework.data.domain.Slice;
 <%_ } _%>
 <%_ if (reactive) { _%>
