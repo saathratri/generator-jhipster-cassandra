@@ -113,7 +113,7 @@ _%>
         } else {
             try {
                 ByteBuffer pagingStateBuffer = ByteBuffer.wrap(Base64.getDecoder().decode(pagingState));
-                cassandraPageRequest = CassandraPageRequest.of(pagingStateBuffer, size);
+                cassandraPageRequest = CassandraPageRequest.of(PageRequest.of(0, size), pagingStateBuffer);
             } catch (IllegalArgumentException e) {
                 LOG.error("Invalid paging state", e);
                 cassandraPageRequest = CassandraPageRequest.first(size);
