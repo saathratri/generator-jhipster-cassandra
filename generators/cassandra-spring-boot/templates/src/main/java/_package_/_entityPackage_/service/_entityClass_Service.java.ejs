@@ -93,11 +93,15 @@ public interface <%= entityClass %>Service {
 
     /**
      * Get all the <%= entityInstancePlural %>.
-     *<% if (!paginationNo) { %>
+     *<% if (!paginationNo || databaseTypeCassandra) { %>
      * @param pageable the pagination information.<% } %>
      * @return the list of entities.
      */
+    <%_ if (databaseTypeCassandra && paginationNo) { _%>
+    Slice<<%= instanceType %>> findAll(Pageable pageable);
+    <%_ } else { _%>
     <% if (paginationNo) { %><%= listOrFlux %><% } else { %><%= pageOrFlux %><% } %><<%= instanceType %>> findAll(<% if (!paginationNo) { %>Pageable pageable<% } %>);
+    <%_ } _%>
 
 <%_ } _%>
 <%_ if (jpaMetamodelFiltering && reactive) {  _%>
