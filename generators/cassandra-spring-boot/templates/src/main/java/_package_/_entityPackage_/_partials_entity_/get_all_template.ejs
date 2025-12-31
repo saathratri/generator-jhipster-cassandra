@@ -90,7 +90,7 @@ _%>
             return <%= entityInstance %>Repository.findAll()<% if (reactive) { %>.collectList()<% } %>;
     <%_ } _%>
     }
-    <%_ if (databaseTypeCassandra) { _%>
+<%_ if (databaseTypeCassandra) { _%>
 
     /**
      * {@code GET  /<%= entityApiUrl %>/slice} : get a slice of <%= entityInstancePlural %> (Cassandra pagination).
@@ -107,14 +107,14 @@ _%>
         @RequestParam(name = "eagerload", required = false, defaultValue = "true") boolean eagerload<% } %>) {
         LOG.debug("REST request to get a slice of <%= entityClassPlural %> (Cassandra pagination)");
         PageRequest pageRequest = PageRequest.of(page, size);
-    <%_ if (viaService) { _%>
+<%_ if (viaService) { _%>
         Slice<<%= instanceType %>> slice = <%= entityInstance %>Service.findAllSlice(pageRequest);
         HttpHeaders headers = new HttpHeaders();
         headers.add("X-Has-Next-Page", String.valueOf(slice.hasNext()));
         headers.add("X-Page-Number", String.valueOf(page));
         headers.add("X-Page-Size", String.valueOf(size));
         return ResponseEntity.ok().headers(headers).body(slice.getContent());
-    <%_ } else if (dtoMapstruct) { _%>
+<%_ } else if (dtoMapstruct) { _%>
         Slice<<%= persistClass %>> slice = <%= entityInstance %>Repository.findAll(pageRequest);
         List<<%= instanceType %>> dtoList = <%= entityListToDtoListReference %>(slice.getContent());
         HttpHeaders headers = new HttpHeaders();
@@ -122,16 +122,16 @@ _%>
         headers.add("X-Page-Number", String.valueOf(page));
         headers.add("X-Page-Size", String.valueOf(size));
         return ResponseEntity.ok().headers(headers).body(dtoList);
-    <%_ } else { _%>
+<%_ } else { _%>
         Slice<<%= instanceType %>> slice = <%= entityInstance %>Repository.findAll(pageRequest);
         HttpHeaders headers = new HttpHeaders();
         headers.add("X-Has-Next-Page", String.valueOf(slice.hasNext()));
         headers.add("X-Page-Number", String.valueOf(page));
         headers.add("X-Page-Size", String.valueOf(size));
         return ResponseEntity.ok().headers(headers).body(slice.getContent());
-    <%_ } _%>
+<%_ } _%>
     }
-    <%_ } _%>
+<%_ } _%>
   <%_ } else { _%>
     public <% if (reactive) { %>Mono<ResponseEntity<List<<%= instanceType %>>>><% } else { %>ResponseEntity<List<<%= instanceType %>>><% } %> getAll<%= entityClassPlural %>(@org.springdoc.core.annotations.ParameterObject Pageable pageable<% if (reactive) { %>, ServerHttpRequest request<% } %><% if (fieldsContainNoOwnerOneToOne) { %>, @RequestParam(name = "filter", required = false) String filter<% } %><% if (implementsEagerLoadApis) { %>, @RequestParam(name = "eagerload", required = false, defaultValue = "true") boolean eagerload<% } %>) {<%- include('get_all_stream_template', {viaService: viaService}); -%>
         LOG.debug("REST request to get a page of <%= entityClassPlural %>");
