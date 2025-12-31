@@ -125,12 +125,12 @@ _%>
         headers.add("X-Has-Next-Page", String.valueOf(slice.hasNext()));
         headers.add("X-Page-Size", String.valueOf(size));
 
-        // Extract paging state from next pageable for cursor-based pagination
+        // Extract paging state from current pageable (populated after query execution)
         if (slice.hasNext()) {
-            Pageable nextPageable = slice.nextPageable();
-            if (nextPageable instanceof CassandraPageRequest) {
-                CassandraPageRequest nextCassandraPageRequest = (CassandraPageRequest) nextPageable;
-                ByteBuffer nextPagingState = nextCassandraPageRequest.getPagingState();
+            Pageable currentPageable = slice.getPageable();
+            if (currentPageable instanceof CassandraPageRequest) {
+                CassandraPageRequest currentCassandraPageRequest = (CassandraPageRequest) currentPageable;
+                ByteBuffer nextPagingState = currentCassandraPageRequest.getPagingState();
                 if (nextPagingState != null) {
                     headers.add("X-Paging-State", Base64.getEncoder().encodeToString(nextPagingState.array()));
                 }
@@ -144,12 +144,12 @@ _%>
         headers.add("X-Has-Next-Page", String.valueOf(slice.hasNext()));
         headers.add("X-Page-Size", String.valueOf(size));
 
-        // Extract paging state from next pageable for cursor-based pagination
+        // Extract paging state from current pageable (populated after query execution)
         if (slice.hasNext()) {
-            Pageable nextPageable = slice.nextPageable();
-            if (nextPageable instanceof CassandraPageRequest) {
-                CassandraPageRequest nextCassandraPageRequest = (CassandraPageRequest) nextPageable;
-                ByteBuffer nextPagingState = nextCassandraPageRequest.getPagingState();
+            Pageable currentPageable = slice.getPageable();
+            if (currentPageable instanceof CassandraPageRequest) {
+                CassandraPageRequest currentCassandraPageRequest = (CassandraPageRequest) currentPageable;
+                ByteBuffer nextPagingState = currentCassandraPageRequest.getPagingState();
                 if (nextPagingState != null) {
                     headers.add("X-Paging-State", Base64.getEncoder().encodeToString(nextPagingState.array()));
                 }
@@ -162,12 +162,12 @@ _%>
         headers.add("X-Has-Next-Page", String.valueOf(slice.hasNext()));
         headers.add("X-Page-Size", String.valueOf(size));
 
-        // Extract paging state from next pageable for cursor-based pagination
+        // Extract paging state from current pageable (populated after query execution)
         if (slice.hasNext()) {
-            Pageable nextPageable = slice.nextPageable();
-            if (nextPageable instanceof CassandraPageRequest) {
-                CassandraPageRequest nextCassandraPageRequest = (CassandraPageRequest) nextPageable;
-                ByteBuffer nextPagingState = nextCassandraPageRequest.getPagingState();
+            Pageable currentPageable = slice.getPageable();
+            if (currentPageable instanceof CassandraPageRequest) {
+                CassandraPageRequest currentCassandraPageRequest = (CassandraPageRequest) currentPageable;
+                ByteBuffer nextPagingState = currentCassandraPageRequest.getPagingState();
                 if (nextPagingState != null) {
                     headers.add("X-Paging-State", Base64.getEncoder().encodeToString(nextPagingState.array()));
                 }
