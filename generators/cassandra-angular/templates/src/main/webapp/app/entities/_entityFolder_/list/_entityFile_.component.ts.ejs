@@ -382,6 +382,12 @@ export class <%= componentName %> implements OnInit {
       const dataFromBody = this.fillComponentAttributesFromResponseBody(response.body);
 <%_ if (paginationNo) { _%>
 <%_ if (databaseTypeCassandra) { _%>
+
+      // Safety check: If we got no data, we're definitely at the end
+      if (dataFromBody.length === 0) {
+        this.hasNextPage = false;
+      }
+
       if (append && this.<%= entityInstancePlural %>) {
         // Append new data for "Load More" functionality
         const combinedData = [...this.<%= entityInstancePlural %>, ...dataFromBody];
