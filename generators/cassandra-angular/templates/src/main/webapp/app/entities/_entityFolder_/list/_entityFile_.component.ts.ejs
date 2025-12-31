@@ -417,7 +417,7 @@ export class <%= componentName %> implements OnInit {
 
 <%_ if (databaseTypeCassandra && primaryKeySaathratri.composite) { _%>
       // Composite key fields that are nested in compositeId
-      const compositeKeyFields = [<%= compositeKeyFieldNames %>];
+      const compositeKeyFields = [<%- compositeKeyFieldNames %>];
 
       return data.sort((a, b) => {
         let aVal: any;
