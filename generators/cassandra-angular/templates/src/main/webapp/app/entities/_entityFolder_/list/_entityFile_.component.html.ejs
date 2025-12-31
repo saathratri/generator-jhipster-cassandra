@@ -21,10 +21,17 @@
         <span>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.title')</span>
 
         <div class="d-flex justify-content-end">
+<%_ if (databaseTypeCassandra && paginationNo) { _%>
+            <button class="btn btn-info me-2" (click)="reset()" [disabled]="isLoading">
+                <fa-icon icon="sync" [animation]="isLoading ? 'spin' : undefined"></fa-icon>
+                <span>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.refreshListLabel')</span>
+            </button>
+<%_ } else { _%>
             <button class="btn btn-info me-2" (click)="load()" [disabled]="isLoading">
                 <fa-icon icon="sync" [animation]="isLoading ? 'spin' : undefined"></fa-icon>
                 <span>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.refreshListLabel')</span>
             </button>
+<%_ } _%>
             <%_ if (!readOnly) { _%>
 
             <button id="jh-create-entity" data-cy="entityCreateButton" class="btn btn-primary jh-create-entity create-<%= entityUrl %>" [routerLink]="['/<%= entityPage %>/new']">
