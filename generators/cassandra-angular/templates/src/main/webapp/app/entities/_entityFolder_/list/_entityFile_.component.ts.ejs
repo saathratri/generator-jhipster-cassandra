@@ -521,9 +521,10 @@ export class <%= componentName %> implements OnInit {
 
 <%_ } _%>
 <%_ if (databaseTypeCassandra && paginationNo) { _%>
-      // Reset pagination when sort changes
+      // Reset pagination and clear data when sort changes
       this.currentPage = 0;
       this.hasNextPage = false;
+      this.<%= entityInstancePlural %> = [];
 
 <%_ } _%>
       const queryParamsObj<%_ if (jpaMetamodelFiltering && paginationPagination) { _%>: any<%_ } _%> = {
