@@ -292,26 +292,25 @@ _%>
         }
 <%_ } _%>
 <%_ if (databaseTypeCassandra && paginationNo) { _%>
-        <!-- Load More Button -->
         <div class="d-flex justify-content-center mt-3 mb-3">
-          @if (hasNextPage && !isLoadingMore) {
-            <button class="btn btn-primary" (click)="loadMore()" [disabled]="isLoadingMore">
-              <fa-icon icon="angle-down"></fa-icon>
-              <span __jhiTranslate__="<%- i18nKeyPrefix %>.home.loadMore">Load More</span>
-            </button>
-          }
-          @if (isLoadingMore) {
-            <button class="btn btn-primary" disabled>
-              <fa-icon icon="sync" [animation]="'spin'"></fa-icon>
-              <span __jhiTranslate__="<%- i18nKeyPrefix %>.home.loading">Loading...</span>
-            </button>
-          }
-          @if (!hasNextPage && <%= entityInstancePlural %> && <%= entityInstancePlural %>.length > 0) {
-            <div class="text-muted">
-              <fa-icon icon="check-circle" class="me-2"></fa-icon>
-              <span __jhiTranslate__="<%- i18nKeyPrefix %>.home.endOfList">End of list</span>
-            </div>
-          }
+            @if (hasNextPage && !isLoadingMore) {
+                <button class="btn btn-primary d-none" (click)="loadMore()" [disabled]="isLoadingMore">
+                    <fa-icon icon="sync"></fa-icon>
+                    <span>__jhiTranslateTag__('global.loadMore')</span>
+                </button>
+            }
+            @if (isLoadingMore) {
+                <button class="btn btn-primary" disabled>
+                    <fa-icon icon="sync" [animation]="'spin'"></fa-icon>
+                    <span>__jhiTranslateTag__('global.loadingMore')</span>
+                </button>
+            }
+            @if (!hasNextPage && <%= entityInstancePlural %> && <%= entityInstancePlural %>.length > 0) {
+                <div class="text-muted">
+                    <fa-icon icon="check-circle" class="me-2"></fa-icon>
+                    <span>__jhiTranslateTag__('global.endOfList')</span>
+                </div>
+            }
         </div>
 <%_ } _%>
     </div>

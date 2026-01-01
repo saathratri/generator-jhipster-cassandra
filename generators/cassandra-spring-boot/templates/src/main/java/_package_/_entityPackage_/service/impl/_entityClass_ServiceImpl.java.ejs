@@ -193,10 +193,7 @@ public class <%= serviceClassName %><% if (serviceImpl) { %> implements <%= enti
         LOG.debug("Request to get a slice of <%= entityClassPlural %> (Cassandra pagination)");
         Slice<<%= persistClass %>> slice = <%= entityInstance %>Repository.findAll(pageable);
       <%_ if (dtoMapstruct) { _%>
-        List<<%= instanceType %>> dtoList = slice.getContent().stream()
-            .map(<%= entityToDtoReference %>)
-            .collect(Collectors.toList());
-        return new org.springframework.data.domain.SliceImpl<>(dtoList, pageable, slice.hasNext());
+        return slice.map(<%= entityToDtoReference %>);
       <%_ } else { _%>
         return slice;
       <%_ } _%>

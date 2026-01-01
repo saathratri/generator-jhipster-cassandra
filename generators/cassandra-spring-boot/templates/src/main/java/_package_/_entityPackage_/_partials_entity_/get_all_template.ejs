@@ -112,7 +112,12 @@ _%>
             cassandraPageRequest = CassandraPageRequest.first(size);
         } else {
             try {
-                ByteBuffer pagingStateBuffer = ByteBuffer.wrap(Base64.getDecoder().decode(pagingState));
+                ByteBuffer pagingStateBuffer;
+                try {
+                    pagingStateBuffer = ByteBuffer.wrap(Base64.getUrlDecoder().decode(pagingState));
+                } catch (IllegalArgumentException e) {
+                    pagingStateBuffer = ByteBuffer.wrap(Base64.getDecoder().decode(pagingState));
+                }
                 cassandraPageRequest = CassandraPageRequest.of(PageRequest.of(0, size), pagingStateBuffer);
             } catch (IllegalArgumentException e) {
                 LOG.error("Invalid paging state", e);
@@ -122,57 +127,117 @@ _%>
 <%_ if (viaService) { _%>
         Slice<<%= instanceType %>> slice = <%= entityInstance %>Service.findAllSlice(cassandraPageRequest);
         HttpHeaders headers = new HttpHeaders();
-        headers.add("X-Has-Next-Page", String.valueOf(slice.hasNext()));
+
+        boolean hasNext = slice.hasNext();
         headers.add("X-Page-Size", String.valueOf(size));
+        headers.add("X-Total-Count", String.valueOf(<%= entityInstance %>Repository.count()));
 
         // Extract paging state from current pageable (populated after query execution)
-        if (slice.hasNext()) {
-            Pageable currentPageable = slice.getPageable();
-            if (currentPageable instanceof CassandraPageRequest) {
-                CassandraPageRequest currentCassandraPageRequest = (CassandraPageRequest) currentPageable;
-                ByteBuffer nextPagingState = currentCassandraPageRequest.getPagingState();
-                if (nextPagingState != null) {
-                    headers.add("X-Paging-State", Base64.getEncoder().encodeToString(nextPagingState.array()));
+        ByteBuffer nextPagingState = null;
+        if (hasNext && slice.getPageable() instanceof CassandraPageRequest) {
+            CassandraPageRequest currentCassandraPageRequest = (CassandraPageRequest) slice.getPageable();
+            nextPagingState = currentCassandraPageRequest.getPagingState();
+        }
+        if (hasNext && nextPagingState == null) {
+            try {
+                Pageable nextPageable = slice.nextPageable();
+                if (nextPageable instanceof CassandraPageRequest) {
+                    nextPagingState = ((CassandraPageRequest) nextPageable).getPagingState();
                 }
+            } catch (IllegalStateException e) {
+                LOG.warn("Unable to resolve next paging state for <%= entityClassPlural %>", e);
             }
         }
+        hasNext = hasNext && nextPagingState != null;
+        if (nextPagingState != null) {
+            byte[] pagingStateBytes = new byte[nextPagingState.remaining()];
+            nextPagingState.duplicate().get(pagingStateBytes);
+            String encodedPagingState = Base64.getUrlEncoder().encodeToString(pagingStateBytes);
+            String legacyEncodedPagingState = Base64.getEncoder().encodeToString(pagingStateBytes);
+            if (pagingState != null && (pagingState.equals(encodedPagingState) || pagingState.equals(legacyEncodedPagingState))) {
+                hasNext = false;
+            } else {
+                headers.add("X-Paging-State", encodedPagingState);
+            }
+        }
+        headers.add("X-Has-Next-Page", String.valueOf(hasNext));
         return ResponseEntity.ok().headers(headers).body(slice.getContent());
 <%_ } else if (dtoMapstruct) { _%>
         Slice<<%= persistClass %>> slice = <%= entityInstance %>Repository.findAll(cassandraPageRequest);
         List<<%= instanceType %>> dtoList = <%= entityListToDtoListReference %>(slice.getContent());
         HttpHeaders headers = new HttpHeaders();
-        headers.add("X-Has-Next-Page", String.valueOf(slice.hasNext()));
+
+        boolean hasNext = slice.hasNext();
         headers.add("X-Page-Size", String.valueOf(size));
+        headers.add("X-Total-Count", String.valueOf(<%= entityInstance %>Repository.count()));
 
         // Extract paging state from current pageable (populated after query execution)
-        if (slice.hasNext()) {
-            Pageable currentPageable = slice.getPageable();
-            if (currentPageable instanceof CassandraPageRequest) {
-                CassandraPageRequest currentCassandraPageRequest = (CassandraPageRequest) currentPageable;
-                ByteBuffer nextPagingState = currentCassandraPageRequest.getPagingState();
-                if (nextPagingState != null) {
-                    headers.add("X-Paging-State", Base64.getEncoder().encodeToString(nextPagingState.array()));
+        ByteBuffer nextPagingState = null;
+        if (hasNext && slice.getPageable() instanceof CassandraPageRequest) {
+            CassandraPageRequest currentCassandraPageRequest = (CassandraPageRequest) slice.getPageable();
+            nextPagingState = currentCassandraPageRequest.getPagingState();
+        }
+        if (hasNext && nextPagingState == null) {
+            try {
+                Pageable nextPageable = slice.nextPageable();
+                if (nextPageable instanceof CassandraPageRequest) {
+                    nextPagingState = ((CassandraPageRequest) nextPageable).getPagingState();
                 }
+            } catch (IllegalStateException e) {
+                LOG.warn("Unable to resolve next paging state for <%= entityClassPlural %>", e);
             }
         }
+        hasNext = hasNext && nextPagingState != null;
+        if (nextPagingState != null) {
+            byte[] pagingStateBytes = new byte[nextPagingState.remaining()];
+            nextPagingState.duplicate().get(pagingStateBytes);
+            String encodedPagingState = Base64.getUrlEncoder().encodeToString(pagingStateBytes);
+            String legacyEncodedPagingState = Base64.getEncoder().encodeToString(pagingStateBytes);
+            if (pagingState != null && (pagingState.equals(encodedPagingState) || pagingState.equals(legacyEncodedPagingState))) {
+                hasNext = false;
+            } else {
+                headers.add("X-Paging-State", encodedPagingState);
+            }
+        }
+        headers.add("X-Has-Next-Page", String.valueOf(hasNext));
         return ResponseEntity.ok().headers(headers).body(dtoList);
 <%_ } else { _%>
         Slice<<%= instanceType %>> slice = <%= entityInstance %>Repository.findAll(cassandraPageRequest);
         HttpHeaders headers = new HttpHeaders();
-        headers.add("X-Has-Next-Page", String.valueOf(slice.hasNext()));
+
+        boolean hasNext = slice.hasNext();
         headers.add("X-Page-Size", String.valueOf(size));
+        headers.add("X-Total-Count", String.valueOf(<%= entityInstance %>Repository.count()));
 
         // Extract paging state from current pageable (populated after query execution)
-        if (slice.hasNext()) {
-            Pageable currentPageable = slice.getPageable();
-            if (currentPageable instanceof CassandraPageRequest) {
-                CassandraPageRequest currentCassandraPageRequest = (CassandraPageRequest) currentPageable;
-                ByteBuffer nextPagingState = currentCassandraPageRequest.getPagingState();
-                if (nextPagingState != null) {
-                    headers.add("X-Paging-State", Base64.getEncoder().encodeToString(nextPagingState.array()));
+        ByteBuffer nextPagingState = null;
+        if (hasNext && slice.getPageable() instanceof CassandraPageRequest) {
+            CassandraPageRequest currentCassandraPageRequest = (CassandraPageRequest) slice.getPageable();
+            nextPagingState = currentCassandraPageRequest.getPagingState();
+        }
+        if (hasNext && nextPagingState == null) {
+            try {
+                Pageable nextPageable = slice.nextPageable();
+                if (nextPageable instanceof CassandraPageRequest) {
+                    nextPagingState = ((CassandraPageRequest) nextPageable).getPagingState();
                 }
+            } catch (IllegalStateException e) {
+                LOG.warn("Unable to resolve next paging state for <%= entityClassPlural %>", e);
             }
         }
+        hasNext = hasNext && nextPagingState != null;
+        if (nextPagingState != null) {
+            byte[] pagingStateBytes = new byte[nextPagingState.remaining()];
+            nextPagingState.duplicate().get(pagingStateBytes);
+            String encodedPagingState = Base64.getUrlEncoder().encodeToString(pagingStateBytes);
+            String legacyEncodedPagingState = Base64.getEncoder().encodeToString(pagingStateBytes);
+            if (pagingState != null && (pagingState.equals(encodedPagingState) || pagingState.equals(legacyEncodedPagingState))) {
+                hasNext = false;
+            } else {
+                headers.add("X-Paging-State", encodedPagingState);
+            }
+        }
+        headers.add("X-Has-Next-Page", String.valueOf(hasNext));
         return ResponseEntity.ok().headers(headers).body(slice.getContent());
 <%_ } _%>
     }

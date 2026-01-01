@@ -141,6 +141,7 @@ export class <%= componentName %> implements OnInit {
     pagingState: string | null = null;
     pageSize = 20;
     hasNextPage = false;
+    totalItems: number | null = null;
 <%_ } _%>
 
     sortState = sortStateSignal({});
@@ -180,7 +181,7 @@ export class <%= componentName %> implements OnInit {
     protected ngZone = inject(NgZone);
 <%_ if (primaryKeySaathratri.composite) { _%>
       // Saathratri: Composite Primary Key Code
-    	track<%= primaryKeySaathratri.nameCapitalized %> = (_index: number, item: I<%= entityAngularName %>Id): I<%= entityAngularName %>Id => this.<%= entityInstance %>Service.get<%= entityAngularName %>Identifier( { <%= primaryKeySaathratri.name %>: item } );
+    track<%= primaryKeySaathratri.nameCapitalized %> = (_index: number, item: I<%= entityAngularName %>): string => this.getCompositeKey(item);
 <%_ } else { _%>
       // Saathratri: Single-value Primary Key Code
     track<%= primaryKey.nameCapitalized %> = (item: I<%= entityAngularName %>): <%= primaryKey.tsType %> => this.<%= entityInstance %>Service.get<%= entityAngularName %>Identifier(item);
@@ -280,7 +281,11 @@ export class <%= componentName %> implements OnInit {
       modalRef.closed
         .pipe(
           filter(reason => reason === ITEM_DELETED_EVENT),
+<%_ if (databaseTypeCassandra && paginationNo) { _%>
+          tap(() => this.reset())
+<%_ } else { _%>
           tap(() => this.load())
+<%_ } _%>
         ).subscribe();
     }
 
@@ -300,6 +305,7 @@ export class <%= componentName %> implements OnInit {
     reset(): void {
       this.pagingState = null;
       this.hasNextPage = false;
+      this.totalItems = null;
       this.<%= entityInstancePlural %> = [];
       this.load();
     }
@@ -319,18 +325,17 @@ export class <%= componentName %> implements OnInit {
       }
     }
 
-    // Disabled automatic scroll - using Load More button instead
-    // @HostListener('window:scroll', ['$event'])
-    // onScroll(): void {
-    //   // Check if user has scrolled near the bottom of the page
-    //   const scrollPosition = window.scrollY + window.innerHeight;
-    //   const pageHeight = document.documentElement.scrollHeight;
-    //   const threshold = 200; // Trigger 200px before bottom
+    @HostListener('window:scroll', ['$event'])
+    onScroll(): void {
+      // Check if user has scrolled near the bottom of the page
+      const scrollPosition = window.scrollY + window.innerHeight;
+      const pageHeight = document.documentElement.scrollHeight;
+      const threshold = 200; // Trigger 200px before bottom
 
-    //   if (scrollPosition >= pageHeight - threshold && this.hasNextPage && !this.isLoadingMore && !this.isLoading) {
-    //     this.loadMore();
-    //   }
-    // }
+      if (scrollPosition >= pageHeight - threshold && this.hasNextPage && !this.isLoadingMore && !this.isLoading) {
+        this.loadMore();
+      }
+    }
 
 <%_ } _%>
     navigateToWithComponentValues(event: SortState): void {
@@ -383,19 +388,28 @@ export class <%= componentName %> implements OnInit {
 <%_ if (paginationNo) { _%>
 <%_ if (databaseTypeCassandra) { _%>
 
-      // Safety check: If we got no data, we're definitely at the end
-      if (dataFromBody.length === 0) {
+      if (append && dataFromBody.length === 0) {
         this.hasNextPage = false;
+        return;
       }
 
       if (append && this.<%= entityInstancePlural %>) {
         // Append new data for "Load More" functionality
-        const combinedData = [...this.<%= entityInstancePlural %>, ...dataFromBody];
+        const existingKeys = new Set(this.<%= entityInstancePlural %>.map(item => this.getEntityKey(item)));
+        const newItems = dataFromBody.filter(item => !existingKeys.has(this.getEntityKey(item)));
+        const combinedData = [...this.<%= entityInstancePlural %>, ...newItems];
+        if (newItems.length === 0) {
+          this.hasNextPage = false;
+          return;
+        }
         // Re-sort the entire combined array to maintain sort order
         this.<%= entityInstancePlural %> = this.refineData(combinedData);
       } else {
         // Replace data for initial load or refresh
         this.<%= entityInstancePlural %> = this.refineData(dataFromBody);
+      }
+      if (this.hasNextPage && this.totalItems !== null && this.<%= entityInstancePlural %>) {
+        this.hasNextPage = this.<%= entityInstancePlural %>.length < this.totalItems;
       }
 <%_ } else { _%>
       this.<%= entityInstancePlural %> = this.refineData(dataFromBody);
@@ -413,8 +427,31 @@ export class <%= componentName %> implements OnInit {
       // Extract paging state for next request (cursor-based pagination)
       const pagingStateHeader = headers.get('X-Paging-State');
       this.pagingState = pagingStateHeader || null;
+
+      const totalCountHeader = headers.get('X-Total-Count');
+      this.totalItems = totalCountHeader !== null ? Number(totalCountHeader) : null;
     }
 
+    private getEntityKey(item: I<%= entityAngularName %>): string {
+<%_ if (primaryKeySaathratri.composite) { _%>
+      return this.getCompositeKey(item);
+<%_ } else { _%>
+      return String(this.<%= entityInstance %>Service.get<%= entityAngularName %>Identifier(item));
+<%_ } _%>
+    }
+
+<%_ if (primaryKeySaathratri.composite) { _%>
+    private getCompositeKey(item: I<%= entityAngularName %>): string {
+      const compositeId = item.<%= primaryKeySaathratri.name %>;
+      return [
+<%_ const compositeIdFieldNames = fields.filter(field => field.isCompositePrimaryKeyField).map(field => field.fieldName); _%>
+<%_ compositeIdFieldNames.forEach((fieldName, index) => { _%>
+        compositeId.<%= fieldName %><%= index < compositeIdFieldNames.length - 1 ? ',' : '' %>
+<%_ }) _%>
+      ].join('|');
+    }
+
+<%_ } _%>
 <%_ } _%>
 
 <%_ if (paginationNo) { _%>
@@ -589,6 +626,7 @@ export class <%= componentName %> implements OnInit {
       // Reset pagination and clear data when sort changes
       this.pagingState = null;
       this.hasNextPage = false;
+      this.totalItems = null;
       this.<%= entityInstancePlural %> = [];
 
 <%_ } _%>
