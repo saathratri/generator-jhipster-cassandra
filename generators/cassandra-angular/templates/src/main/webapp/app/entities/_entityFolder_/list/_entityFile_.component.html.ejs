@@ -296,19 +296,19 @@ _%>
             @if (hasNextPage && !isLoadingMore) {
                 <button class="btn btn-primary d-none" (click)="loadMore()" [disabled]="isLoadingMore">
                     <fa-icon icon="sync"></fa-icon>
-                    <span>__jhiTranslateTag__('global.loadMore')</span>
+                    <span>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.loadMore')</span>
                 </button>
             }
             @if (isLoadingMore) {
                 <button class="btn btn-primary" disabled>
                     <fa-icon icon="sync" [animation]="'spin'"></fa-icon>
-                    <span>__jhiTranslateTag__('global.loadingMore')</span>
+                    <span>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.loadingMore')</span>
                 </button>
             }
             @if (!hasNextPage && <%= entityInstancePlural %> && <%= entityInstancePlural %>.length > 0) {
                 <div class="text-muted">
                     <fa-icon icon="check-circle" class="me-2"></fa-icon>
-                    <span>__jhiTranslateTag__('global.endOfList')</span>
+                    <span>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.endOfList')</span>
                 </div>
             }
         </div>

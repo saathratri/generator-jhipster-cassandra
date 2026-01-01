@@ -29,7 +29,8 @@
 <%_ if (searchEngineAny) { _%>
                 "search": "Search for <%= entityClassHumanized %>",
 <%_ } _%>
-                "notFound": "No <%= entityClassPluralHumanized %> found"<%_ if (paginationInfiniteScroll) { _%>,
+                "notFound": "No <%= entityClassPluralHumanized %> found"<%_ if (paginationInfiniteScroll || (databaseTypeCassandra && paginationNo)) { _%>,
+                "loadMore": "Load More",
                 "loadingMore": "Loading more <%= entityClassPluralHumanized.toLowerCase() %>...",
                 "endOfList": "You've reached the end of the list"<%_ } _%>
             },
