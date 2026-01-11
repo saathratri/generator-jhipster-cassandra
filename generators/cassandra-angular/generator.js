@@ -123,6 +123,9 @@ export default class extends BaseApplicationGenerator {
                 ...clientApplicationTemplatesBlock(),
                 templates: [
                   'app.config.ts',
+                  'config/font-awesome-icons.ts',
+                  'layouts/navbar/navbar.component.ts',
+                  'layouts/navbar/navbar.component.html',
                   'shared/material.module.ts',
                   'shared/date/convert-from-date-long-to-dayjs.pipe.ts',
                   'shared/date/convert-from-dayjs-to-date-long.pipe.ts',

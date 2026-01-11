@@ -47,10 +47,15 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import SharedModule from 'app/shared/shared.module';
 import { sortStateSignal, SortDirective, SortByDirective, type SortState, SortService } from 'app/shared/sort';
 import { DurationPipe, FormatMediumDatetimePipe, FormatMediumDatePipe, ConvertFromDayjsToDateLongPipe } from 'app/shared/date';
+<%_ if (databaseTypeCassandra && primaryKeySaathratri.composite) { _%>
+import dayjs from 'dayjs/esm';
+import customParseFormat from 'dayjs/esm/plugin/customParseFormat';
+dayjs.extend(customParseFormat);
+<%_ } _%>
 <%_ if (paginationPagination) { _%>
 import { ItemCountComponent } from 'app/shared/pagination';
 <%_ } _%>
-<%_ if (searchEngine) { _%>
+<%_ if (searchEngine || (databaseTypeCassandra && primaryKeySaathratri.composite)) { _%>
 import { FormsModule } from '@angular/forms';
 <%_ } _%>
 <%_ if (primaryKeySaathratri.composite) { _%>
@@ -101,7 +106,7 @@ import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
     templateUrl: './<%= entityFileName %>.component.html',
     imports: [
       RouterModule,
-<%_ if (searchEngine) { _%>
+<%_ if (searchEngine || (databaseTypeCassandra && primaryKeySaathratri.composite)) { _%>
       FormsModule,
 <%_ } _%>
       SharedModule,
@@ -142,6 +147,46 @@ export class <%= componentName %> implements OnInit {
     pageSize = 20;
     hasNextPage = false;
     totalItems: number | null = null;
+<%_ } _%>
+<%_ if (databaseTypeCassandra && primaryKeySaathratri.composite) {
+    const partitionKeyFields = fields.filter(f => f.isPartitionedKeySaathratri);
+    const clusteringKeyFields = fields.filter(f => f.isClusteredKeySaathratri);
+_%>
+
+    // Cassandra search form state
+    isSearchFormCollapsed = true;
+    isSearchActive = false;
+    searchCriteria: {
+<%_ for (const field of partitionKeyFields) { _%>
+  <%_ if (field.fieldTypeTimedSaathratri || field.fieldTypeLocalDateSaathratri) { _%>
+        <%= field.fieldName %>: string | null;
+  <%_ } else if (field.fieldType === 'Boolean') { _%>
+        <%= field.fieldName %>: boolean | null;
+  <%_ } else if (field.fieldTypeNumeric) { _%>
+        <%= field.fieldName %>: number | null;
+  <%_ } else { _%>
+        <%= field.fieldName %>: string | null;
+  <%_ } _%>
+<%_ } _%>
+<%_ for (const field of clusteringKeyFields) { _%>
+  <%_ if (field.fieldTypeTimedSaathratri || field.fieldTypeLocalDateSaathratri) { _%>
+        <%= field.fieldName %>: string | null;
+  <%_ } else if (field.fieldType === 'Boolean') { _%>
+        <%= field.fieldName %>: boolean | null;
+  <%_ } else if (field.fieldTypeNumeric) { _%>
+        <%= field.fieldName %>: number | null;
+  <%_ } else { _%>
+        <%= field.fieldName %>: string | null;
+  <%_ } _%>
+<%_ } _%>
+    } = {
+<%_ for (const field of partitionKeyFields) { _%>
+        <%= field.fieldName %>: null,
+<%_ } _%>
+<%_ for (const field of clusteringKeyFields) { _%>
+        <%= field.fieldName %>: null,
+<%_ } _%>
+    };
 <%_ } _%>
 
     sortState = sortStateSignal({});
@@ -193,7 +238,16 @@ export class <%= componentName %> implements OnInit {
 <%_ if (paginationInfiniteScroll) { _%>
         tap(() => this.reset()),
 <%_ } _%>
-<%_ if (!paginationNo || searchEngineAny || jpaMetamodelFiltering) { _%>
+<%_ if (databaseTypeCassandra && primaryKeySaathratri.composite) { _%>
+        // For Cassandra entities with composite keys, don't auto-load data
+        // User must enter partition key search criteria first
+        tap(() => {
+          // Only load if search is active (user has submitted search form)
+          if (this.isSearchActive) {
+            this.load();
+          }
+        }),
+<%_ } else if (!paginationNo || searchEngineAny || jpaMetamodelFiltering) { _%>
         tap(() => this.load()),
 <%_ } else { _%>
         tap(() => {
@@ -335,6 +389,94 @@ export class <%= componentName %> implements OnInit {
       if (scrollPosition >= pageHeight - threshold && this.hasNextPage && !this.isLoadingMore && !this.isLoading) {
         this.loadMore();
       }
+    }
+
+<%_ } _%>
+<%_ if (databaseTypeCassandra && primaryKeySaathratri.composite) {
+    const partitionKeyFieldsForMethods = fields.filter(f => f.isPartitionedKeySaathratri);
+_%>
+    // Cassandra search form methods
+    toggleSearchForm(): void {
+        this.isSearchFormCollapsed = !this.isSearchFormCollapsed;
+    }
+
+    hasActiveSearch(): boolean {
+        return this.isSearchActive;
+    }
+
+    isSearchFormValid(): boolean {
+        // All partition key fields must have values
+<%_ for (const field of partitionKeyFieldsForMethods) { _%>
+        if (this.searchCriteria.<%= field.fieldName %> === null || this.searchCriteria.<%= field.fieldName %> === undefined<% if (field.fieldType === 'String' || field.fieldTypeTimedSaathratri || field.fieldTypeLocalDateSaathratri) { %> || this.searchCriteria.<%= field.fieldName %> === ''<% } %>) {
+            return false;
+        }
+<%_ } _%>
+        return true;
+    }
+
+    performSearch(): void {
+        if (!this.isSearchFormValid()) {
+            return;
+        }
+        this.isSearchActive = true;
+        this.pagingState = null;
+        this.hasNextPage = false;
+        this.totalItems = null;
+        this.<%= entityInstancePlural %> = [];
+        this.load();
+    }
+
+    clearSearch(): void {
+        // Reset all search criteria
+<%_ for (const field of partitionKeyFieldsForMethods) { _%>
+        this.searchCriteria.<%= field.fieldName %> = null;
+<%_ } _%>
+<%_ const clusteringKeyFieldsForMethods = fields.filter(f => f.isClusteredKeySaathratri); _%>
+<%_ for (const field of clusteringKeyFieldsForMethods) { _%>
+        this.searchCriteria.<%= field.fieldName %> = null;
+<%_ } _%>
+        this.isSearchActive = false;
+        this.pagingState = null;
+        this.hasNextPage = false;
+        this.totalItems = null;
+        this.<%= entityInstancePlural %> = [];
+        // Don't call load() - user must enter partition key criteria first
+    }
+
+    /**
+     * Parse a human-readable date string to timestamp (milliseconds).
+     * Supports formats: "9 Dec 2025" (date only) or "9 Dec 2025, 14:30:00" (datetime)
+     */
+    protected parseDateToTimestamp(dateStr: string | null): number | null {
+        if (!dateStr || dateStr.trim() === '') {
+            return null;
+        }
+
+        // Try datetime format first: "9 Dec 2025, 14:30:00"
+        let parsed = dayjs(dateStr, 'D MMM YYYY, HH:mm:ss', true);
+        if (parsed.isValid()) {
+            return parsed.valueOf();
+        }
+
+        // Try datetime format without seconds: "9 Dec 2025, 14:30"
+        parsed = dayjs(dateStr, 'D MMM YYYY, HH:mm', true);
+        if (parsed.isValid()) {
+            return parsed.valueOf();
+        }
+
+        // Try date-only format: "9 Dec 2025"
+        parsed = dayjs(dateStr, 'D MMM YYYY', true);
+        if (parsed.isValid()) {
+            return parsed.valueOf();
+        }
+
+        // Fallback: try standard parsing
+        parsed = dayjs(dateStr);
+        if (parsed.isValid()) {
+            return parsed.valueOf();
+        }
+
+        return null;
     }
 
 <%_ } _%>
@@ -601,17 +743,70 @@ export class <%= componentName %> implements OnInit {
           );
       } else {
 <%_ } _%>
-    <%_ if (databaseTypeCassandra && paginationNo) { _%>
+<%_ if (databaseTypeCassandra && primaryKeySaathratri.composite) {
+    // Get all primary key fields in order
+    const allPkFields = primaryKeySaathratri.ids;
+    const keyName = primaryKeySaathratri.nameCapitalized;
+_%>
+        // For Cassandra with composite keys, call the appropriate findBy method
+        // based on which search criteria are provided
+        if (this.isSearchActive) {
+            // Determine which fields have values to select the right endpoint
+<%_ // Generate the cascading if-else logic for each combination, starting from the most specific
+    for (let i = allPkFields.length - 1; i >= 0; i--) {
+        // Build condition to check if fields 0..i all have values
+        let conditions = [];
+        let methodNameParts = [];
+        let methodArgs = [];
+
+        for (let j = 0; j <= i; j++) {
+            const field = allPkFields[j];
+            methodNameParts.push(`${keyName}${field.fieldNameCapitalized}`);
+
+            // Build condition based on field type
+            if (field.fieldTypeTimedSaathratri || field.fieldTypeLocalDateSaathratri) {
+                conditions.push(`this.searchCriteria.${field.fieldName} && this.searchCriteria.${field.fieldName}.trim() !== ''`);
+                methodArgs.push(`this.parseDateToTimestamp(this.searchCriteria.${field.fieldName})!`);
+            } else if (field.fieldType === 'Boolean') {
+                conditions.push(`this.searchCriteria.${field.fieldName} !== null`);
+                methodArgs.push(`this.searchCriteria.${field.fieldName}!`);
+            } else if (field.fieldTypeNumeric) {
+                conditions.push(`this.searchCriteria.${field.fieldName} !== null && this.searchCriteria.${field.fieldName} !== undefined`);
+                methodArgs.push(`this.searchCriteria.${field.fieldName}!`);
+            } else {
+                conditions.push(`this.searchCriteria.${field.fieldName} && this.searchCriteria.${field.fieldName}.trim() !== ''`);
+                methodArgs.push(`this.searchCriteria.${field.fieldName}!`);
+            }
+        }
+
+        const methodName = 'findAllBy' + methodNameParts.join('And') + 'Pageable';
+        const conditionStr = conditions.join(' && ');
+        const argsStr = methodArgs.join(', ');
+        const isFirst = i === allPkFields.length - 1;
+        const isLast = i === 0;
+_%>
+            <% if (isFirst) { %>if<% } else { %> else if<% } %> (<%- conditionStr %>) {
+                return this.<%= entityInstance %>Service.<%= methodName %>(<%- argsStr %>, queryObject)
+                    .pipe(tap(() => this.isLoading = false));
+            }
+<%_ } // end for loop _%>
+        }
+        // Fallback: no search active or no valid criteria, use querySlice (will return empty or all)
         return this.<%= entityInstance %>Service.querySlice(queryObject)
           .pipe(
             tap(() => this.isLoading = false)
           );
-    <%_ } else { _%>
+<%_ } else if (databaseTypeCassandra && paginationNo) { _%>
+        return this.<%= entityInstance %>Service.querySlice(queryObject)
+          .pipe(
+            tap(() => this.isLoading = false)
+          );
+<%_ } else { _%>
         return this.<%= entityInstance %>Service.query(queryObject)
           .pipe(
             tap(() => this.isLoading = false)
           );
-    <%_ } _%>
+<%_ } _%>
 <%_ if (searchEngineAny) { _%>
       }
 <%_ } _%>

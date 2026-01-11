@@ -32,7 +32,17 @@
                 "notFound": "No <%= entityClassPluralHumanized %> found"<%_ if (paginationInfiniteScroll || (databaseTypeCassandra && paginationNo)) { _%>,
                 "loadMore": "Load More",
                 "loadingMore": "Loading more <%= entityClassPluralHumanized.toLowerCase() %>...",
-                "endOfList": "You've reached the end of the list"<%_ } _%>
+                "endOfList": "You've reached the end of the list"<%_ } _%><%_ if (databaseTypeCassandra && primaryKeySaathratri.composite) { _%>,
+                "search": "Search <%= entityClassPluralHumanized %>",
+                "searchActive": "Search Active",
+                "searchRequired": "Enter partition key values above and click Search to load data",
+                "partitionKeys": "Partition Keys",
+                "clusteringKeys": "Clustering Keys",
+                "optional": "optional",
+                "dateFormat": "Format: 9 Dec 2025",
+                "dateTimeFormat": "Format: 9 Dec 2025, 14:30:00",
+                "searchButton": "Search",
+                "clearSearch": "Clear"<%_ } _%>
             },
 <%_ if (!microserviceAppName && !readOnly) { _%>
             "created": "A new <%= entityClassHumanized %> is created with identifier {{ param }}",

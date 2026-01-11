@@ -45,6 +45,200 @@
     <<%= jhiPrefixDashed %>-alert-error></<%= jhiPrefixDashed %>-alert-error>
 
     <<%= jhiPrefixDashed %>-alert></<%= jhiPrefixDashed %>-alert>
+<%_ if (databaseTypeCassandra && primaryKeySaathratri.composite) {
+    const partitionKeyFields = fields.filter(f => f.isPartitionedKeySaathratri);
+    const clusteringKeyFields = fields.filter(f => f.isClusteredKeySaathratri);
+_%>
+
+    <!-- Cassandra Search Form -->
+    <div class="card mb-3">
+        <div class="card-header d-flex justify-content-between align-items-center"
+             (click)="toggleSearchForm()"
+             style="cursor: pointer;"
+             data-cy="searchFormToggle">
+            <span>
+                <fa-icon [icon]="isSearchFormCollapsed ? 'chevron-right' : 'chevron-down'" class="me-2"></fa-icon>
+                <fa-icon icon="search" class="me-1"></fa-icon>
+                <span>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.search')</span>
+            </span>
+            @if (hasActiveSearch()) {
+                <span class="badge bg-primary">__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.searchActive')</span>
+            }
+        </div>
+        @if (!isSearchFormCollapsed) {
+            <div class="card-body">
+                <form name="searchForm" (ngSubmit)="performSearch()" #searchForm="ngForm">
+                    <!-- Partition Key Fields (Required) -->
+                    <div class="mb-3">
+                        <h6 class="text-muted mb-2">
+                            <fa-icon icon="key" class="me-1"></fa-icon>
+                            <span>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.partitionKeys')</span>
+                            <span class="text-danger">*</span>
+                        </h6>
+                        <div class="row">
+<%_ for (const field of partitionKeyFields) { _%>
+    <%_ if (field.fieldTypeTimedSaathratri) { _%>
+                            <div class="col-md-4 mb-2">
+                                <label class="form-label" for="search_<%= field.fieldName %>">__jhiTranslateTag__('<%- field.fieldTranslationKey %>')</label>
+                                <input type="text"
+                                       class="form-control"
+                                       id="search_<%= field.fieldName %>"
+                                       name="search_<%= field.fieldName %>"
+                                       [(ngModel)]="searchCriteria.<%= field.fieldName %>"
+                                       placeholder="9 Dec 2025, 14:30:00"
+                                       required
+                                       data-cy="search<%= field.fieldNameCapitalized %>">
+                                <small class="text-muted"><span>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.dateTimeFormat')</span></small>
+                            </div>
+    <%_ } else if (field.fieldTypeLocalDateSaathratri) { _%>
+                            <div class="col-md-4 mb-2">
+                                <label class="form-label" for="search_<%= field.fieldName %>">__jhiTranslateTag__('<%- field.fieldTranslationKey %>')</label>
+                                <input type="text"
+                                       class="form-control"
+                                       id="search_<%= field.fieldName %>"
+                                       name="search_<%= field.fieldName %>"
+                                       [(ngModel)]="searchCriteria.<%= field.fieldName %>"
+                                       placeholder="9 Dec 2025"
+                                       required
+                                       data-cy="search<%= field.fieldNameCapitalized %>">
+                                <small class="text-muted"><span>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.dateFormat')</span></small>
+                            </div>
+    <%_ } else if (field.fieldType === 'Boolean') { _%>
+                            <div class="col-md-4 mb-2">
+                                <label class="form-label" for="search_<%= field.fieldName %>">__jhiTranslateTag__('<%- field.fieldTranslationKey %>')</label>
+                                <select class="form-control"
+                                        id="search_<%= field.fieldName %>"
+                                        name="search_<%= field.fieldName %>"
+                                        [(ngModel)]="searchCriteria.<%= field.fieldName %>"
+                                        required
+                                        data-cy="search<%= field.fieldNameCapitalized %>">
+                                    <option [ngValue]="null">-- Select --</option>
+                                    <option [ngValue]="true">Yes</option>
+                                    <option [ngValue]="false">No</option>
+                                </select>
+                            </div>
+    <%_ } else if (field.fieldTypeNumeric) { _%>
+                            <div class="col-md-4 mb-2">
+                                <label class="form-label" for="search_<%= field.fieldName %>">__jhiTranslateTag__('<%- field.fieldTranslationKey %>')</label>
+                                <input type="number"
+                                       class="form-control"
+                                       id="search_<%= field.fieldName %>"
+                                       name="search_<%= field.fieldName %>"
+                                       [(ngModel)]="searchCriteria.<%= field.fieldName %>"
+                                       required
+                                       data-cy="search<%= field.fieldNameCapitalized %>">
+                            </div>
+    <%_ } else { _%>
+                            <div class="col-md-4 mb-2">
+                                <label class="form-label" for="search_<%= field.fieldName %>">__jhiTranslateTag__('<%- field.fieldTranslationKey %>')</label>
+                                <input type="text"
+                                       class="form-control"
+                                       id="search_<%= field.fieldName %>"
+                                       name="search_<%= field.fieldName %>"
+                                       [(ngModel)]="searchCriteria.<%= field.fieldName %>"
+                                       required
+                                       data-cy="search<%= field.fieldNameCapitalized %>">
+                            </div>
+    <%_ } _%>
+<%_ } _%>
+                        </div>
+                    </div>
+
+<%_ if (clusteringKeyFields.length > 0) { _%>
+                    <!-- Clustering Key Fields (Optional) -->
+                    <div class="mb-3">
+                        <h6 class="text-muted mb-2">
+                            <fa-icon icon="sort" class="me-1"></fa-icon>
+                            <span>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.clusteringKeys')</span>
+                            <span class="text-muted small">(<span>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.optional')</span>)</span>
+                        </h6>
+                        <div class="row">
+    <%_ for (const field of clusteringKeyFields) { _%>
+        <%_ if (field.fieldTypeTimedSaathratri) { _%>
+                            <div class="col-md-4 mb-2">
+                                <label class="form-label" for="search_<%= field.fieldName %>">__jhiTranslateTag__('<%- field.fieldTranslationKey %>')</label>
+                                <input type="text"
+                                       class="form-control"
+                                       id="search_<%= field.fieldName %>"
+                                       name="search_<%= field.fieldName %>"
+                                       [(ngModel)]="searchCriteria.<%= field.fieldName %>"
+                                       placeholder="9 Dec 2025, 14:30:00"
+                                       data-cy="search<%= field.fieldNameCapitalized %>">
+                                <small class="text-muted"><span>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.dateTimeFormat')</span></small>
+                            </div>
+        <%_ } else if (field.fieldTypeLocalDateSaathratri) { _%>
+                            <div class="col-md-4 mb-2">
+                                <label class="form-label" for="search_<%= field.fieldName %>">__jhiTranslateTag__('<%- field.fieldTranslationKey %>')</label>
+                                <input type="text"
+                                       class="form-control"
+                                       id="search_<%= field.fieldName %>"
+                                       name="search_<%= field.fieldName %>"
+                                       [(ngModel)]="searchCriteria.<%= field.fieldName %>"
+                                       placeholder="9 Dec 2025"
+                                       data-cy="search<%= field.fieldNameCapitalized %>">
+                                <small class="text-muted"><span>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.dateFormat')</span></small>
+                            </div>
+        <%_ } else if (field.fieldType === 'Boolean') { _%>
+                            <div class="col-md-4 mb-2">
+                                <label class="form-label" for="search_<%= field.fieldName %>">__jhiTranslateTag__('<%- field.fieldTranslationKey %>')</label>
+                                <select class="form-control"
+                                        id="search_<%= field.fieldName %>"
+                                        name="search_<%= field.fieldName %>"
+                                        [(ngModel)]="searchCriteria.<%= field.fieldName %>"
+                                        data-cy="search<%= field.fieldNameCapitalized %>">
+                                    <option [ngValue]="null">-- Select --</option>
+                                    <option [ngValue]="true">Yes</option>
+                                    <option [ngValue]="false">No</option>
+                                </select>
+                            </div>
+        <%_ } else if (field.fieldTypeNumeric) { _%>
+                            <div class="col-md-4 mb-2">
+                                <label class="form-label" for="search_<%= field.fieldName %>">__jhiTranslateTag__('<%- field.fieldTranslationKey %>')</label>
+                                <input type="number"
+                                       class="form-control"
+                                       id="search_<%= field.fieldName %>"
+                                       name="search_<%= field.fieldName %>"
+                                       [(ngModel)]="searchCriteria.<%= field.fieldName %>"
+                                       data-cy="search<%= field.fieldNameCapitalized %>">
+                            </div>
+        <%_ } else { _%>
+                            <div class="col-md-4 mb-2">
+                                <label class="form-label" for="search_<%= field.fieldName %>">__jhiTranslateTag__('<%- field.fieldTranslationKey %>')</label>
+                                <input type="text"
+                                       class="form-control"
+                                       id="search_<%= field.fieldName %>"
+                                       name="search_<%= field.fieldName %>"
+                                       [(ngModel)]="searchCriteria.<%= field.fieldName %>"
+                                       data-cy="search<%= field.fieldNameCapitalized %>">
+                            </div>
+        <%_ } _%>
+    <%_ } _%>
+                        </div>
+                    </div>
+<%_ } _%>
+
+                    <!-- Search Actions -->
+                    <div class="d-flex gap-2">
+                        <button type="submit"
+                                class="btn btn-primary"
+                                [disabled]="!isSearchFormValid()"
+                                data-cy="searchButton">
+                            <fa-icon icon="search"></fa-icon>
+                            <span>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.searchButton')</span>
+                        </button>
+                        <button type="button"
+                                class="btn btn-secondary"
+                                (click)="clearSearch()"
+                                data-cy="clearSearchButton">
+                            <fa-icon icon="times"></fa-icon>
+                            <span>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.clearSearch')</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        }
+    </div>
+<%_ } _%>
 <%_ if (searchEngineAny) { _%>
 
     <form name="searchForm" class="row row-cols-sm-auto align-items-center">
@@ -71,11 +265,26 @@
     <<%= jhiPrefixDashed %>-filter [filters]="filters"></<%= jhiPrefixDashed %>-filter>
 <%_ } _%>
 
+<%_ if (databaseTypeCassandra && primaryKeySaathratri.composite) { _%>
+@if (!isSearchActive && (!<%= entityInstancePlural %> || <%= entityInstancePlural %>.length === 0)) {
+    <div class="alert alert-info" id="search-required">
+        <fa-icon icon="search" class="me-2"></fa-icon>
+        <span>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.searchRequired')</span>
+    </div>
+}
+
+@if (isSearchActive && <%= entityInstancePlural %>?.length === 0) {
+    <div class="alert alert-warning" id="no-result">
+        <span>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.notFound')</span>
+    </div>
+}
+<%_ } else { _%>
 @if (<%= entityInstancePlural %>?.length === 0) {
     <div class="alert alert-warning" id="no-result">
         <span>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.notFound')</span>
     </div>
 }
+<%_ } _%>
 
 @if (<%= entityInstancePlural %> && <%= entityInstancePlural %>.length > 0) {
 <%_ if (paginationInfiniteScroll) { _%>

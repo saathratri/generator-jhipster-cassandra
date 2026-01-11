@@ -227,6 +227,55 @@ export class <%= entityAngularName %>Service {
             <% if (builtInUserManagement) { %>.pipe(map(res => this.convertUserManagementResponseArrayFromServer(res)))<% } %>;
     }
 <%_ } _%>
+<%_ if (databaseTypeCassandra && primaryKeySaathratri.composite) {
+    // Generate findBy paginated methods for each combination of partition/clustering keys
+    const pkFields = primaryKeySaathratri.ids;
+    const keyName = primaryKeySaathratri.nameCapitalized;
+
+    // Generate methods for progressive key combinations
+    for (let i = 0; i < pkFields.length; i++) {
+        // Build method name: findAllByCompositeIdField1AndCompositeIdField2...Pageable
+        let methodNameParts = [];
+        let paramDeclarations = [];
+        let paramNames = [];
+
+        for (let j = 0; j <= i; j++) {
+            const field = pkFields[j];
+            methodNameParts.push(`${keyName}${field.fieldNameCapitalized}`);
+
+            // Determine TypeScript type for parameter
+            let tsType = 'string';
+            if (field.fieldType === 'Long' || field.fieldTypeNumeric) {
+                tsType = 'number';
+            } else if (field.fieldType === 'Boolean') {
+                tsType = 'boolean';
+            } else if (field.fieldType === 'UUID' || field.fieldType === 'String') {
+                tsType = 'string';
+            }
+
+            paramDeclarations.push(`${field.fieldName}: ${tsType}`);
+            paramNames.push(field.fieldName);
+        }
+
+        const methodName = 'findAllBy' + methodNameParts.join('And') + 'Pageable';
+        const urlPath = methodName.replace(/[A-Z]/g, m => '-' + m.toLowerCase()).substring(1); // Convert to kebab-case
+_%>
+
+    /**
+     * Find <%= entityClassPluralHumanized %> by <%- paramNames.join(', ') %> with pagination.
+     * Uses Cassandra Slice-based pagination.
+     */
+    <%= methodName %>(<%- paramDeclarations.join(', ') %>, req?: any): Observable<EntityArrayResponseType> {
+        let options = createRequestOption(req);
+<%_ for (const pName of paramNames) { _%>
+        options = options.set('<%= pName %>', String(<%= pName %>));
+<%_ } _%>
+        return this.http.get<<%= entityRestName %>[]>(`${this.resourceUrl}/<%= urlPath %>`, { params: options, observe: 'response' })
+            <% if (anyFieldIsDateDerived || anyFieldIsDateDerivedSaathratri) { %>.pipe(map(res => this.convertResponseArrayFromServer(res)))<% } %>
+            <% if (builtInUserManagement) { %>.pipe(map(res => this.convertUserManagementResponseArrayFromServer(res)))<% } %>;
+    }
+<%_ } // end for loop
+} // end if databaseTypeCassandra _%>
 
 <%_ if (!readOnly) { _%>
     <%_ 
