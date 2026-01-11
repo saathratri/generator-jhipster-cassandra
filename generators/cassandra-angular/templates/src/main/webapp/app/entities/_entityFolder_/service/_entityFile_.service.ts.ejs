@@ -23,7 +23,7 @@ if (paginationPagination || paginationInfiniteScroll) {
 }
 _%>
 import { inject, Injectable } from '@angular/core';
-import { HttpClient, HttpResponse } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import {
 <%_ if (builtInUserManagement || anyFieldIsDateDerived || anyFieldIsDateDerivedSaathratri) { _%>
   map,
@@ -258,7 +258,8 @@ export class <%= entityAngularName %>Service {
         }
 
         const methodName = 'findAllBy' + methodNameParts.join('And') + 'Pageable';
-        const urlPath = methodName.replace(/[A-Z]/g, m => '-' + m.toLowerCase()).substring(1); // Convert to kebab-case
+        // Convert camelCase to kebab-case: findAllByX -> find-all-by-x
+        const urlPath = methodName.charAt(0).toLowerCase() + methodName.slice(1).replace(/[A-Z]/g, m => '-' + m.toLowerCase());
 _%>
 
     /**
@@ -275,6 +276,45 @@ _%>
             <% if (builtInUserManagement) { %>.pipe(map(res => this.convertUserManagementResponseArrayFromServer(res)))<% } %>;
     }
 <%_ } // end for loop
+
+    // Generate findBy method for exact match (all keys provided - returns single entity)
+    {
+        let allMethodNameParts = [];
+        let allParamDeclarations = [];
+        let allParamNames = [];
+
+        for (const field of pkFields) {
+            allMethodNameParts.push(`${keyName}${field.fieldNameCapitalized}`);
+
+            let tsType = 'string';
+            if (field.fieldType === 'Long' || field.fieldTypeNumeric) {
+                tsType = 'number';
+            } else if (field.fieldType === 'Boolean') {
+                tsType = 'boolean';
+            }
+
+            allParamDeclarations.push(`${field.fieldName}: ${tsType}`);
+            allParamNames.push(field.fieldName);
+        }
+
+        const findByMethodName = 'findBy' + allMethodNameParts.join('And');
+        const findByUrlPath = findByMethodName.charAt(0).toLowerCase() + findByMethodName.slice(1).replace(/[A-Z]/g, m => '-' + m.toLowerCase());
+_%>
+
+    /**
+     * Find single <%= entityClassHumanized %> by all primary key fields.
+     * Returns exactly one record when all partition and clustering keys are provided.
+     */
+    <%= findByMethodName %>(<%- allParamDeclarations.join(', ') %>): Observable<EntityResponseType> {
+        let options = new HttpParams();
+<%_ for (const pName of allParamNames) { _%>
+        options = options.set('<%= pName %>', String(<%= pName %>));
+<%_ } _%>
+        return this.http.get<<%= entityRestName %>>(`${this.resourceUrl}/<%= findByUrlPath %>`, { params: options, observe: 'response' })
+            <% if (anyFieldIsDateDerived || anyFieldIsDateDerivedSaathratri) { %>.pipe(map(res => this.convertResponseFromServer(res)))<% } %>
+            <% if (builtInUserManagement) { %>.pipe(map(res => this.convertUserManagementResponseFromServer(res)))<% } %>;
+    }
+<%_ }
 } // end if databaseTypeCassandra _%>
 
 <%_ if (!readOnly) { _%>

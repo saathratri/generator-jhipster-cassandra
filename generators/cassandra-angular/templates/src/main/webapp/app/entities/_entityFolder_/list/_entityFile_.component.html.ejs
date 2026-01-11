@@ -266,14 +266,7 @@ _%>
 <%_ } _%>
 
 <%_ if (databaseTypeCassandra && primaryKeySaathratri.composite) { _%>
-@if (!isSearchActive && (!<%= entityInstancePlural %> || <%= entityInstancePlural %>.length === 0)) {
-    <div class="alert alert-info" id="search-required">
-        <fa-icon icon="search" class="me-2"></fa-icon>
-        <span>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.searchRequired')</span>
-    </div>
-}
-
-@if (isSearchActive && <%= entityInstancePlural %>?.length === 0) {
+@if (<%= entityInstancePlural %>?.length === 0 && !isLoading) {
     <div class="alert alert-warning" id="no-result">
         <span>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.notFound')</span>
     </div>

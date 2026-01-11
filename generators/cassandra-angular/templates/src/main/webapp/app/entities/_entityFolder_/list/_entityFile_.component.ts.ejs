@@ -36,10 +36,10 @@
 _%>
 import { Component, computed, NgZone, inject, OnInit, signal, WritableSignal<%_ if (paginationInfiniteScroll || (databaseTypeCassandra && paginationNo)) { _%>, HostListener<%_ } _%><%_ if (paginationInfiniteScroll) { _%>, ViewChild, ElementRef<%_ } _%> } from '@angular/core';
 <%_ if (!paginationNo || (databaseTypeCassandra && paginationNo)) { _%>
-import { HttpHeaders } from '@angular/common/http';
+import { HttpHeaders<%_ if (databaseTypeCassandra && primaryKeySaathratri.composite) { _%>, HttpResponse<%_ } _%> } from '@angular/common/http';
 <%_ } _%>
 import { ActivatedRoute, Data, ParamMap, Router, RouterModule } from '@angular/router';
-import { combineLatest<%_ if (!readOnly) { _%>, filter<%_ } _%>, Observable, Subscription, tap } from 'rxjs';
+import { combineLatest<%_ if (!readOnly) { _%>, filter<%_ } _%><%_ if (databaseTypeCassandra && primaryKeySaathratri.composite) { _%>, map<%_ } _%>, Observable, Subscription, tap } from 'rxjs';
 <%_ if (!readOnly) { _%>
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 <%_ } _%>
@@ -83,7 +83,7 @@ import {
 <%_ } _%>
   DEFAULT_SORT_DATA
 } from 'app/config/navigation.constants';
-import { EntityArrayResponseType, <%= entityAngularName %>Service } from '../service/<%= entityFileName %>.service';
+import { EntityArrayResponseType<%_ if (databaseTypeCassandra && primaryKeySaathratri.composite) { _%>, EntityResponseType<%_ } _%>, <%= entityAngularName %>Service } from '../service/<%= entityFileName %>.service';
 <%_ if (!readOnly) { _%>
 import { <%= entityAngularName %>DeleteDialogComponent } from '../delete/<%= entityFileName %>-delete-dialog.component';
 <%_ } _%>
@@ -239,11 +239,10 @@ _%>
         tap(() => this.reset()),
 <%_ } _%>
 <%_ if (databaseTypeCassandra && primaryKeySaathratri.composite) { _%>
-        // For Cassandra entities with composite keys, don't auto-load data
-        // User must enter partition key search criteria first
+        // For Cassandra entities with composite keys, load data by default
+        // When search is active, filtered results will be shown
         tap(() => {
-          // Only load if search is active (user has submitted search form)
-          if (this.isSearchActive) {
+          if (!this.<%= entityInstancePlural %> || this.<%= entityInstancePlural %>.length === 0) {
             this.load();
           }
         }),
@@ -440,7 +439,8 @@ _%>
         this.hasNextPage = false;
         this.totalItems = null;
         this.<%= entityInstancePlural %> = [];
-        // Don't call load() - user must enter partition key criteria first
+        // Reload default data (all records)
+        this.load();
     }
 
     /**
@@ -779,17 +779,41 @@ _%>
             }
         }
 
-        const methodName = 'findAllBy' + methodNameParts.join('And') + 'Pageable';
         const conditionStr = conditions.join(' && ');
         const argsStr = methodArgs.join(', ');
-        const isFirst = i === allPkFields.length - 1;
-        const isLast = i === 0;
+        const isAllKeysProvided = i === allPkFields.length - 1;
+        const isFirst = isAllKeysProvided;
+
+        // When ALL keys are provided, use findBy (returns single entity)
+        // Otherwise use findAllByPageable (returns array)
+        if (isAllKeysProvided) {
+            const findByMethodName = 'findBy' + methodNameParts.join('And');
 _%>
-            <% if (isFirst) { %>if<% } else { %> else if<% } %> (<%- conditionStr %>) {
+            if (<%- conditionStr %>) {
+                // All primary key fields provided - use findBy for exact match (single record)
+                return this.<%= entityInstance %>Service.<%= findByMethodName %>(<%- argsStr %>)
+                    .pipe(
+                        map((res: EntityResponseType) => {
+                            // Convert single entity response to array response for display
+                            const entity = res.body;
+                            return new HttpResponse({
+                                body: entity ? [entity] : [],
+                                headers: res.headers,
+                                status: res.status,
+                            });
+                        }),
+                        tap(() => this.isLoading = false)
+                    );
+            }
+<%_     } else {
+            const methodName = 'findAllBy' + methodNameParts.join('And') + 'Pageable';
+_%>
+             else if (<%- conditionStr %>) {
                 return this.<%= entityInstance %>Service.<%= methodName %>(<%- argsStr %>, queryObject)
                     .pipe(tap(() => this.isLoading = false));
             }
-<%_ } // end for loop _%>
+<%_     }
+    } // end for loop _%>
         }
         // Fallback: no search active or no valid criteria, use querySlice (will return empty or all)
         return this.<%= entityInstance %>Service.querySlice(queryObject)
