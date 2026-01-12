@@ -485,6 +485,86 @@ _%>
         return true;
     }
 
+<%_
+    // Get ALL clustering fields in order
+    const allClusteringFields = fields.filter(f => f.isClusteredKeySaathratri);
+    // Get clustering fields that have operators (date/datetime/Long/TimeUUID types)
+    const clusteringFieldsWithOperators = allClusteringFields.filter(f =>
+        f.fieldTypeTimedSaathratri || f.fieldTypeLocalDateSaathratri ||
+        f.fieldTypeNumeric || f.fieldType === 'Long' || f.fieldTypeTimeUuidSaathratri
+    );
+_%>
+    /**
+     * Check if a clustering key field should be disabled based on Cassandra query rules.
+     * In Cassandra, once an inequality operator is used on a clustering column,
+     * subsequent clustering columns cannot be filtered.
+     */
+    isClusteringFieldDisabled(fieldName: string): boolean {
+        const criteria = this.searchCriteria as any;
+        // Ordered list of ALL clustering fields
+        const allClusteringFields: string[] = [<%- allClusteringFields.map(f => `'${f.fieldName}'`).join(', ') %>];
+        // Fields that have operators
+        const fieldsWithOperators: string[] = [<%- clusteringFieldsWithOperators.map(f => `'${f.fieldName}'`).join(', ') %>];
+
+        const fieldIndex = allClusteringFields.indexOf(fieldName);
+        if (fieldIndex <= 0) {
+            // First field - never disabled
+            return false;
+        }
+
+        // Check all PRECEDING clustering fields that have operators
+        for (let i = 0; i < fieldIndex; i++) {
+            const prevFieldName = allClusteringFields[i];
+            // Only check fields that have operators
+            if (fieldsWithOperators.includes(prevFieldName)) {
+                const prevOperator = criteria[prevFieldName + 'Operator'];
+
+                // If a preceding field has an inequality operator, disable this field
+                // (Cassandra doesn't allow filtering subsequent columns after an inequality)
+                if (prevOperator && prevOperator !== 'eq') {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Called when an operator changes - clears values of subsequent disabled fields
+     */
+    onOperatorChange(fieldName: string): void {
+        const criteria = this.searchCriteria as any;
+        // Ordered list of ALL clustering fields
+        const allClusteringFields: string[] = [<%- allClusteringFields.map(f => `'${f.fieldName}'`).join(', ') %>];
+        // Fields that have operators
+        const fieldsWithOperators: string[] = [<%- clusteringFieldsWithOperators.map(f => `'${f.fieldName}'`).join(', ') %>];
+
+        const fieldIndex = allClusteringFields.indexOf(fieldName);
+        if (fieldIndex < 0) return;
+
+        // Clear values of all subsequent fields if this field has inequality
+        const operator = criteria[fieldName + 'Operator'];
+        if (operator && operator !== 'eq') {
+            for (let i = fieldIndex + 1; i < allClusteringFields.length; i++) {
+                const nextFieldName = allClusteringFields[i];
+                criteria[nextFieldName] = null;
+                // Also reset operator if this field has one
+                if (fieldsWithOperators.includes(nextFieldName)) {
+                    criteria[nextFieldName + 'Operator'] = 'eq';
+                }
+                // Also clear date picker related fields if they exist
+                if (criteria[nextFieldName + 'Date'] !== undefined) {
+                    criteria[nextFieldName + 'Date'] = null;
+                }
+                if (criteria[nextFieldName + 'Hour'] !== undefined) {
+                    criteria[nextFieldName + 'Hour'] = null;
+                    criteria[nextFieldName + 'Minute'] = null;
+                    criteria[nextFieldName + 'AmPm'] = null;
+                }
+            }
+        }
+    }
+
     performSearch(): void {
         if (!this.isSearchFormValid()) {
             return;

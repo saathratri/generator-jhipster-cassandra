@@ -198,13 +198,15 @@ _%>
     <%_ for (const field of clusteringKeyFields) { _%>
         <%_ if (field.fieldTypeTimedSaathratri) { _%>
                             <div class="col-md-8 mb-2">
-                                <label class="form-label" for="search_<%= field.fieldName %>">__jhiTranslateTag__('<%- field.fieldTranslationKey %>')</label>
+                                <label class="form-label" for="search_<%= field.fieldName %>" [class.text-muted]="isClusteringFieldDisabled('<%= field.fieldName %>')">__jhiTranslateTag__('<%- field.fieldTranslationKey %>')</label>
                                 <div class="date-time-search-container">
                                     <!-- Comparison Operator Dropdown -->
                                     <mat-form-field appearance="outline" class="search-operator-field">
                                         <mat-label>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.operator')</mat-label>
                                         <mat-select [(ngModel)]="searchCriteria.<%= field.fieldName %>Operator"
                                                     name="search_<%= field.fieldName %>_operator"
+                                                    [disabled]="isClusteringFieldDisabled('<%= field.fieldName %>')"
+                                                    (selectionChange)="onOperatorChange('<%= field.fieldName %>')"
                                                     data-cy="search<%= field.fieldNameCapitalized %>Operator">
                                             <mat-option value="eq">=</mat-option>
                                             <mat-option value="lt">&lt;</mat-option>
@@ -219,9 +221,10 @@ _%>
                                                [matDatepicker]="search<%= field.fieldNameCapitalized %>DatePicker"
                                                [(ngModel)]="searchCriteria.<%= field.fieldName %>Date"
                                                name="search_<%= field.fieldName %>_date"
+                                               [disabled]="isClusteringFieldDisabled('<%= field.fieldName %>')"
                                                (dateChange)="onSearchDateChange('<%= field.fieldName %>', true)"
                                                data-cy="search<%= field.fieldNameCapitalized %>Date">
-                                        <mat-datepicker-toggle matSuffix [for]="search<%= field.fieldNameCapitalized %>DatePicker"></mat-datepicker-toggle>
+                                        <mat-datepicker-toggle matSuffix [for]="search<%= field.fieldNameCapitalized %>DatePicker" [disabled]="isClusteringFieldDisabled('<%= field.fieldName %>')"></mat-datepicker-toggle>
                                         <mat-datepicker #search<%= field.fieldNameCapitalized %>DatePicker></mat-datepicker>
                                     </mat-form-field>
                                     <mat-form-field appearance="outline" class="search-time-field">
@@ -231,6 +234,7 @@ _%>
                                                name="search_<%= field.fieldName %>_hour"
                                                min="1" max="12"
                                                placeholder="HH"
+                                               [disabled]="isClusteringFieldDisabled('<%= field.fieldName %>')"
                                                (change)="onSearchDateChange('<%= field.fieldName %>', true)"
                                                data-cy="search<%= field.fieldNameCapitalized %>Hour">
                                     </mat-form-field>
@@ -241,6 +245,7 @@ _%>
                                                name="search_<%= field.fieldName %>_minute"
                                                min="0" max="59"
                                                placeholder="MM"
+                                               [disabled]="isClusteringFieldDisabled('<%= field.fieldName %>')"
                                                (change)="onSearchDateChange('<%= field.fieldName %>', true)"
                                                data-cy="search<%= field.fieldNameCapitalized %>Minute">
                                     </mat-form-field>
@@ -248,6 +253,7 @@ _%>
                                         <mat-label>AM/PM</mat-label>
                                         <mat-select [(ngModel)]="searchCriteria.<%= field.fieldName %>AmPm"
                                                     name="search_<%= field.fieldName %>_ampm"
+                                                    [disabled]="isClusteringFieldDisabled('<%= field.fieldName %>')"
                                                     (selectionChange)="onSearchDateChange('<%= field.fieldName %>', true)"
                                                     data-cy="search<%= field.fieldNameCapitalized %>AmPm">
                                             <mat-option value="AM">AM</mat-option>
@@ -258,13 +264,15 @@ _%>
                             </div>
         <%_ } else if (field.fieldTypeLocalDateSaathratri) { _%>
                             <div class="col-md-6 mb-2">
-                                <label class="form-label" for="search_<%= field.fieldName %>">__jhiTranslateTag__('<%- field.fieldTranslationKey %>')</label>
+                                <label class="form-label" for="search_<%= field.fieldName %>" [class.text-muted]="isClusteringFieldDisabled('<%= field.fieldName %>')">__jhiTranslateTag__('<%- field.fieldTranslationKey %>')</label>
                                 <div class="d-flex gap-2">
                                     <!-- Comparison Operator Dropdown -->
                                     <mat-form-field appearance="outline" class="search-operator-field">
                                         <mat-label>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.operator')</mat-label>
                                         <mat-select [(ngModel)]="searchCriteria.<%= field.fieldName %>Operator"
                                                     name="search_<%= field.fieldName %>_operator"
+                                                    [disabled]="isClusteringFieldDisabled('<%= field.fieldName %>')"
+                                                    (selectionChange)="onOperatorChange('<%= field.fieldName %>')"
                                                     data-cy="search<%= field.fieldNameCapitalized %>Operator">
                                             <mat-option value="eq">=</mat-option>
                                             <mat-option value="lt">&lt;</mat-option>
@@ -279,20 +287,22 @@ _%>
                                                [matDatepicker]="search<%= field.fieldNameCapitalized %>Picker"
                                                [(ngModel)]="searchCriteria.<%= field.fieldName %>Date"
                                                name="search_<%= field.fieldName %>"
+                                               [disabled]="isClusteringFieldDisabled('<%= field.fieldName %>')"
                                                (dateChange)="onSearchDateChange('<%= field.fieldName %>')"
                                                data-cy="search<%= field.fieldNameCapitalized %>">
-                                        <mat-datepicker-toggle matSuffix [for]="search<%= field.fieldNameCapitalized %>Picker"></mat-datepicker-toggle>
+                                        <mat-datepicker-toggle matSuffix [for]="search<%= field.fieldNameCapitalized %>Picker" [disabled]="isClusteringFieldDisabled('<%= field.fieldName %>')"></mat-datepicker-toggle>
                                         <mat-datepicker #search<%= field.fieldNameCapitalized %>Picker></mat-datepicker>
                                     </mat-form-field>
                                 </div>
                             </div>
         <%_ } else if (field.fieldType === 'Boolean') { _%>
                             <div class="col-md-4 mb-2">
-                                <label class="form-label" for="search_<%= field.fieldName %>">__jhiTranslateTag__('<%- field.fieldTranslationKey %>')</label>
+                                <label class="form-label" for="search_<%= field.fieldName %>" [class.text-muted]="isClusteringFieldDisabled('<%= field.fieldName %>')">__jhiTranslateTag__('<%- field.fieldTranslationKey %>')</label>
                                 <select class="form-control"
                                         id="search_<%= field.fieldName %>"
                                         name="search_<%= field.fieldName %>"
                                         [(ngModel)]="searchCriteria.<%= field.fieldName %>"
+                                        [disabled]="isClusteringFieldDisabled('<%= field.fieldName %>')"
                                         data-cy="search<%= field.fieldNameCapitalized %>">
                                     <option [ngValue]="null">-- Select --</option>
                                     <option [ngValue]="true">Yes</option>
@@ -301,13 +311,15 @@ _%>
                             </div>
         <%_ } else if (field.fieldTypeNumeric || field.fieldType === 'Long') { _%>
                             <div class="col-md-6 mb-2">
-                                <label class="form-label" for="search_<%= field.fieldName %>">__jhiTranslateTag__('<%- field.fieldTranslationKey %>')</label>
+                                <label class="form-label" for="search_<%= field.fieldName %>" [class.text-muted]="isClusteringFieldDisabled('<%= field.fieldName %>')">__jhiTranslateTag__('<%- field.fieldTranslationKey %>')</label>
                                 <div class="d-flex gap-2">
                                     <!-- Comparison Operator Dropdown for Long/numeric clustering keys -->
                                     <mat-form-field appearance="outline" class="search-operator-field">
                                         <mat-label>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.operator')</mat-label>
                                         <mat-select [(ngModel)]="searchCriteria.<%= field.fieldName %>Operator"
                                                     name="search_<%= field.fieldName %>_operator"
+                                                    [disabled]="isClusteringFieldDisabled('<%= field.fieldName %>')"
+                                                    (selectionChange)="onOperatorChange('<%= field.fieldName %>')"
                                                     data-cy="search<%= field.fieldNameCapitalized %>Operator">
                                             <mat-option value="eq">=</mat-option>
                                             <mat-option value="lt">&lt;</mat-option>
@@ -321,17 +333,19 @@ _%>
                                            id="search_<%= field.fieldName %>"
                                            name="search_<%= field.fieldName %>"
                                            [(ngModel)]="searchCriteria.<%= field.fieldName %>"
+                                           [disabled]="isClusteringFieldDisabled('<%= field.fieldName %>')"
                                            data-cy="search<%= field.fieldNameCapitalized %>">
                                 </div>
                             </div>
         <%_ } else { _%>
                             <div class="col-md-4 mb-2">
-                                <label class="form-label" for="search_<%= field.fieldName %>">__jhiTranslateTag__('<%- field.fieldTranslationKey %>')</label>
+                                <label class="form-label" for="search_<%= field.fieldName %>" [class.text-muted]="isClusteringFieldDisabled('<%= field.fieldName %>')">__jhiTranslateTag__('<%- field.fieldTranslationKey %>')</label>
                                 <input type="text"
                                        class="form-control"
                                        id="search_<%= field.fieldName %>"
                                        name="search_<%= field.fieldName %>"
                                        [(ngModel)]="searchCriteria.<%= field.fieldName %>"
+                                       [disabled]="isClusteringFieldDisabled('<%= field.fieldName %>')"
                                        data-cy="search<%= field.fieldNameCapitalized %>">
                             </div>
         <%_ } _%>
