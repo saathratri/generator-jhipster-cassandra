@@ -104,7 +104,9 @@ export const springDataCassandraSaathratriUtils = {
     },
     
     addComparisonMethods(methodsCode, entityClass, entityInstanceSnakeCase, components, fileType) {
-        ['LessThan', 'GreaterThan'].forEach(op => {
+        // Generate comparison methods for clustering keys
+        // LessThan (<), LessThanEqual (<=), GreaterThan (>), GreaterThanEqual (>=)
+        ['LessThan', 'LessThanEqual', 'GreaterThan', 'GreaterThanEqual'].forEach(op => {
             this.addMethodDeclarations(methodsCode, entityClass, entityInstanceSnakeCase, 'findAllBy', { ...components, name: components.name + op }, fileType);
         });
     },    

@@ -51,6 +51,7 @@ import { DurationPipe, FormatMediumDatetimePipe, FormatMediumDatePipe, ConvertFr
 import dayjs from 'dayjs/esm';
 import customParseFormat from 'dayjs/esm/plugin/customParseFormat';
 dayjs.extend(customParseFormat);
+import { MaterialModule } from 'app/shared/material.module';
 <%_ } _%>
 <%_ if (paginationPagination) { _%>
 import { ItemCountComponent } from 'app/shared/pagination';
@@ -116,6 +117,9 @@ import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
       FormatMediumDatetimePipe,
       FormatMediumDatePipe,
       ConvertFromDayjsToDateLongPipe,
+<%_ if (databaseTypeCassandra && primaryKeySaathratri.composite) { _%>
+      MaterialModule,
+<%_ } _%>
 <%_ if (jpaMetamodelFiltering && paginationPagination) { _%>
       FilterComponent,
 <%_ } _%>
@@ -151,6 +155,7 @@ export class <%= componentName %> implements OnInit {
 <%_ if (databaseTypeCassandra && primaryKeySaathratri.composite) {
     const partitionKeyFields = fields.filter(f => f.isPartitionedKeySaathratri);
     const clusteringKeyFields = fields.filter(f => f.isClusteredKeySaathratri);
+    // Note: Comparison operators supported: 'eq' | 'lt' | 'lte' | 'gt' | 'gte'
 _%>
 
     // Cassandra search form state
@@ -158,8 +163,17 @@ _%>
     isSearchActive = false;
     searchCriteria: {
 <%_ for (const field of partitionKeyFields) { _%>
-  <%_ if (field.fieldTypeTimedSaathratri || field.fieldTypeLocalDateSaathratri) { _%>
-        <%= field.fieldName %>: string | null;
+  <%_ if (field.fieldTypeTimedSaathratri) { _%>
+        // DateTime picker fields for <%= field.fieldName %>
+        <%= field.fieldName %>Date: Date | null;
+        <%= field.fieldName %>Hour: number | null;
+        <%= field.fieldName %>Minute: number | null;
+        <%= field.fieldName %>AmPm: string | null;
+        <%= field.fieldName %>: number | null; // Computed timestamp
+  <%_ } else if (field.fieldTypeLocalDateSaathratri) { _%>
+        // Date picker field for <%= field.fieldName %>
+        <%= field.fieldName %>Date: Date | null;
+        <%= field.fieldName %>: number | null; // Computed timestamp
   <%_ } else if (field.fieldType === 'Boolean') { _%>
         <%= field.fieldName %>: boolean | null;
   <%_ } else if (field.fieldTypeNumeric) { _%>
@@ -169,22 +183,69 @@ _%>
   <%_ } _%>
 <%_ } _%>
 <%_ for (const field of clusteringKeyFields) { _%>
-  <%_ if (field.fieldTypeTimedSaathratri || field.fieldTypeLocalDateSaathratri) { _%>
-        <%= field.fieldName %>: string | null;
+  <%_ if (field.fieldTypeTimedSaathratri) { _%>
+        // DateTime picker fields for <%= field.fieldName %> with comparison operator
+        <%= field.fieldName %>Operator: string | null;
+        <%= field.fieldName %>Date: Date | null;
+        <%= field.fieldName %>Hour: number | null;
+        <%= field.fieldName %>Minute: number | null;
+        <%= field.fieldName %>AmPm: string | null;
+        <%= field.fieldName %>: number | null; // Computed timestamp
+  <%_ } else if (field.fieldTypeLocalDateSaathratri) { _%>
+        // Date picker field for <%= field.fieldName %> with comparison operator
+        <%= field.fieldName %>Operator: string | null;
+        <%= field.fieldName %>Date: Date | null;
+        <%= field.fieldName %>: number | null; // Computed timestamp
   <%_ } else if (field.fieldType === 'Boolean') { _%>
         <%= field.fieldName %>: boolean | null;
-  <%_ } else if (field.fieldTypeNumeric) { _%>
+  <%_ } else if (field.fieldTypeNumeric || field.fieldType === 'Long') { _%>
+        // Numeric field with comparison operator
+        <%= field.fieldName %>Operator: string | null;
         <%= field.fieldName %>: number | null;
+  <%_ } else if (field.fieldTypeTimeUuidSaathratri) { _%>
+        // TimeUUID field with comparison operator (string type)
+        <%= field.fieldName %>Operator: string | null;
+        <%= field.fieldName %>: string | null;
   <%_ } else { _%>
         <%= field.fieldName %>: string | null;
   <%_ } _%>
 <%_ } _%>
     } = {
 <%_ for (const field of partitionKeyFields) { _%>
+  <%_ if (field.fieldTypeTimedSaathratri) { _%>
+        <%= field.fieldName %>Date: null,
+        <%= field.fieldName %>Hour: null,
+        <%= field.fieldName %>Minute: null,
+        <%= field.fieldName %>AmPm: null,
         <%= field.fieldName %>: null,
+  <%_ } else if (field.fieldTypeLocalDateSaathratri) { _%>
+        <%= field.fieldName %>Date: null,
+        <%= field.fieldName %>: null,
+  <%_ } else { _%>
+        <%= field.fieldName %>: null,
+  <%_ } _%>
 <%_ } _%>
 <%_ for (const field of clusteringKeyFields) { _%>
+  <%_ if (field.fieldTypeTimedSaathratri) { _%>
+        <%= field.fieldName %>Operator: 'eq',
+        <%= field.fieldName %>Date: null,
+        <%= field.fieldName %>Hour: null,
+        <%= field.fieldName %>Minute: null,
+        <%= field.fieldName %>AmPm: null,
         <%= field.fieldName %>: null,
+  <%_ } else if (field.fieldTypeLocalDateSaathratri) { _%>
+        <%= field.fieldName %>Operator: 'eq',
+        <%= field.fieldName %>Date: null,
+        <%= field.fieldName %>: null,
+  <%_ } else if (field.fieldTypeNumeric || field.fieldType === 'Long') { _%>
+        <%= field.fieldName %>Operator: 'eq',
+        <%= field.fieldName %>: null,
+  <%_ } else if (field.fieldTypeTimeUuidSaathratri) { _%>
+        <%= field.fieldName %>Operator: 'eq',
+        <%= field.fieldName %>: null,
+  <%_ } else { _%>
+        <%= field.fieldName %>: null,
+  <%_ } _%>
 <%_ } _%>
     };
 <%_ } _%>
@@ -406,9 +467,20 @@ _%>
     isSearchFormValid(): boolean {
         // All partition key fields must have values
 <%_ for (const field of partitionKeyFieldsForMethods) { _%>
-        if (this.searchCriteria.<%= field.fieldName %> === null || this.searchCriteria.<%= field.fieldName %> === undefined<% if (field.fieldType === 'String' || field.fieldTypeTimedSaathratri || field.fieldTypeLocalDateSaathratri) { %> || this.searchCriteria.<%= field.fieldName %> === ''<% } %>) {
+  <%_ if (field.fieldTypeTimedSaathratri || field.fieldTypeLocalDateSaathratri) { _%>
+        // For date/datetime fields, check the computed timestamp (set by onSearchDateChange)
+        if (this.searchCriteria.<%= field.fieldName %> === null || this.searchCriteria.<%= field.fieldName %> === undefined) {
             return false;
         }
+  <%_ } else if (field.fieldType === 'String') { _%>
+        if (this.searchCriteria.<%= field.fieldName %> === null || this.searchCriteria.<%= field.fieldName %> === undefined || this.searchCriteria.<%= field.fieldName %> === '') {
+            return false;
+        }
+  <%_ } else { _%>
+        if (this.searchCriteria.<%= field.fieldName %> === null || this.searchCriteria.<%= field.fieldName %> === undefined) {
+            return false;
+        }
+  <%_ } _%>
 <%_ } _%>
         return true;
     }
@@ -426,13 +498,49 @@ _%>
     }
 
     clearSearch(): void {
-        // Reset all search criteria
+        // Reset all search criteria including date picker fields
 <%_ for (const field of partitionKeyFieldsForMethods) { _%>
+  <%_ if (field.fieldTypeTimedSaathratri) { _%>
+        // Reset datetime picker fields for <%= field.fieldName %>
+        this.searchCriteria.<%= field.fieldName %>Date = null;
+        this.searchCriteria.<%= field.fieldName %>Hour = null;
+        this.searchCriteria.<%= field.fieldName %>Minute = null;
+        this.searchCriteria.<%= field.fieldName %>AmPm = null;
         this.searchCriteria.<%= field.fieldName %> = null;
+  <%_ } else if (field.fieldTypeLocalDateSaathratri) { _%>
+        // Reset date picker fields for <%= field.fieldName %>
+        this.searchCriteria.<%= field.fieldName %>Date = null;
+        this.searchCriteria.<%= field.fieldName %> = null;
+  <%_ } else { _%>
+        this.searchCriteria.<%= field.fieldName %> = null;
+  <%_ } _%>
 <%_ } _%>
 <%_ const clusteringKeyFieldsForMethods = fields.filter(f => f.isClusteredKeySaathratri); _%>
 <%_ for (const field of clusteringKeyFieldsForMethods) { _%>
+  <%_ if (field.fieldTypeTimedSaathratri) { _%>
+        // Reset datetime picker fields for <%= field.fieldName %> with operator
+        this.searchCriteria.<%= field.fieldName %>Operator = 'eq';
+        this.searchCriteria.<%= field.fieldName %>Date = null;
+        this.searchCriteria.<%= field.fieldName %>Hour = null;
+        this.searchCriteria.<%= field.fieldName %>Minute = null;
+        this.searchCriteria.<%= field.fieldName %>AmPm = null;
         this.searchCriteria.<%= field.fieldName %> = null;
+  <%_ } else if (field.fieldTypeLocalDateSaathratri) { _%>
+        // Reset date picker fields for <%= field.fieldName %> with operator
+        this.searchCriteria.<%= field.fieldName %>Operator = 'eq';
+        this.searchCriteria.<%= field.fieldName %>Date = null;
+        this.searchCriteria.<%= field.fieldName %> = null;
+  <%_ } else if (field.fieldTypeNumeric || field.fieldType === 'Long') { _%>
+        // Reset numeric field with operator
+        this.searchCriteria.<%= field.fieldName %>Operator = 'eq';
+        this.searchCriteria.<%= field.fieldName %> = null;
+  <%_ } else if (field.fieldTypeTimeUuidSaathratri) { _%>
+        // Reset TimeUUID field with operator
+        this.searchCriteria.<%= field.fieldName %>Operator = 'eq';
+        this.searchCriteria.<%= field.fieldName %> = null;
+  <%_ } else { _%>
+        this.searchCriteria.<%= field.fieldName %> = null;
+  <%_ } _%>
 <%_ } _%>
         this.isSearchActive = false;
         this.pagingState = null;
@@ -441,6 +549,54 @@ _%>
         this.<%= entityInstancePlural %> = [];
         // Reload default data (all records)
         this.load();
+    }
+
+    /**
+     * Convert date picker values to timestamp for a specific field.
+     * This method is called when date/time picker values change.
+     * @param fieldName The name of the field being updated
+     * @param isDateTime Whether this is a datetime field (true) or date-only field (false)
+     */
+    onSearchDateChange(fieldName: string, isDateTime: boolean = false): void {
+        const criteria = this.searchCriteria as any;
+        const dateValue: Date | null = criteria[fieldName + 'Date'];
+
+        if (!dateValue) {
+            criteria[fieldName] = null;
+            return;
+        }
+
+        if (isDateTime) {
+            // For datetime fields, combine date with hour/minute/ampm
+            const hour: number | null = criteria[fieldName + 'Hour'];
+            const minute: number | null = criteria[fieldName + 'Minute'];
+            const amPm: string | null = criteria[fieldName + 'AmPm'];
+
+            if (hour === null || minute === null || !amPm) {
+                // If time components are not set, just use the date at midnight
+                const combinedDateTime = new Date(dateValue);
+                combinedDateTime.setHours(0, 0, 0, 0);
+                criteria[fieldName] = combinedDateTime.getTime();
+                return;
+            }
+
+            // Convert 12-hour to 24-hour format
+            let adjustedHours = hour;
+            if (amPm === 'PM' && hour !== 12) {
+                adjustedHours = hour + 12;
+            } else if (amPm === 'AM' && hour === 12) {
+                adjustedHours = 0;
+            }
+
+            const combinedDateTime = new Date(dateValue);
+            combinedDateTime.setHours(adjustedHours, minute, 0, 0);
+            criteria[fieldName] = combinedDateTime.getTime();
+        } else {
+            // For date-only fields, use the date at midnight
+            const dateOnly = new Date(dateValue);
+            dateOnly.setHours(0, 0, 0, 0);
+            criteria[fieldName] = dateOnly.getTime();
+        }
     }
 
     /**
@@ -765,8 +921,9 @@ _%>
 
             // Build condition based on field type
             if (field.fieldTypeTimedSaathratri || field.fieldTypeLocalDateSaathratri) {
-                conditions.push(`this.searchCriteria.${field.fieldName} && this.searchCriteria.${field.fieldName}.trim() !== ''`);
-                methodArgs.push(`this.parseDateToTimestamp(this.searchCriteria.${field.fieldName})!`);
+                // Date/datetime fields: use computed timestamp value (set by onSearchDateChange)
+                conditions.push(`this.searchCriteria.${field.fieldName} !== null && this.searchCriteria.${field.fieldName} !== undefined`);
+                methodArgs.push(`this.searchCriteria.${field.fieldName}!`);
             } else if (field.fieldType === 'Boolean') {
                 conditions.push(`this.searchCriteria.${field.fieldName} !== null`);
                 methodArgs.push(`this.searchCriteria.${field.fieldName}!`);
@@ -784,12 +941,64 @@ _%>
         const isAllKeysProvided = i === allPkFields.length - 1;
         const isFirst = isAllKeysProvided;
 
+        // Check if the last field in this combination supports comparison operators
+        const lastField = allPkFields[i];
+        const supportsComparison = lastField.isClusteredKeySaathratri &&
+            (lastField.fieldType === 'Long' || lastField.fieldTypeTimeUuidSaathratri ||
+             lastField.fieldTypeTimedSaathratri || lastField.fieldTypeLocalDateSaathratri);
+
+        const baseMethodName = methodNameParts.join('And');
+
         // When ALL keys are provided, use findBy (returns single entity)
         // Otherwise use findAllByPageable (returns array)
         if (isAllKeysProvided) {
-            const findByMethodName = 'findBy' + methodNameParts.join('And');
+            const findByMethodName = 'findBy' + baseMethodName;
 _%>
             if (<%- conditionStr %>) {
+<%_ if (supportsComparison) { _%>
+                // Check comparison operator for clustering key field <%= lastField.fieldName %>
+                const operator<%= lastField.fieldNameCapitalized %> = this.searchCriteria.<%= lastField.fieldName %>Operator || 'eq';
+                if (operator<%= lastField.fieldNameCapitalized %> === 'eq') {
+                    // Exact match - use findBy for single record
+                    return this.<%= entityInstance %>Service.<%= findByMethodName %>(<%- argsStr %>)
+                        .pipe(
+                            map((res: EntityResponseType) => {
+                                const entity = res.body;
+                                return new HttpResponse({
+                                    body: entity ? [entity] : [],
+                                    headers: res.headers,
+                                    status: res.status,
+                                });
+                            }),
+                            tap(() => this.isLoading = false)
+                        );
+                } else if (operator<%= lastField.fieldNameCapitalized %> === 'lt') {
+                    return this.<%= entityInstance %>Service.findAllBy<%= baseMethodName %>LessThanPageable(<%- argsStr %>, queryObject)
+                        .pipe(tap(() => this.isLoading = false));
+                } else if (operator<%= lastField.fieldNameCapitalized %> === 'lte') {
+                    return this.<%= entityInstance %>Service.findAllBy<%= baseMethodName %>LessThanEqualPageable(<%- argsStr %>, queryObject)
+                        .pipe(tap(() => this.isLoading = false));
+                } else if (operator<%= lastField.fieldNameCapitalized %> === 'gt') {
+                    return this.<%= entityInstance %>Service.findAllBy<%= baseMethodName %>GreaterThanPageable(<%- argsStr %>, queryObject)
+                        .pipe(tap(() => this.isLoading = false));
+                } else if (operator<%= lastField.fieldNameCapitalized %> === 'gte') {
+                    return this.<%= entityInstance %>Service.findAllBy<%= baseMethodName %>GreaterThanEqualPageable(<%- argsStr %>, queryObject)
+                        .pipe(tap(() => this.isLoading = false));
+                }
+                // Fallback to exact match
+                return this.<%= entityInstance %>Service.<%= findByMethodName %>(<%- argsStr %>)
+                    .pipe(
+                        map((res: EntityResponseType) => {
+                            const entity = res.body;
+                            return new HttpResponse({
+                                body: entity ? [entity] : [],
+                                headers: res.headers,
+                                status: res.status,
+                            });
+                        }),
+                        tap(() => this.isLoading = false)
+                    );
+<%_ } else { _%>
                 // All primary key fields provided - use findBy for exact match (single record)
                 return this.<%= entityInstance %>Service.<%= findByMethodName %>(<%- argsStr %>)
                     .pipe(
@@ -804,13 +1013,35 @@ _%>
                         }),
                         tap(() => this.isLoading = false)
                     );
+<%_ } _%>
             }
 <%_     } else {
-            const methodName = 'findAllBy' + methodNameParts.join('And') + 'Pageable';
+            const methodName = 'findAllBy' + baseMethodName + 'Pageable';
 _%>
              else if (<%- conditionStr %>) {
+<%_ if (supportsComparison) { _%>
+                // Check comparison operator for clustering key field <%= lastField.fieldName %>
+                const operator<%= lastField.fieldNameCapitalized %> = this.searchCriteria.<%= lastField.fieldName %>Operator || 'eq';
+                if (operator<%= lastField.fieldNameCapitalized %> === 'lt') {
+                    return this.<%= entityInstance %>Service.findAllBy<%= baseMethodName %>LessThanPageable(<%- argsStr %>, queryObject)
+                        .pipe(tap(() => this.isLoading = false));
+                } else if (operator<%= lastField.fieldNameCapitalized %> === 'lte') {
+                    return this.<%= entityInstance %>Service.findAllBy<%= baseMethodName %>LessThanEqualPageable(<%- argsStr %>, queryObject)
+                        .pipe(tap(() => this.isLoading = false));
+                } else if (operator<%= lastField.fieldNameCapitalized %> === 'gt') {
+                    return this.<%= entityInstance %>Service.findAllBy<%= baseMethodName %>GreaterThanPageable(<%- argsStr %>, queryObject)
+                        .pipe(tap(() => this.isLoading = false));
+                } else if (operator<%= lastField.fieldNameCapitalized %> === 'gte') {
+                    return this.<%= entityInstance %>Service.findAllBy<%= baseMethodName %>GreaterThanEqualPageable(<%- argsStr %>, queryObject)
+                        .pipe(tap(() => this.isLoading = false));
+                }
+                // Default: 'eq' or no operator - use regular findAllBy
                 return this.<%= entityInstance %>Service.<%= methodName %>(<%- argsStr %>, queryObject)
                     .pipe(tap(() => this.isLoading = false));
+<%_ } else { _%>
+                return this.<%= entityInstance %>Service.<%= methodName %>(<%- argsStr %>, queryObject)
+                    .pipe(tap(() => this.isLoading = false));
+<%_ } _%>
             }
 <%_     }
     } // end for loop _%>

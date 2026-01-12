@@ -277,6 +277,63 @@ _%>
     }
 <%_ } // end for loop
 
+    // Generate comparison methods for clustering keys (LessThan, LessThanEqual, GreaterThan, GreaterThanEqual)
+    // These are generated when a clustering key is Long or TimeUUID type
+    for (let i = 0; i < pkFields.length; i++) {
+        const currentField = pkFields[i];
+
+        // Only generate comparison methods for clustering keys that are Long or TimeUUID
+        if (!currentField.isClusteredKeySaathratri || (currentField.fieldType !== 'Long' && !currentField.fieldTypeTimeUuidSaathratri)) {
+            continue;
+        }
+
+        // Build base method name and params (including all preceding fields)
+        let baseMethodNameParts = [];
+        let baseParamDeclarations = [];
+        let baseParamNames = [];
+
+        for (let j = 0; j <= i; j++) {
+            const field = pkFields[j];
+            baseMethodNameParts.push(`${keyName}${field.fieldNameCapitalized}`);
+
+            let tsType = 'string';
+            if (field.fieldType === 'Long' || field.fieldTypeNumeric) {
+                tsType = 'number';
+            } else if (field.fieldType === 'Boolean') {
+                tsType = 'boolean';
+            }
+
+            baseParamDeclarations.push(`${field.fieldName}: ${tsType}`);
+            baseParamNames.push(field.fieldName);
+        }
+
+        const baseMethodName = baseMethodNameParts.join('And');
+
+        // Generate methods for each comparison operator
+        const comparisonOps = ['LessThan', 'LessThanEqual', 'GreaterThan', 'GreaterThanEqual'];
+        for (const op of comparisonOps) {
+            const compMethodName = `findAllBy${baseMethodName}${op}Pageable`;
+            const compUrlPath = compMethodName.charAt(0).toLowerCase() + compMethodName.slice(1).replace(/[A-Z]/g, m => '-' + m.toLowerCase());
+_%>
+
+    /**
+     * Find <%= entityClassPluralHumanized %> by <%- baseParamNames.join(', ') %> with <%= op %> comparison and pagination.
+     * Uses Cassandra Slice-based pagination.
+     */
+    <%= compMethodName %>(<%- baseParamDeclarations.join(', ') %>, req?: any): Observable<EntityArrayResponseType> {
+        let options = createRequestOption(req);
+<%_ for (const pName of baseParamNames) { _%>
+        options = options.set('<%= pName %>', String(<%= pName %>));
+<%_ } _%>
+        return this.http.get<<%= entityRestName %>[]>(`${this.resourceUrl}/<%= compUrlPath %>`, { params: options, observe: 'response' })
+            <% if (anyFieldIsDateDerived || anyFieldIsDateDerivedSaathratri) { %>.pipe(map(res => this.convertResponseArrayFromServer(res)))<% } %>
+            <% if (builtInUserManagement) { %>.pipe(map(res => this.convertUserManagementResponseArrayFromServer(res)))<% } %>;
+    }
+<%_     } // end comparisonOps for loop
+    } // end pkFields for loop
+_%>
+
+<%_
     // Generate findBy method for exact match (all keys provided - returns single entity)
     {
         let allMethodNameParts = [];
