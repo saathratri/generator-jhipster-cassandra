@@ -509,9 +509,9 @@ _%>
 	_%>
     		    	<td>{{ <%= entityInstance %>.<%= fieldName %> | formatMediumDatetime }}</td>
     <%_ } else if (primaryKeySaathratri.composite && !field.isCompositePrimaryKeyField && field.fieldTypeLocalDateSaathratri) {
-                    // Composite Primary Key Code
-    _%>                        
-    		    	<td>{{ <%= entityInstance %>.<%= fieldName %> | formatMediumDate }}</td>
+                    // Composite Primary Key Code - UTC_DATE field (no timezone shift)
+    _%>
+    		    	<td>{{ <%= entityInstance %>.<%= fieldName %> | formatUtcDate }}</td>
     <%_ } else if (field.fieldTypeTimed) { _%>
                     <td>{{ <%= entityInstance %>.<%= fieldName %> | formatMediumDatetime }}</td>
     <%_ } else if (field.fieldTypeLocalDate) { _%>
@@ -519,13 +519,18 @@ _%>
     <%_ } else if (field.fieldTypeDuration) { _%>
                     <td title="{{ <%= entityInstance %>.<%= fieldName %> }}">{{ <%= entityInstance %>.<%= fieldName %> | duration }}</td>
     <%_ } else { _%>
-                    <%_ 
+                    <%_
                         // Saathratri: Composite Primary Key Code
                         if (primaryKeySaathratri.composite && field.isCompositePrimaryKeyField) {
-			                if(field.fieldTypeLocalDate || field.fieldTypeLocalDateSaathratri) { 
+			                if(field.fieldTypeLocalDate) {
 		            _%>
                             <td>{{ <%= entityInstance %>!.<%= primaryKeySaathratri.name %>.<%= fieldName %> | formatMediumDate }}</td>
-                        <%_ 
+                        <%_
+                            } else if(field.fieldTypeLocalDateSaathratri) {
+                                // UTC_DATE field - no timezone shift
+		            _%>
+                            <td>{{ <%= entityInstance %>!.<%= primaryKeySaathratri.name %>.<%= fieldName %> | formatUtcDate }}</td>
+                        <%_
                             } else if(field.fieldTypeTimed || field.fieldTypeTimedSaathratri) { 
                         _%>
                             <td>{{ <%= entityInstance %>!.<%= primaryKeySaathratri.name %>.<%= fieldName %> | formatMediumDatetime }}</td>

@@ -77,9 +77,9 @@ _%>
     _%>
     		    	<td>{{ <%= entityInstance %>Ref.<%= fieldName %> | formatMediumDatetime }}</td>
     <%_ } else if (primaryKeySaathratri.composite && !field.isCompositePrimaryKeyField && field.fieldTypeLocalDateSaathratri) {
-                    // Composite Primary Key Code
-    _%>                        
-    		    	<td>{{ <%= entityInstance %>Ref.<%= fieldName %> | formatMediumDate }}</td>
+                    // Composite Primary Key Code - UTC_DATE field (no timezone shift)
+    _%>
+    		    	<td>{{ <%= entityInstance %>Ref.<%= fieldName %> | formatUtcDate }}</td>
     <%_ } else if (field.fieldTypeDuration) { _%>
           <span>{{ <%= entityInstance %>Ref.<%= fieldName %> | duration }} ({{<%= entityInstance %>Ref.<%= fieldName %> }})</span>
     <%_ } else if (field.fieldTypeTimed) { _%>
@@ -87,14 +87,19 @@ _%>
     <%_ } else if (field.fieldTypeLocalDate) { _%>
           <span>{{ <%= entityInstance %>Ref.<%= fieldName %> | formatMediumDate }}</span>
     <%_ } else { _%>
-        <%_ 
-            // Saathratri: Composite Primary Key Code
-            if (primaryKeySaathratri.composite && field.isCompositePrimaryKeyField) { 
-                if(field.fieldTypeLocalDate || field.fieldTypeLocalDateSaathratri) { 
-        _%>
-            <span>{{ <%= entityInstance %>Ref.<%= primaryKeySaathratri.name %>.<%= fieldName %> | formatMediumDate }}</span>        
         <%_
-          } else if(field.fieldTypeTimed || field.fieldTypeTimedSaathratri) {
+            // Saathratri: Composite Primary Key Code
+            if (primaryKeySaathratri.composite && field.isCompositePrimaryKeyField) {
+                if(field.fieldTypeLocalDate) {
+        _%>
+            <span>{{ <%= entityInstance %>Ref.<%= primaryKeySaathratri.name %>.<%= fieldName %> | formatMediumDate }}</span>
+        <%_
+                } else if(field.fieldTypeLocalDateSaathratri) {
+                    // UTC_DATE field - no timezone shift
+        _%>
+            <span>{{ <%= entityInstance %>Ref.<%= primaryKeySaathratri.name %>.<%= fieldName %> | formatUtcDate }}</span>
+        <%_
+                } else if(field.fieldTypeTimed || field.fieldTypeTimedSaathratri) {
         _%>
             <span>{{ <%= entityInstance %>Ref.<%= primaryKeySaathratri.name %>.<%= fieldName %> | formatMediumDatetime }}</span>  
         <%_

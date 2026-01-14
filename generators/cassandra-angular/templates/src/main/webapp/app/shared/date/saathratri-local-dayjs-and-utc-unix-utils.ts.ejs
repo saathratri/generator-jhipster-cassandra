@@ -85,3 +85,30 @@ export function datetimeStringToFormattedString(datetimeString: string): string 
 
   return stringDate;
 }
+
+/**
+ * Convert UTC_DATE Long timestamp to JavaScript Date for Material Datepicker.
+ * The timestamp represents UTC midnight, and we need to create a Date that
+ * will display correctly in the datepicker without timezone shift.
+ */
+export function utcDateLongToDate(timestamp: number | null | undefined): Date | null {
+  if (timestamp === null || timestamp === undefined) {
+    return null;
+  }
+  // Parse as UTC and convert to local Date for the datepicker
+  const utcDate = dayjs.utc(timestamp);
+  // Create a new Date using the UTC date parts to prevent timezone shift
+  return new Date(utcDate.year(), utcDate.month(), utcDate.date());
+}
+
+/**
+ * Convert JavaScript Date (from Material Datepicker) to UTC_DATE Long timestamp.
+ * The selected date should be stored as UTC midnight.
+ */
+export function dateToUtcDateLong(date: Date | null | undefined): number | null {
+  if (date === null || date === undefined) {
+    return null;
+  }
+  // Create a dayjs from the date parts and convert to UTC midnight
+  return dayjs.utc([date.getFullYear(), date.getMonth(), date.getDate()]).valueOf();
+}

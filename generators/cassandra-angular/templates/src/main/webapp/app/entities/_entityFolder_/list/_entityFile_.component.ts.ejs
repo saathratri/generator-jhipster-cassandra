@@ -46,7 +46,7 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
 import SharedModule from 'app/shared/shared.module';
 import { sortStateSignal, SortDirective, SortByDirective, type SortState, SortService } from 'app/shared/sort';
-import { DurationPipe, FormatMediumDatetimePipe, FormatMediumDatePipe, ConvertFromDayjsToDateLongPipe } from 'app/shared/date';
+import { DurationPipe, FormatMediumDatetimePipe, FormatMediumDatePipe, FormatUtcDatePipe, ConvertFromDayjsToDateLongPipe } from 'app/shared/date';
 <%_ if (databaseTypeCassandra && primaryKeySaathratri.composite) { _%>
 import dayjs from 'dayjs/esm';
 import customParseFormat from 'dayjs/esm/plugin/customParseFormat';
@@ -116,6 +116,7 @@ import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
       DurationPipe,
       FormatMediumDatetimePipe,
       FormatMediumDatePipe,
+      FormatUtcDatePipe,
       ConvertFromDayjsToDateLongPipe,
 <%_ if (databaseTypeCassandra && primaryKeySaathratri.composite) { _%>
       MaterialModule,
