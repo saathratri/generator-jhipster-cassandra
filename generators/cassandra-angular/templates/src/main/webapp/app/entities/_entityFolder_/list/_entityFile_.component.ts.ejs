@@ -672,10 +672,18 @@ _%>
             combinedDateTime.setHours(adjustedHours, minute, 0, 0);
             criteria[fieldName] = combinedDateTime.getTime();
         } else {
-            // For date-only fields, use the date at midnight
+            // For date-only fields, use the date at UTC midnight
+            // The database stores dates as UTC timestamps, so we must convert
+            // the local date picker value to UTC midnight for accurate comparison
             const dateOnly = new Date(dateValue);
-            dateOnly.setHours(0, 0, 0, 0);
-            criteria[fieldName] = dateOnly.getTime();
+            // Create UTC midnight timestamp (not local midnight)
+            const utcMidnight = Date.UTC(
+                dateOnly.getFullYear(),
+                dateOnly.getMonth(),
+                dateOnly.getDate(),
+                0, 0, 0, 0
+            );
+            criteria[fieldName] = utcMidnight;
         }
     }
 
