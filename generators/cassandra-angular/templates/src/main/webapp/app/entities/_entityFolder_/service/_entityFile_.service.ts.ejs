@@ -486,7 +486,7 @@ _%>
                         <%_ if (field.fieldTypeTimedSaathratri) { _%>
                             <%= field.fieldName %>: rest<%= entityAngularName %>.<%= primaryKeySaathratri.name %>.<%= field.fieldName %> ? dayjs(rest<%= entityAngularName %>.<%= primaryKeySaathratri.name %>.<%= field.fieldName %>) : null,
                         <%_ } else if (field.fieldTypeLocalDateSaathratri) { _%>
-                            <%= field.fieldName %>: rest<%= entityAngularName %>.<%= primaryKeySaathratri.name %>.<%= field.fieldName %> ? dayjs(rest<%= entityAngularName %>.<%= primaryKeySaathratri.name %>.<%= field.fieldName %>) : null,
+                            <%= field.fieldName %>: rest<%= entityAngularName %>.<%= primaryKeySaathratri.name %>.<%= field.fieldName %> ? dayjs.utc(rest<%= entityAngularName %>.<%= primaryKeySaathratri.name %>.<%= field.fieldName %>) : null,
                         <%_ } else { %>
                             <%= field.fieldName %>: rest<%= entityAngularName %>.<%= primaryKeySaathratri.name %>.<%= field.fieldName %>,
                         <%_ } _%>
@@ -503,7 +503,7 @@ _%>
         <%_ } else if (field.fieldTypeTimedSaathratri) { _%>
         <%= field.fieldName %>: rest<%= entityAngularName %>.<%= field.fieldName %> ? dayjs(rest<%= entityAngularName %>.<%= field.fieldName %>) : null,
         <%_ } else if (field.fieldTypeLocalDateSaathratri) { _%>
-        <%= field.fieldName %>: rest<%= entityAngularName %>.<%= field.fieldName %> ? dayjs(rest<%= entityAngularName %>.<%= field.fieldName %>) : null,
+        <%= field.fieldName %>: rest<%= entityAngularName %>.<%= field.fieldName %> ? dayjs.utc(rest<%= entityAngularName %>.<%= field.fieldName %>) : null,
         <%_ } _%>
     <%_ } _%>
         };
