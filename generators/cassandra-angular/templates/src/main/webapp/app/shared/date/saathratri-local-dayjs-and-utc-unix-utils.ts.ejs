@@ -124,3 +124,17 @@ export function localDayjsToUtcDayjs(localDate: dayjs.Dayjs | null | undefined):
   // Take the date parts from local dayjs and create UTC midnight
   return dayjs.utc().year(localDate.year()).month(localDate.month()).date(localDate.date()).startOf('day');
 }
+
+/**
+ * Convert UTC_DATE dayjs object to local dayjs for Material Datepicker display.
+ * Takes the year, month, date from the UTC dayjs and creates a local dayjs.
+ * Use this when loading UTC_DATE fields into forms - prevents timezone shift in display.
+ */
+export function utcDayjsToLocalDayjs(utcDate: dayjs.Dayjs | null | undefined): dayjs.Dayjs | null {
+  if (utcDate === null || utcDate === undefined) {
+    return null;
+  }
+  // Get the UTC date parts and create a local dayjs with the same year/month/date
+  const utc = utcDate.utc();
+  return dayjs().year(utc.year()).month(utc.month()).date(utc.date()).startOf('day');
+}

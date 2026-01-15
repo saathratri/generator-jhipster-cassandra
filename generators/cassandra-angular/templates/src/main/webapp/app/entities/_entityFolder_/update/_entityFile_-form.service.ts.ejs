@@ -43,7 +43,7 @@ import dayjs from 'dayjs/esm';
 import { DATE_TIME_FORMAT } from 'app/config/input.constants';
 <%_ } _%>
 <%_ if (fields.some(field => field.fieldTypeLocalDateSaathratri)) { _%>
-import { localDayjsToUtcDayjs } from 'app/shared/date/saathratri-local-dayjs-and-utc-unix-utils';
+import { localDayjsToUtcDayjs, utcDayjsToLocalDayjs } from 'app/shared/date/saathratri-local-dayjs-and-utc-unix-utils';
 <%_ } _%>
 import { I<%= entityAngularName %>, <%_ if(primaryKeySaathratri.composite) { _%> I<%= entityAngularName %>Id, <%_ } _%> New<%= entityAngularName %> } from '../<%= entityFileName %>.model';
 
@@ -417,6 +417,8 @@ _%>
 _%>
   <%_ if (fieldTypeTimed || field.fieldTypeTimedSaathratri) { _%>
       <%= fieldName %>: <%= entityInstance %>.<%= primaryKeySaathratri.name %>.<%= fieldName %> ? <%= entityInstance %>.<%= primaryKeySaathratri.name %>.<%= fieldName %> : null,
+  <%_ } else if (field.fieldTypeLocalDateSaathratri) { _%>
+      <%= fieldName %>: utcDayjsToLocalDayjs(<%= entityInstance %>.<%= primaryKeySaathratri.name %>.<%= fieldName %>),
   <%_ } _%>
 <%_ } _%>
    },
@@ -434,6 +436,8 @@ _%>
       : {},
   <%_ } else if (fieldTypeTimed || field.fieldTypeTimedSaathratri) { _%>
       <%= fieldName %>: <%= entityInstance %>.<%= fieldName %> ? <%= entityInstance %>.<%= fieldName %>.format(DATE_TIME_FORMAT) : undefined,
+  <%_ } else if (field.fieldTypeLocalDateSaathratri) { _%>
+      <%= fieldName %>: utcDayjsToLocalDayjs(<%= entityInstance %>.<%= fieldName %>),
   <%_ } _%>
 <%_ } _%>
 <%_ } else { _%>
@@ -451,6 +455,8 @@ _%>
       : {},
   <%_ } else if (fieldTypeTimed || field.fieldTypeTimedSaathratri) { _%>
       <%= fieldName %>: <%= entityInstance %>.<%= fieldName %> ? <%= entityInstance %>.<%= fieldName %>.format(DATE_TIME_FORMAT) : undefined,
+  <%_ } else if (field.fieldTypeLocalDateSaathratri) { _%>
+      <%= fieldName %>: utcDayjsToLocalDayjs(<%= entityInstance %>.<%= fieldName %>),
   <%_ } _%>
 <%_ } _%>
 <%_ } _%>
