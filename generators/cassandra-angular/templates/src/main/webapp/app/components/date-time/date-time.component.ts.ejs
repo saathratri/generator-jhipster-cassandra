@@ -2,6 +2,7 @@ import { Component, EventEmitter, Input, OnInit, Output, forwardRef } from '@ang
 import { ControlValueAccessor, FormControl, FormGroup, NG_VALUE_ACCESSOR, ReactiveFormsModule, Validators, ValidatorFn, AbstractControl, ValidationErrors } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { MaterialModule } from '../../shared/material.module';
+import dayjs from 'dayjs/esm';
 
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
@@ -26,7 +27,7 @@ export class DateTimeComponent implements OnInit, ControlValueAccessor {
   private lastValidValue: number | null = null; // Store last valid timestamp
   // eslint-disable-next-line @typescript-eslint/member-ordering
   private preInitializedValue: boolean | null = null;
-  
+
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   onChange: any = () => {};
   // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -88,7 +89,7 @@ export class DateTimeComponent implements OnInit, ControlValueAccessor {
   updateTimestamp(): void {
     const { date, hours, minutes, amPm } = this.editForm.value;
 
-    if(amPm) {
+    if (amPm && date) {
       let adjustedHours = parseInt(hours, 10);
       if (amPm === 'PM' && adjustedHours !== 12) {
         adjustedHours += 12;
@@ -96,7 +97,8 @@ export class DateTimeComponent implements OnInit, ControlValueAccessor {
         adjustedHours = 0;
       }
 
-      const combinedDateTime = new Date(date);
+      // Handle both dayjs and Date objects
+      const combinedDateTime = dayjs.isDayjs(date) ? date.toDate() : new Date(date);
       combinedDateTime.setHours(adjustedHours);
       combinedDateTime.setMinutes(parseInt(minutes, 10));
       combinedDateTime.setSeconds(0);
@@ -109,30 +111,31 @@ export class DateTimeComponent implements OnInit, ControlValueAccessor {
   }
 
   // ControlValueAccessor implementation
-  writeValue(value: number | null): void {
+  writeValue(value: number | string | null): void {
     if (this.preInitializedValue === null) {
       if (value === null) {
         this.preInitializedValue = false;
       } else {
         this.preInitializedValue = true;
-        this.lastValidValue = value;
+        this.lastValidValue = typeof value === 'number' ? value : new Date(value).getTime();
       }
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (value !== null && value !== undefined) {
-  
       const newDate = new Date(value);
+      // Convert to dayjs for Material Datepicker with DayjsDateAdapter
+      const dayjsDate = dayjs(newDate);
       this.editForm.setValue(
         {
-          date: newDate,
+          date: dayjsDate,
           hours: this.padZero(newDate.getHours() % 12 || 12),
           minutes: this.padZero(newDate.getMinutes()),
           amPm: newDate.getHours() >= 12 ? 'PM' : 'AM',
           seconds: newDate.getSeconds(),
           milliseconds: newDate.getMilliseconds(),
         },
-        { emitEvent: true }
+        { emitEvent: true },
       );
     } else {
       this.reset();
@@ -140,7 +143,7 @@ export class DateTimeComponent implements OnInit, ControlValueAccessor {
 
     // Ensure form starts as pristine
     this.editForm.markAsPristine();
-  }  
+  }
 
   reset(): void {
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
@@ -153,7 +156,7 @@ export class DateTimeComponent implements OnInit, ControlValueAccessor {
     // Override the dirty state to ensure the form is clean after reset
     this.editForm.markAsPristine();
     this.dirtyStateChange.emit({ field: this.fieldName, isDirty: false });
-  }  
+  }
 
   registerOnChange(fn: any): void {
     this.onChange = fn;
@@ -204,10 +207,10 @@ export class DateTimeComponent implements OnInit, ControlValueAccessor {
   dateTimeValidator: ValidatorFn = (formGroup: AbstractControl): ValidationErrors | null => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     const controls = ['date', 'hours', 'minutes', 'amPm'].map(field => formGroup.get(field)?.value);
-    
+
     // Check if ANY field has a value
     const hasValue = controls.some(value => value !== null && value !== undefined && value !== '');
-  
+
     return hasValue ? null : { required: true }; // Make it behave like Validators.required
-  };  
+  };
 }
