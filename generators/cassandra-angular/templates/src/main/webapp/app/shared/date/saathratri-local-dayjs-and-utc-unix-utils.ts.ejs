@@ -87,28 +87,40 @@ export function datetimeStringToFormattedString(datetimeString: string): string 
 }
 
 /**
- * Convert UTC_DATE Long timestamp to JavaScript Date for Material Datepicker.
- * The timestamp represents UTC midnight, and we need to create a Date that
+ * Convert UTC_DATE dayjs object to JavaScript Date for Material Datepicker.
+ * The dayjs represents UTC midnight, and we need to create a Date that
  * will display correctly in the datepicker without timezone shift.
  */
-export function utcDateLongToDate(timestamp: number | null | undefined): Date | null {
-  if (timestamp === null || timestamp === undefined) {
+export function utcDayjsToDate(dayjsDate: dayjs.Dayjs | null | undefined): Date | null {
+  if (dayjsDate === null || dayjsDate === undefined) {
     return null;
   }
-  // Parse as UTC and convert to local Date for the datepicker
-  const utcDate = dayjs.utc(timestamp);
-  // Create a new Date using the UTC date parts to prevent timezone shift
+  // Get the UTC date parts and create a local Date to prevent timezone shift
+  const utcDate = dayjsDate.utc();
   return new Date(utcDate.year(), utcDate.month(), utcDate.date());
 }
 
 /**
- * Convert JavaScript Date (from Material Datepicker) to UTC_DATE Long timestamp.
- * The selected date should be stored as UTC midnight.
+ * Convert JavaScript Date (from Material Datepicker) to UTC_DATE dayjs object.
+ * The selected date should be stored as UTC midnight dayjs.
  */
-export function dateToUtcDateLong(date: Date | null | undefined): number | null {
+export function dateToUtcDayjs(date: Date | null | undefined): dayjs.Dayjs | null {
   if (date === null || date === undefined) {
     return null;
   }
-  // Create a dayjs from the date parts and convert to UTC midnight
-  return dayjs.utc([date.getFullYear(), date.getMonth(), date.getDate()]).valueOf();
+  // Create a dayjs from the date parts at UTC midnight
+  return dayjs.utc().year(date.getFullYear()).month(date.getMonth()).date(date.getDate()).startOf('day');
+}
+
+/**
+ * Convert local dayjs (from Material Datepicker with DayjsDateAdapter) to UTC_DATE dayjs object.
+ * Takes the year, month, date from the local dayjs and creates a UTC midnight dayjs.
+ * Use this when saving UTC_DATE fields - the user's selected date becomes UTC midnight.
+ */
+export function localDayjsToUtcDayjs(localDate: dayjs.Dayjs | null | undefined): dayjs.Dayjs | null {
+  if (localDate === null || localDate === undefined) {
+    return null;
+  }
+  // Take the date parts from local dayjs and create UTC midnight
+  return dayjs.utc().year(localDate.year()).month(localDate.month()).date(localDate.date()).startOf('day');
 }

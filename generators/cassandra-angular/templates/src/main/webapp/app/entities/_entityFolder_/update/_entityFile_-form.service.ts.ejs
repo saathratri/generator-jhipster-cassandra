@@ -29,9 +29,11 @@
   ];
 }
   const containDefaultProperties = formDefaultProperties.length > 0;
-  const hasDateConversions = anyFieldIsTimeDerived || anyFieldIsTimeDerivedSaathratri || fields.some(field => field.fieldTypeLocalDateSaathratri);
-  const entityFormName = hasDateConversions ? `${entityAngularName}FormRawValue` : `I${entityAngularName}`;
-  const newEntityFormName = hasDateConversions ? `New${entityAngularName}FormRawValue` : `New${entityAngularName}`;
+  const hasTimedConversions = anyFieldIsTimeDerived || anyFieldIsTimeDerivedSaathratri;
+  const hasUtcDateConversions = fields.some(field => field.fieldTypeLocalDateSaathratri);
+  const hasDateConversions = hasTimedConversions || hasUtcDateConversions;
+  const entityFormName = hasTimedConversions ? `${entityAngularName}FormRawValue` : `I${entityAngularName}`;
+  const newEntityFormName = hasTimedConversions ? `New${entityAngularName}FormRawValue` : `New${entityAngularName}`;
 _%>
 import { Injectable } from '@angular/core';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
@@ -41,7 +43,7 @@ import dayjs from 'dayjs/esm';
 import { DATE_TIME_FORMAT } from 'app/config/input.constants';
 <%_ } _%>
 <%_ if (fields.some(field => field.fieldTypeLocalDateSaathratri)) { _%>
-import { utcDateLongToDate, dateToUtcDateLong } from 'app/shared/date/saathratri-local-dayjs-and-utc-unix-utils';
+import { localDayjsToUtcDayjs } from 'app/shared/date/saathratri-local-dayjs-and-utc-unix-utils';
 <%_ } _%>
 import { I<%= entityAngularName %>, <%_ if(primaryKeySaathratri.composite) { _%> I<%= entityAngularName %>Id, <%_ } _%> New<%= entityAngularName %> } from '../<%= entityFileName %>.model';
 
@@ -59,21 +61,18 @@ type PartialWithRequiredKeyOf<T extends { <%= primaryKey.name %>: unknown }> = P
  * It accepts I<%= entityAngularName %> for edit and New<%= entityAngularName %>FormGroupInput for create.
  */
 type <%= entityAngularName %>FormGroupInput = I<%= entityAngularName %> | PartialWithRequiredKeyOf<New<%= entityAngularName %>>;
-<%_ if (hasDateConversions) { _%>
+<%_ if (hasTimedConversions) { _%>
 
 /**
  * Type that converts some properties for forms.
  */
-type FormValueOf<T extends I<%= entityAngularName %> | New<%= entityAngularName %>> = Omit<T, '<%- fields.filter(field => field.fieldTypeTimed || field.fieldTypeTimedSaathratri || field.fieldTypeLocalDateSaathratri).map(field => field.fieldName).join("' | '") %>'> & {
+type FormValueOf<T extends I<%= entityAngularName %> | New<%= entityAngularName %>> = Omit<T, '<%- fields.filter(field => field.fieldTypeTimed || field.fieldTypeTimedSaathratri).map(field => field.fieldName).join("' | '") %>'> & {
   <%_ for (const field of fields.filter(field => field.fieldTypeTimed || field.fieldTypeTimedSaathratri)) { _%>
   <%_ if (field.fieldTypeMapSaathratri) { _%>
     <%= field.fieldName %>: Record<string, string> | null | undefined;
   <%_ } else { _%>
     <%= field.fieldName %>?: string | null;
   <%_ } _%>
-  <%_ } _%>
-  <%_ for (const field of fields.filter(field => field.fieldTypeLocalDateSaathratri)) { _%>
-    <%= field.fieldName %>?: Date | null;
   <%_ } _%>
 };
 
@@ -362,7 +361,7 @@ _%>
   <%_ if (fieldTypeTimed || field.fieldTypeTimedSaathratri) { _%>
       <%= fieldName %>: dayjs(raw<%= entityAngularName %>.<%= primaryKeySaathratri.name %>.<%= fieldName %>, DATE_TIME_FORMAT),
   <%_ } else if (field.fieldTypeLocalDateSaathratri) { _%>
-      <%= fieldName %>: dateToUtcDateLong(raw<%= entityAngularName %>.<%= primaryKeySaathratri.name %>.<%= fieldName %> as Date | null | undefined),
+      <%= fieldName %>: localDayjsToUtcDayjs(raw<%= entityAngularName %>.<%= primaryKeySaathratri.name %>.<%= fieldName %>),
   <%_ } _%>
 <%_ } _%>
     },
@@ -381,7 +380,7 @@ _%>
   <%_ } else if (fieldTypeTimed || field.fieldTypeTimedSaathratri) { _%>
       <%= fieldName %>: dayjs(raw<%= entityAngularName %>.<%= fieldName %>, DATE_TIME_FORMAT),
   <%_ } else if (field.fieldTypeLocalDateSaathratri) { _%>
-      <%= fieldName %>: dateToUtcDateLong(raw<%= entityAngularName %>.<%= fieldName %> as Date | null | undefined),
+      <%= fieldName %>: localDayjsToUtcDayjs(raw<%= entityAngularName %>.<%= fieldName %>),
   <%_ } _%>
 <%_ } _%>
 <%_ } else { _%>
@@ -400,7 +399,7 @@ _%>
   <%_ } else if (fieldTypeTimed || field.fieldTypeTimedSaathratri) { _%>
       <%= fieldName %>: dayjs(raw<%= entityAngularName %>.<%= fieldName %>, DATE_TIME_FORMAT),
   <%_ } else if (field.fieldTypeLocalDateSaathratri) { _%>
-      <%= fieldName %>: dateToUtcDateLong(raw<%= entityAngularName %>.<%= fieldName %> as Date | null | undefined),
+      <%= fieldName %>: localDayjsToUtcDayjs(raw<%= entityAngularName %>.<%= fieldName %>),
   <%_ } _%>
 <%_ } _%>
 <%_ } _%>
@@ -418,8 +417,6 @@ _%>
 _%>
   <%_ if (fieldTypeTimed || field.fieldTypeTimedSaathratri) { _%>
       <%= fieldName %>: <%= entityInstance %>.<%= primaryKeySaathratri.name %>.<%= fieldName %> ? <%= entityInstance %>.<%= primaryKeySaathratri.name %>.<%= fieldName %> : null,
-  <%_ } else if (field.fieldTypeLocalDateSaathratri) { _%>
-      <%= fieldName %>: utcDateLongToDate(<%= entityInstance %>.<%= primaryKeySaathratri.name %>.<%= fieldName %>),
   <%_ } _%>
 <%_ } _%>
    },
@@ -437,8 +434,6 @@ _%>
       : {},
   <%_ } else if (fieldTypeTimed || field.fieldTypeTimedSaathratri) { _%>
       <%= fieldName %>: <%= entityInstance %>.<%= fieldName %> ? <%= entityInstance %>.<%= fieldName %>.format(DATE_TIME_FORMAT) : undefined,
-  <%_ } else if (field.fieldTypeLocalDateSaathratri) { _%>
-      <%= fieldName %>: utcDateLongToDate(<%= entityInstance %>.<%= fieldName %>),
   <%_ } _%>
 <%_ } _%>
 <%_ } else { _%>
@@ -456,8 +451,6 @@ _%>
       : {},
   <%_ } else if (fieldTypeTimed || field.fieldTypeTimedSaathratri) { _%>
       <%= fieldName %>: <%= entityInstance %>.<%= fieldName %> ? <%= entityInstance %>.<%= fieldName %>.format(DATE_TIME_FORMAT) : undefined,
-  <%_ } else if (field.fieldTypeLocalDateSaathratri) { _%>
-      <%= fieldName %>: utcDateLongToDate(<%= entityInstance %>.<%= fieldName %>),
   <%_ } _%>
 <%_ } _%>
 <%_ } _%>

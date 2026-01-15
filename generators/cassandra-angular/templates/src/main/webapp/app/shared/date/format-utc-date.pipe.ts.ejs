@@ -18,15 +18,12 @@
 -%>
 import { Pipe, PipeTransform } from '@angular/core';
 import dayjs from 'dayjs/esm';
-import utc from 'dayjs/esm/plugin/utc';
-
-dayjs.extend(utc);
 
 /**
- * Pipe to format UTC_DATE fields (stored as Long milliseconds at UTC midnight)
+ * Pipe to format UTC_DATE fields (stored as dayjs at UTC midnight)
  * Displays the date WITHOUT timezone conversion to prevent date shifting.
  *
- * For example: timestamp 1768348800000 (Jan 14, 2026 00:00:00 UTC)
+ * For example: a dayjs representing 2026-01-14T00:00:00Z
  * will always display as "14 Jan 2026" regardless of user's timezone.
  */
 @Pipe({
@@ -34,11 +31,11 @@ dayjs.extend(utc);
   name: 'formatUtcDate',
 })
 export default class FormatUtcDatePipe implements PipeTransform {
-  transform(timestamp: number | null | undefined): string {
-    if (timestamp === null || timestamp === undefined) {
+  transform(date: dayjs.Dayjs | null | undefined): string {
+    if (date === null || date === undefined) {
       return '';
     }
     // Use UTC to display the date without timezone shift
-    return dayjs.utc(timestamp).format('D MMM YYYY');
+    return date.utc().format('D MMM YYYY');
   }
 }
