@@ -257,7 +257,8 @@ export const springDataCassandraSaathratriUtils = {
     },
 
     /**
-     * Generate paginated resource method implementation
+     * Generate paginated resource method implementation with explicit pagingState parameter
+     * for proper Cassandra cursor-based pagination.
      * @param {string} entityClass - Entity class name
      * @param {string} methodType - Method type
      * @param {string} methodName - Method name suffix
@@ -280,22 +281,45 @@ export const springDataCassandraSaathratriUtils = {
     ) {
         const methodNameFull = `${methodType}${methodName}Pageable`;
         const urlPath = this.getCompositePrimaryKeyGetMappingUrl(methodNameFull);
+        // Use explicit pagingState and size parameters instead of Spring's Pageable
         const paginatedResourceParams = resourceParams ?
-            `${resourceParams}, @org.springdoc.core.annotations.ParameterObject Pageable pageable` :
-            '@org.springdoc.core.annotations.ParameterObject Pageable pageable';
-        const paginatedParamsInst = paramsInst ? `${paramsInst}, pageable` : 'pageable';
+            `${resourceParams},\n        @RequestParam(name = "pagingState", required = false) String pagingState,\n        @RequestParam(name = "size", defaultValue = "20") int size` :
+            '@RequestParam(name = "pagingState", required = false) String pagingState,\n        @RequestParam(name = "size", defaultValue = "20") int size';
 
         let impl = `/**\n`;
         impl += ` * {@code GET /${urlPath}${urlSubst}} : get paginated entities by composite key.\n`;
         impl += ` *\n`;
         impl += `${javaDocParams}`;
-        impl += ` * @param pageable the pagination information.\n`;
+        impl += ` * @param pagingState the Cassandra paging state (Base64 URL-safe encoded) for cursor-based pagination.\n`;
+        impl += ` * @param size the page size (default 20).\n`;
         impl += ` * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of entities in body.\n`;
         impl += ` */\n`;
         impl += `@GetMapping("/${urlPath}")\n`;
-        impl += `public ResponseEntity<List<${entityClass}DTO>> ${methodNameFull}(${paginatedResourceParams}) {\n`;
-        impl += `    LOG.debug("REST request to get paginated ${entityClass}s with parameters ${logSubst}", ${paramsInst});\n`;
-        impl += `    Slice<${entityClass}DTO> slice = ${_.lowerFirst(entityClass)}Service.${methodNameFull}(${paginatedParamsInst});\n`;
+        impl += `public ResponseEntity<List<${entityClass}DTO>> ${methodNameFull}(\n        ${paginatedResourceParams}\n) {\n`;
+        impl += `    LOG.debug("REST request to get paginated ${entityClass}s with parameters ${logSubst}, pagingState: {}, size: {}", ${paramsInst}, pagingState, size);\n`;
+        impl += `    \n`;
+        impl += `    // Build CassandraPageRequest from pagingState parameter\n`;
+        impl += `    CassandraPageRequest cassandraPageRequest;\n`;
+        impl += `    if (pagingState == null || pagingState.isEmpty()) {\n`;
+        impl += `        cassandraPageRequest = CassandraPageRequest.first(size);\n`;
+        impl += `    } else {\n`;
+        impl += `        try {\n`;
+        impl += `            ByteBuffer pagingStateBuffer;\n`;
+        impl += `            try {\n`;
+        impl += `                // Try URL-safe Base64 decoding first\n`;
+        impl += `                pagingStateBuffer = ByteBuffer.wrap(Base64.getUrlDecoder().decode(pagingState));\n`;
+        impl += `            } catch (IllegalArgumentException e) {\n`;
+        impl += `                // Fall back to standard Base64 decoding\n`;
+        impl += `                pagingStateBuffer = ByteBuffer.wrap(Base64.getDecoder().decode(pagingState));\n`;
+        impl += `            }\n`;
+        impl += `            cassandraPageRequest = CassandraPageRequest.of(PageRequest.of(0, size), pagingStateBuffer);\n`;
+        impl += `        } catch (IllegalArgumentException e) {\n`;
+        impl += `            LOG.error("Invalid paging state for ${entityClass}s", e);\n`;
+        impl += `            cassandraPageRequest = CassandraPageRequest.first(size);\n`;
+        impl += `        }\n`;
+        impl += `    }\n`;
+        impl += `    \n`;
+        impl += `    Slice<${entityClass}DTO> slice = ${_.lowerFirst(entityClass)}Service.${methodNameFull}(${paramsInst ? paramsInst + ', ' : ''}cassandraPageRequest);\n`;
         impl += `    \n`;
         impl += `    // Generate Slice pagination headers (Cassandra cursor-based pagination)\n`;
         impl += `    HttpHeaders headers = new HttpHeaders();\n`;
