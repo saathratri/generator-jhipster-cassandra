@@ -130,7 +130,7 @@ _%>
 
         boolean hasNext = slice.hasNext();
         headers.add("X-Page-Size", String.valueOf(size));
-        headers.add("X-Total-Count", String.valueOf(<%= entityInstance %>Repository.count()));
+        
 
         // Extract paging state from current pageable (populated after query execution)
         ByteBuffer nextPagingState = null;
@@ -169,7 +169,7 @@ _%>
 
         boolean hasNext = slice.hasNext();
         headers.add("X-Page-Size", String.valueOf(size));
-        headers.add("X-Total-Count", String.valueOf(<%= entityInstance %>Repository.count()));
+        
 
         // Extract paging state from current pageable (populated after query execution)
         ByteBuffer nextPagingState = null;
@@ -207,7 +207,7 @@ _%>
 
         boolean hasNext = slice.hasNext();
         headers.add("X-Page-Size", String.valueOf(size));
-        headers.add("X-Total-Count", String.valueOf(<%= entityInstance %>Repository.count()));
+        
 
         // Extract paging state from current pageable (populated after query execution)
         ByteBuffer nextPagingState = null;
