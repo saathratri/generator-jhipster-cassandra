@@ -34,7 +34,8 @@ export const springDataCassandraSaathratriUtils = {
             if (index < totalIds - 1) {
                 this.appendMethodComponents(findLastComponents, primaryKey.nameCapitalized, fieldName, fieldType, fieldNameHumanized);
                 if (primaryKey.hasTimeUUID) {
-                    methodComponents.repoQueryStr += `${fieldNameUnderscored} = ?${index}`;
+                    const separator = findLastComponents.repoQueryStr ? ' AND ' : '';
+                    findLastComponents.repoQueryStr += `${separator}${fieldNameUnderscored} = ?${index}`;
                 }
             }
             
@@ -78,7 +79,7 @@ export const springDataCassandraSaathratriUtils = {
         if (fileType === 'Service') {
             methodsCode.push(this.getPrimaryKeyMethodSignature(entityClass, methodType, components.name, '', components.paramsDecl) + ';');
         } else if (fileType === 'Repository') {
-            methodsCode.push(this.getPrimaryKeyRepositoryMethodSignature(entityClass, entityInstanceSnakeCase, methodType, components.name, '', components.paramsDecl, '') + ';');
+            methodsCode.push(this.getPrimaryKeyRepositoryMethodSignature(entityClass, entityInstanceSnakeCase, methodType, components.name, '', components.paramsDecl, components.repoQueryStr) + ';');
         } else if (fileType === 'ServiceImpl') {
             methodsCode.push(this.generatePrimaryKeyServiceMethodImplementation(entityClass, methodType, components.name, '', components.paramsDecl, components.paramsInst));
         } else if (fileType === 'Resource') {
