@@ -1,5 +1,5 @@
 <%#
- Copyright 2013-2024 the original author or authors from the JHipster project.
+ Copyright 2013-2026 the original author or authors from the JHipster project.
 
  This file is part of the JHipster project, see https://www.jhipster.tech/
  for more information.
@@ -31,6 +31,7 @@ const shareDependencies = ({ skipList = [] } = {}) =>
       .map(([dependency, version]) => [dependency, { ...sharedDefaults, version, requiredVersion: version }]),
   );
 
+<%# Saathratri change: kept 'zone.js' in skipList — upstream removed it in 9.0.0, but Saathratri microfrontends still need zone.js excluded to avoid duplicate zone patches. #%>
 let sharedDependencies = shareDependencies({ skipList: ['@angular/localize', 'zone.js'] });
 sharedDependencies = {
   ...sharedDependencies,
@@ -69,6 +70,7 @@ module.exports = (config, options, targetOptions) => {
         'app/shared/language',
         'app/shared/pagination',
         'app/shared/sort',
+<%# Saathratri change: shared Cassandra Set/Map UI components for microfrontend module federation. Not in upstream. #%>
         'app/components',
         'app/components/date-time',
         'app/components/set-string-component',

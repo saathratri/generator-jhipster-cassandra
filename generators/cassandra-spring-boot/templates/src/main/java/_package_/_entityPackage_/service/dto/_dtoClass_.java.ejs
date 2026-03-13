@@ -1,5 +1,5 @@
 <%#
- Copyright 2013-2024 the original author or authors from the JHipster project.
+ Copyright 2013-2026 the original author or authors from the JHipster project.
 
  This file is part of the JHipster project, see https://www.jhipster.tech/
  for more information.
@@ -28,6 +28,9 @@ import java.time.Instant;
 <%_ if (anyFieldIsLocalDate) { _%>
 import java.time.LocalDate;
 <%_ } _%>
+<%_ if (anyFieldIsLocalTime) { _%>
+import java.time.LocalTime;
+<%_ } _%>
 <%_ if (anyFieldIsZonedDateTime) { _%>
 import java.time.ZonedDateTime;
 <%_ } _%>
@@ -45,8 +48,8 @@ import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 <%_ } _%>
 <%_ if (restProperties.some(property => property.collection)) { _%>
-import java.util.Set;
 import java.util.HashSet;
+import java.util.Set;
 <%_ } _%>
 <%_ if (anyFieldIsUUID) { _%>
 import java.util.UUID;
@@ -54,26 +57,19 @@ import java.util.UUID;
 <%_ if (anyFieldIsBlobDerived && databaseTypeSql) { _%>
 import jakarta.persistence.Lob;
 <%_ } _%>
-<%_ Object.keys(uniqueEnums).forEach(function(element) { _%>
-import <%- entityAbsolutePackage %>.domain.enumeration.<%- element %>;
-<%_ }); _%>
-<%_ for (const field of fields.filter(field => !field.javaInherited && !field.transient && (embedded || !field.id || !primaryKey.composite))) { _%>
-    <%_
-      if(field.fieldTypeSetSaathratri) {
-    _%>
-  import java.util.Set;
-     <%_ 
-         break;
-       }
-     _%>
-     <%_
-      if(field.fieldTypeMapSaathratri) {
-    _%>
-  import java.util.Map;
-     <%_ 
-         break;
-       }
-     _%>
+<%_ for (const enumField of uniqueEnums) { _%>
+import <%- entityAbsolutePackage %>.domain.enumeration.<%- enumField.fieldType %>;
+<%_ } _%>
+<%_ /* Saathratri change: Set/Map imports for Cassandra Set and Map collection column types (upstream has no Set/Map collection type support) */ _%>
+<%_ if (fields.some(f => f.fieldTypeSetSaathratri)) { _%>
+import java.util.Set;
+<%_ } _%>
+<%_ if (fields.some(f => f.fieldTypeMapSaathratri)) { _%>
+import java.util.Map;
+<%_ } _%>
+
+<%_ for (const otherEntity of otherEntities.filter(otherEntity => otherEntity.entityPackage !== entityPackage)) { _%>
+import <%- `${otherEntity.entityAbsolutePackage}.service.dto.${otherEntity.dtoClass}` %>;
 <%_ } _%>
 
 /**
@@ -85,11 +81,13 @@ import <%- entityAbsolutePackage %>.domain.enumeration.<%- element %>;
 @SuppressWarnings("common-java:DuplicatedBlocks")
 public class <%- dtoClass %> implements Serializable {
 
+<%_ /* Saathratri change: composite key uses DTOId class field; single key uses standard primaryKey type (upstream iterates restProperties which includes id fields) */ _%>
 <%_ if (!embedded && primaryKeySaathratri.composite) { _%>
     private <%= dtoClass %>Id <%= primaryKeySaathratri.name %>;
 <%_ } else { _%>
     private <%= primaryKey.type %> <%= primaryKey.name %>;
 <%_ } _%>
+<%_ /* Saathratri change: property declarations filter out composite key fields via isCompositePrimaryKeyServerProperty and branch for Set/Map Cassandra collection types (upstream uses restProperties directly with propertyDtoJavaType) */ _%>
 <%_ for (property of restProperties) { _%>
   <%_ if (!isCompositePrimaryKeyServerProperty(primaryKeySaathratri, property) && property.propertyName !== 'id') { _%>
     <%_
@@ -117,6 +115,7 @@ public class <%- dtoClass %> implements Serializable {
 public <%- dtoClass %> () {
     // Empty constructor needed for Jackson.
 }
+<%_ /* Saathratri change: composite key getter/setter/fluent for DTOId class; single key uses standard get/set pattern (upstream uses propertySupplierName/propertyConsumerName) */ _%>
 <%_ if (primaryKeySaathratri.composite) { _%>
     public <%= dtoClass %>Id get<%= primaryKeySaathratri.nameCapitalized %>() {
         return this.<%= primaryKeySaathratri.name %>;
@@ -164,6 +163,7 @@ public <%- dtoClass %> () {
     <%_ } _%>
 <%_ } _%>
 
+<%_ /* Saathratri change: getter/setter/fluent methods filter out composite key fields and branch for Set/Map Cassandra collection types (upstream uses propertySupplierName/propertyConsumerName) */ _%>
 <%_ for (property of restProperties) { _%>
   <%_ if (!isCompositePrimaryKeyServerProperty(primaryKeySaathratri, property) && property.propertyName !== 'id') { _%>
 
@@ -172,7 +172,7 @@ public <%- dtoClass %> () {
         return <%- property.propertyName %>;
     }
 
-    public void set<%- property.propertyJavaBeanName %>(Set<<%- property.propertyDtoJavaType %>> <%- property.propertyName %>) %> {
+    public void set<%- property.propertyJavaBeanName %>(Set<<%- property.propertyDtoJavaType %>> <%- property.propertyName %>) {
         this.<%- property.propertyName %> = <%- property.propertyName %>;
     }
       <%_ if (fluentMethods) { _%>
@@ -189,7 +189,7 @@ public <%- dtoClass %> () {
         return <%- property.propertyName %>;
     }
 
-    public void set<%- property.propertyJavaBeanName %>(Map<String, <%- property.propertyDtoJavaType %>> <%- property.propertyName %>) %> {
+    public void set<%- property.propertyJavaBeanName %>(Map<String, <%- property.propertyDtoJavaType %>> <%- property.propertyName %>) {
         this.<%- property.propertyName %> = <%- property.propertyName %>;
     }
       <%_ if (fluentMethods) { _%>
@@ -205,7 +205,7 @@ public <%- dtoClass %> () {
         return <%- property.propertyName %>;
     }
 
-    public void set<%- property.propertyJavaBeanName %>(<%- property.propertyDtoJavaType %> <%- property.propertyName %>) %> {
+    public void set<%- property.propertyJavaBeanName %>(<%- property.propertyDtoJavaType %> <%- property.propertyName %>) {
         this.<%- property.propertyName %> = <%- property.propertyName %>;
     }
       <%_ if (fluentMethods) { _%>
@@ -226,6 +226,7 @@ public <%- dtoClass %> () {
         if (!(o instanceof <%- dtoClass %>)) return false;
 
         <%- dtoClass %> that = (<%- dtoClass %>) o;
+<%_ /* Saathratri change: equals/hashCode/toString use composite key getter when composite (upstream uses primaryKey.fields with propertyName) */ _%>
         <%_ if (primaryKeySaathratri.composite) { _%>
         return Objects.equals(get<%= primaryKeySaathratri.nameCapitalized %>(), that.get<%= primaryKeySaathratri.nameCapitalized %>());
 <%_ } else { _%>
@@ -244,6 +245,7 @@ public <%- dtoClass %> () {
         return "<%= entityClass %>DTO {" + <%_ if (primaryKeySaathratri.composite) { _%> "<%= primaryKeySaathratri.name %> = " + get<%= primaryKeySaathratri.nameCapitalized %> <%_ } else { _%> "<%= primaryKey.name %> = " + get<%= primaryKey.nameCapitalized %><%_ } _%>() +
 <%_ for ([idx, reference] of dtoReferences.entries()) {
   const isQuoted = reference.field && !reference.field.fieldTypeNumeric;_%>
+<%_ /* Saathratri change: toString filters out composite key fields via isCompositePrimaryKeyServerReference (upstream iterates restProperties with propertySupplierName) */ _%>
   <%_ if (!isCompositePrimaryKeyServerReference(primaryKeySaathratri, reference)) { _%>
             "<%= idx === 0 ? '' : ', ' %><%= reference.name %>=<% if (isQuoted) { %>'<% } %>" + <%= buildJavaGet(reference) %> <% if (isQuoted) { %>+ "'" <% } %>+
             <%_ if(reference.type === 'ByteBuffer') { _%>

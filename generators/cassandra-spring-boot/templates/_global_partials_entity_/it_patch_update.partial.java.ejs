@@ -1,5 +1,5 @@
 <%#
- Copyright 2013-2024 the original author or authors from the JHipster project.
+ Copyright 2013-2026 the original author or authors from the JHipster project.
 
  This file is part of the JHipster project, see https://www.jhipster.tech/
  for more information.
@@ -20,6 +20,7 @@ long databaseSizeBeforeUpdate = getRepositoryCount();
 
 // Update the <%= entityInstance %> using partial update
 <%= persistClass %> partialUpdated<%= persistClass %> = new <%= persistClass %>();
+<%_ /* Saathratri change: composite key uses set/get<nameCapitalized>() for composite ID; single key uses same pattern (upstream uses primaryKey.propertyConsumerName/propertySupplierName) */ _%>
 <%_ if (primaryKeySaathratri.composite) { _%>
 partialUpdated<%= persistClass %>.set<%= primaryKeySaathratri.nameCapitalized %>(<%= persistInstance %>.get<%= primaryKeySaathratri.nameCapitalized %>());
 <%_ } else { _%>
@@ -27,12 +28,14 @@ partialUpdated<%= persistClass %>.set<%= primaryKey.nameCapitalized %>(<%= persi
 <%_ } _%>
 <%_ fieldsToUpdate = fields.filter(field => field.includeField) %>
 <%_ if (fluentMethods && fieldsToUpdate.length > 0) { _%>
+<%_ /* Saathratri change: fluent method chain filters out composite primary key fields (upstream has no composite key filter) */ _%>
     partialUpdated<%= persistClass %>
     <% for (field of fieldsToUpdate) { %>
     <%_  if( !field.isCompositePrimaryKeyField && field.fieldName !== 'id') { _%>
         .<%= field.fieldName %>(<%= 'UPDATED_' + field.fieldNameUnderscored.toUpperCase() %>)<% if (field.fieldWithContentType) { %>
             .<%= field.fieldName %>ContentType(<%= 'UPDATED_' + field.fieldNameUnderscored.toUpperCase() %>_CONTENT_TYPE)<% } %><% } %>
     <%_ } _%>;
+<%_ /* Saathratri change: non-fluent setters use set<fieldInJavaBeanMethod>() pattern (upstream uses field.propertyConsumerName) */ _%>
 <%_ } else { _%>
   <%_ for (field of fieldsToUpdate) { _%>
     <%_ if (field.includeField) { %>
@@ -44,6 +47,7 @@ partialUpdated<%= persistClass %>.set<%= primaryKey.nameCapitalized %>(<%= persi
   <%_ } _%>
 <%_ } _%>
 
+<%_ /* Saathratri change: reactive/imperative URI uses get<nameCapitalized>() pattern (upstream uses primaryKey.propertySupplierName) */ _%>
 <%_ if (reactive) { _%>
 webTestClient
 .patch()
@@ -54,6 +58,7 @@ webTestClient
 .expectStatus()
 .isOk();
 <%_ } else { _%>
+<%_ /* Saathratri change: imperative MockMvc uses composite key getter when composite (upstream uses primaryKey.propertySupplierName) */ _%>
 <%_ if (primaryKeySaathratri.composite) { _%>
 rest<%= entityClass %>MockMvc.perform(patch(ENTITY_API_URL_ID, partialUpdated<%= persistClass %>.get<%= primaryKeySaathratri.nameCapitalized %>())<% if (authenticationUsesCsrf) { %>.with(csrf())<% }%>
 <%_ } else { _%>

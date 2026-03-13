@@ -1,5 +1,5 @@
 <%#
- Copyright 2013-2024 the original author or authors from the JHipster project.
+ Copyright 2013-2026 the original author or authors from the JHipster project.
 
  This file is part of the JHipster project, see https://www.jhipster.tech/
  for more information.
@@ -22,8 +22,10 @@
 @import 'bootswatch/dist/<%= clientTheme %>/variables';
 <%_ } _%>
 @import 'bootstrap/scss/variables';
+<%# Saathratri change: Angular Material theme and Material Icons for Cassandra Set/Map UI components. Not in upstream. #%>
 @import '@angular/material/prebuilt-themes/indigo-pink.css';
 @import 'material-icons/iconfont/material-icons.scss';
+
 /* ==============================================================
 Bootstrap tweaks
 ===============================================================*/
@@ -239,13 +241,13 @@ ui bootstrap tweaks
 }
 
 .dropdown-menu {
-  padding-left: 0px;
+  padding-left: 0;
 }
 
 /* ==========================================================================
 angular-cli removes postcss-rtl processed inline css, processed rules must be added here instead
 ========================================================================== */
-/* page-ribbon.component.scss */
+/* page-ribbon.scss */
 .ribbon {
   left: -3.5em;
   -moz-transform: rotate(-45deg);
@@ -255,7 +257,7 @@ angular-cli removes postcss-rtl processed inline css, processed rules must be ad
   transform: rotate(-45deg);
 }
 
-/* navbar.component.scss */
+/* navbar.scss */
 .navbar {
   ul.navbar-nav {
     .nav-item {
@@ -263,6 +265,7 @@ angular-cli removes postcss-rtl processed inline css, processed rules must be ad
     }
   }
 }
+<%# Saathratri change: custom scrollbar styles for Cassandra infinite scroll (cursor-based paging). Not in upstream. #%>
 /* ==========================================================================
 Infinite Scroll Styles
 ========================================================================== */

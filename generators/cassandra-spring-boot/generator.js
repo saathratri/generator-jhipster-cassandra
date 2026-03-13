@@ -1,8 +1,8 @@
 import BaseApplicationGenerator from 'generator-jhipster/generators/base-application';
 import { javaMainPackageTemplatesBlock, javaTestPackageTemplatesBlock } from 'generator-jhipster/generators/java/support';
 import command from './command.js';
-import { javaSaathratriUtils } from '../cassandra-java-domain/cassandra-java-domain-utils.js';
-import { springDataCassandraSaathratriUtils } from '../cassandra-spring-data-cassandra/cassandra-spring-data-cassandra-utils.js';
+import { javaSaathratriUtils } from '../cassandra-java/generators/domain/cassandra-java-domain-utils.js';
+import { springDataCassandraSaathratriUtils } from './generators/data-cassandra/cassandra-spring-data-cassandra-utils.js';
 import { cassandraSpringBootUtils } from './cassandra-spring-boot-utils.js';
 import { snakeCase } from 'lodash-es';
 
@@ -42,8 +42,8 @@ export default class extends BaseApplicationGenerator {
     return this.asComposingTaskGroup({
       async composeTask() {
         if (['cassandra'].includes(this.jhipsterConfigWithDefaults.databaseType)) {
-         // Delegate the client sub-generator to the spring boot blueprint.
-         await this.composeWithJHipster('jhipster-cassandra:cassandra-spring-data-cassandra');
+         // Delegate to the data-cassandra sub-generator.
+         await this.composeWith('./generators/data-cassandra/index.js');
         }
       },
     });
