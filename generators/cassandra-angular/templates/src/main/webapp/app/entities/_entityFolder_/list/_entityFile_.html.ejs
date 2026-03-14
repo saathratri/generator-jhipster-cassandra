@@ -1,5 +1,5 @@
 <%#
- Copyright 2013-2024 the original author or authors from the JHipster project.
+ Copyright 2013-2026 the original author or authors from the JHipster project.
 
  This file is part of the JHipster project, see https://www.jhipster.tech/
  for more information.
@@ -17,34 +17,36 @@
  limitations under the License.
 -%>
 <div>
-    <h2 id="page-heading" data-cy="<%= entityClass %>Heading">
+    <h2 id="page-heading" data-cy="<%- entityNameCapitalized %>Heading">
         <span>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.title')</span>
 
         <div class="d-flex justify-content-end">
+<%# Saathratri change: Cassandra uses reset() instead of load() for refresh button to clear pagination state. Not in upstream. #%>
 <%_ if (databaseTypeCassandra && paginationNo) { _%>
             <button class="btn btn-info me-2" (click)="reset()" [disabled]="isLoading">
-                <fa-icon icon="sync" [animation]="isLoading ? 'spin' : undefined"></fa-icon>
+                <fa-icon icon="sync" [animation]="isLoading ? 'spin' : undefined" />
                 <span>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.refreshListLabel')</span>
             </button>
 <%_ } else { _%>
             <button class="btn btn-info me-2" (click)="load()" [disabled]="isLoading">
-                <fa-icon icon="sync" [animation]="isLoading ? 'spin' : undefined"></fa-icon>
+                <fa-icon icon="sync" [animation]="isLoading ? 'spin' : undefined" />
                 <span>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.refreshListLabel')</span>
             </button>
 <%_ } _%>
             <%_ if (!readOnly) { _%>
 
             <button id="jh-create-entity" data-cy="entityCreateButton" class="btn btn-primary jh-create-entity create-<%= entityUrl %>" [routerLink]="['/<%= entityPage %>/new']">
-                <fa-icon icon="plus"></fa-icon>
+                <fa-icon icon="plus" />
                 <span <% if (searchEngineAny) { %>class="hidden-sm-down" <% } %>>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.createLabel')</span>
             </button>
             <%_ } _%>
         </div>
     </h2>
 
-    <<%= jhiPrefixDashed %>-alert-error></<%= jhiPrefixDashed %>-alert-error>
+    <<%= jhiPrefixDashed %>-alert-error />
 
-    <<%= jhiPrefixDashed %>-alert></<%= jhiPrefixDashed %>-alert>
+    <<%= jhiPrefixDashed %>-alert />
+<%# Saathratri change: Cassandra composite key search form with partition/clustering key fields, Material date pickers, comparison operators, and search actions. Not in upstream. #%>
 <%_ if (databaseTypeCassandra && primaryKeySaathratri.composite) {
     const partitionKeyFields = fields.filter(f => f.isPartitionedKeySaathratri);
     const clusteringKeyFields = fields.filter(f => f.isClusteredKeySaathratri);
@@ -62,8 +64,8 @@ _%>
              style="cursor: pointer;"
              data-cy="searchFormToggle">
             <span>
-                <fa-icon [icon]="isSearchFormCollapsed ? 'chevron-right' : 'chevron-down'" class="me-2"></fa-icon>
-                <fa-icon icon="search" class="me-1"></fa-icon>
+                <fa-icon [icon]="isSearchFormCollapsed ? 'chevron-right' : 'chevron-down'" class="me-2" />
+                <fa-icon icon="search" class="me-1" />
                 <span>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.search')</span>
             </span>
             @if (hasActiveSearch()) {
@@ -76,7 +78,7 @@ _%>
                     <!-- Partition Key Fields (Required) -->
                     <div class="mb-3">
                         <h6 class="text-muted mb-2">
-                            <fa-icon icon="key" class="me-1"></fa-icon>
+                            <fa-icon icon="key" class="me-1" />
                             <span>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.partitionKeys')</span>
                             <span class="text-danger">*</span>
                         </h6>
@@ -94,8 +96,8 @@ _%>
                                                name="search_<%= field.fieldName %>_date"
                                                (dateChange)="onSearchDateChange('<%= field.fieldName %>', true)"
                                                data-cy="search<%= field.fieldNameCapitalized %>Date">
-                                        <mat-datepicker-toggle matSuffix [for]="search<%= field.fieldNameCapitalized %>DatePicker"></mat-datepicker-toggle>
-                                        <mat-datepicker #search<%= field.fieldNameCapitalized %>DatePicker></mat-datepicker>
+                                        <mat-datepicker-toggle matSuffix [for]="search<%= field.fieldNameCapitalized %>DatePicker" />
+                                        <mat-datepicker #search<%= field.fieldNameCapitalized %>DatePicker />
                                     </mat-form-field>
                                     <mat-form-field appearance="outline" class="search-time-field">
                                         <mat-label>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.hour')</mat-label>
@@ -141,8 +143,8 @@ _%>
                                            (dateChange)="onSearchDateChange('<%= field.fieldName %>')"
                                            required
                                            data-cy="search<%= field.fieldNameCapitalized %>">
-                                    <mat-datepicker-toggle matSuffix [for]="search<%= field.fieldNameCapitalized %>Picker"></mat-datepicker-toggle>
-                                    <mat-datepicker #search<%= field.fieldNameCapitalized %>Picker></mat-datepicker>
+                                    <mat-datepicker-toggle matSuffix [for]="search<%= field.fieldNameCapitalized %>Picker" />
+                                    <mat-datepicker #search<%= field.fieldNameCapitalized %>Picker />
                                 </mat-form-field>
                             </div>
     <%_ } else if (field.fieldType === 'Boolean') { _%>
@@ -190,7 +192,7 @@ _%>
                     <!-- Clustering Key Fields (Optional) -->
                     <div class="mb-3">
                         <h6 class="text-muted mb-2">
-                            <fa-icon icon="sort" class="me-1"></fa-icon>
+                            <fa-icon icon="sort" class="me-1" />
                             <span>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.clusteringKeys')</span>
                             <span class="text-muted small">(<span>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.optional')</span>)</span>
                         </h6>
@@ -224,8 +226,8 @@ _%>
                                                [disabled]="isClusteringFieldDisabled('<%= field.fieldName %>')"
                                                (dateChange)="onSearchDateChange('<%= field.fieldName %>', true)"
                                                data-cy="search<%= field.fieldNameCapitalized %>Date">
-                                        <mat-datepicker-toggle matSuffix [for]="search<%= field.fieldNameCapitalized %>DatePicker" [disabled]="isClusteringFieldDisabled('<%= field.fieldName %>')"></mat-datepicker-toggle>
-                                        <mat-datepicker #search<%= field.fieldNameCapitalized %>DatePicker></mat-datepicker>
+                                        <mat-datepicker-toggle matSuffix [for]="search<%= field.fieldNameCapitalized %>DatePicker" [disabled]="isClusteringFieldDisabled('<%= field.fieldName %>')" />
+                                        <mat-datepicker #search<%= field.fieldNameCapitalized %>DatePicker />
                                     </mat-form-field>
                                     <mat-form-field appearance="outline" class="search-time-field">
                                         <mat-label>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.hour')</mat-label>
@@ -290,8 +292,8 @@ _%>
                                                [disabled]="isClusteringFieldDisabled('<%= field.fieldName %>')"
                                                (dateChange)="onSearchDateChange('<%= field.fieldName %>')"
                                                data-cy="search<%= field.fieldNameCapitalized %>">
-                                        <mat-datepicker-toggle matSuffix [for]="search<%= field.fieldNameCapitalized %>Picker" [disabled]="isClusteringFieldDisabled('<%= field.fieldName %>')"></mat-datepicker-toggle>
-                                        <mat-datepicker #search<%= field.fieldNameCapitalized %>Picker></mat-datepicker>
+                                        <mat-datepicker-toggle matSuffix [for]="search<%= field.fieldNameCapitalized %>Picker" [disabled]="isClusteringFieldDisabled('<%= field.fieldName %>')" />
+                                        <mat-datepicker #search<%= field.fieldNameCapitalized %>Picker />
                                     </mat-form-field>
                                 </div>
                             </div>
@@ -360,14 +362,14 @@ _%>
                                 class="btn btn-primary"
                                 [disabled]="!isSearchFormValid()"
                                 data-cy="searchButton">
-                            <fa-icon icon="search"></fa-icon>
+                            <fa-icon icon="search" />
                             <span>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.searchButton')</span>
                         </button>
                         <button type="button"
                                 class="btn btn-secondary"
                                 (click)="clearSearch()"
                                 data-cy="clearSearchButton">
-                            <fa-icon icon="times"></fa-icon>
+                            <fa-icon icon="times" />
                             <span>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.clearSearch')</span>
                         </button>
                     </div>
@@ -384,13 +386,13 @@ _%>
                 <label class="visually-hidden" for="currentSearch">__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.search')</label>
                 <input type="text" class="form-control" [(ngModel)]="currentSearch" id="currentSearch" name="currentSearch" placeholder="__jhiTranslatePipe__('<%= i18nKeyPrefix %>.home.search')">
 
-                <button class="btn btn-info" (click)="search(currentSearch)">
-                    <fa-icon icon="search"></fa-icon>
+                <button class="btn btn-info" (click)="search(currentSearch())">
+                    <fa-icon icon="search" />
                 </button>
 
-            @if (currentSearch) {
+            @if (currentSearch()) {
                 <button class="btn btn-danger" (click)="search('')">
-                    <fa-icon icon="trash-alt"></fa-icon>
+                    <fa-icon icon="trash-alt" />
                 </button>
             }
             </div>
@@ -399,24 +401,25 @@ _%>
 <%_ } _%>
 
 <%_ if (jpaMetamodelFiltering && paginationPagination) { _%>
-    <<%= jhiPrefixDashed %>-filter [filters]="filters"></<%= jhiPrefixDashed %>-filter>
+    <<%= jhiPrefixDashed %>-filter [filters]="filters" />
 <%_ } _%>
 
+<%# Saathratri change: Cassandra composite key shows no-result only when not loading. Not in upstream. #%>
 <%_ if (databaseTypeCassandra && primaryKeySaathratri.composite) { _%>
-@if (<%= entityInstancePlural %>?.length === 0 && !isLoading) {
+@if (<%= entityInstancePlural %>.length === 0 && !isLoading) {
     <div class="alert alert-warning" id="no-result">
         <span>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.notFound')</span>
     </div>
 }
 <%_ } else { _%>
-@if (<%= entityInstancePlural %>?.length === 0) {
+@if (<%= entityInstancePlural %>.length === 0) {
     <div class="alert alert-warning" id="no-result">
         <span>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.notFound')</span>
     </div>
 }
 <%_ } _%>
 
-@if (<%= entityInstancePlural %> && <%= entityInstancePlural %>.length > 0) {
+@if (<%= entityInstancePlural %>.length > 0) {
 <%_ if (paginationInfiniteScroll) { _%>
     <div class="table-responsive table-entities" id="entities" #scrollContainer (scroll)="onScroll($event)" style="max-height: calc(100vh - 320px); overflow-y: auto;">
 <%_ } else { _%>
@@ -424,14 +427,17 @@ _%>
 <%_ } _%>
         <table class="table table-striped" aria-describedby="page-heading">
             <thead>
-                <tr <%= jhiPrefix %>Sort [sortState]="sortState()" (sortChange)="navigateToWithComponentValues($event)">
-<%_ for (const field of fields.filter(field => !field.hidden  && ((primaryKeySaathratri.composite && field.fieldName !== 'id') || !primaryKeySaathratri.composite))) { _%>
-                    <th scope="col" <%= jhiPrefix %>SortBy="<%= field.fieldName %>">
+                <tr <%= jhiPrefix %>Sort [(sortState)]="sortState" (sortChange)="navigateToWithComponentValues($event)">
+<%# Saathratri change: field filter excludes 'id' for composite keys and uses fieldTranslationKey. Not in upstream (upstream uses propertyTranslationKey and hideListView). #%>
+<%_ for (const field of fields.filter(field => !field.hidden && !field.hideListView && ((primaryKeySaathratri.composite && field.fieldName !== 'id') || !primaryKeySaathratri.composite))) {
+    const { fieldSupportsSortBy } = field;
+_%>
+                    <th scope="col"<% if (fieldSupportsSortBy) { %> <%= jhiPrefix %>SortBy="<%= field.fieldName %>"<% } %>>
                         <div class="d-flex">
                             <span>__jhiTranslateTag__('<%- field.fieldTranslationKey %>')</span>
-  <%_ if (!field.transient) { _%>
-                        <% if (searchEngineAny && !field.fieldTypeBoolean && !field.fieldTypeNumeric && !field.fieldTypeTemporal) { %>@if (!currentSearch) {<% } %>
-                            <fa-icon class="p-1" icon="sort"></fa-icon>
+  <%_ if (fieldSupportsSortBy) { _%>
+                        <% if (searchEngineAny && !field.fieldTypeBoolean && !field.fieldTypeNumeric && !field.fieldTypeTemporal) { %>@if (!currentSearch()) {<% } %>
+                            <fa-icon class="p-1" icon="sort" />
                         <% if (searchEngineAny && !field.fieldTypeBoolean && !field.fieldTypeNumeric && !field.fieldTypeTemporal) { %>}<% } %>
   <%_ } _%>
                         </div>
@@ -441,26 +447,24 @@ _%>
                 </tr>
             </thead>
             <tbody<% if (paginationInfiniteScroll) { %> infinite-scroll (scrolled)="loadNextPage()" [infiniteScrollDisabled]="!hasMorePage()" [infiniteScrollDistance]="0"<% } %>>
+<%# Saathratri change: @for track uses composite key track function when applicable. Not in upstream. #%>
             <%_ if(primaryKeySaathratri.composite) { _%>
-            @for (<%= entityInstance %> of <%= entityInstancePlural %>; track track<%= primaryKeySaathratri.nameCapitalized %>) {
+            @for (<%= entityInstance %> of <%= entityInstancePlural %>; track track<%= primaryKeySaathratri.nameCapitalized %>(<%= entityInstance %>)) {
             <%_ } else { _%>
-            @for (<%= entityInstance %> of <%= entityInstancePlural %>; track track<%= primaryKey.nameCapitalized %>) {
+            @for (<%= entityInstance %> of <%= entityInstancePlural %>; track track<%= primaryKey.nameCapitalized %>(<%= entityInstance %>)) {
             <%_ } _%>
                 <tr data-cy="entityTable">
 <%_
-   // Saathratri Modification
-
+<%# Saathratri change: routerLink uses composite key helper for composite primary keys. Not in upstream. #%>
     var routerLink = '';
     // Composite Primary Key Code
-    if (primaryKeySaathratri.composite) { 
+    if (primaryKeySaathratri.composite) {
         routerLink = ` [routerLink]="['/${entityPage}', ${getCompositePrimaryKeyClientListRouterLink(entityInstance, primaryKeySaathratri)}, 'view']"`;
     // Single-value Primary Key Code
-    } else { 
+    } else {
         routerLink = ` [routerLink]="['/${entityPage}', ${entityInstance}.${primaryKey.name}, 'view']"`;
     }
-//const routerLink = ` [routerLink]="['/${ entityPage }', ${entityInstance}.${primaryKey.name}, 'view']"`; 
-  // End of Saathratri Modification
-for (field of fields.filter(field => !field.hidden && ((primaryKeySaathratri.composite && field.fieldName !== 'id') || !primaryKeySaathratri.composite))) {
+for (field of fields.filter(field => !field.hidden && !field.hideListView && ((primaryKeySaathratri.composite && field.fieldName !== 'id') || !primaryKeySaathratri.composite))) {
     const fieldName = field.fieldName;
     const fieldType = field.fieldType;
 _%>
@@ -483,42 +487,39 @@ _%>
     <%_ } else if (field.fieldIsEnum) { _%>
                     <%# TODO: import enum and use its key as label _%>
                     <td<% if (field.id) { %>><a<%- routerLink %><% } %>>__jhiTranslateTagEnum__('<%= frontendAppName %>.<%= fieldType %>', { "value": "<%= entityInstance %>.<%= fieldName %> ?? 'null'" })<% if (field.id) { %></a><% } %></td>
-    <%_ } else if (field.fieldTypeSetSaathratri) { 
-            // Composite Primary Key Code
-    _%>
+<%# Saathratri change: Set and Map field display in table cells. Not in upstream. #%>
+    <%_ } else if (field.fieldTypeSetSaathratri) { _%>
             <td>
-                <dl *ngIf="<%= entityInstance %>.<%= fieldName %>">
-                    <div *ngFor="let tag of toArray(<%= entityInstance %>.<%= fieldName %>)">
-                        <dt>{{ tag }}</dt>
-                    </div>
-                </dl>
+                @if (<%= entityInstance %>.<%= fieldName %>) {
+                    <dl>
+                        @for (tag of toArray(<%= entityInstance %>.<%= fieldName %>); track $index) {
+                            <div><dt>{{ tag }}</dt></div>
+                        }
+                    </dl>
+                }
             </td>
-    <%_ } else if (field.fieldTypeMapSaathratri) { 
-            // Composite Primary Key Code
-    _%>
+    <%_ } else if (field.fieldTypeMapSaathratri) { _%>
             <td>
-                <div *ngFor="let item of <%= entityInstance %>.<%= fieldName %> | keyvalue">
+                @for (item of <%= entityInstance %>.<%= fieldName %> | keyvalue; track $index) {
                   <dt>{{ item.key }}</dt>
                   <dd>
                     <td>{{ item.value <%_ if(field.fieldTypeMapDayjsSaathratri) { _%> | formatMediumDatetime<%_ } _%>}}</td>
                   </dd>
-                </div>
+                }
             </td>
-    <%_ } else if (primaryKeySaathratri.composite && !field.isCompositePrimaryKeyField && field.fieldTypeTimedSaathratri) { 
-                    // Composite Primary Key Code
-	_%>
+<%# Saathratri change: Saathratri-specific date types for non-composite-key fields. Not in upstream. #%>
+    <%_ } else if (primaryKeySaathratri.composite && !field.isCompositePrimaryKeyField && field.fieldTypeTimedSaathratri) { _%>
     		    	<td>{{ <%= entityInstance %>.<%= fieldName %> | formatMediumDatetime }}</td>
-    <%_ } else if (primaryKeySaathratri.composite && !field.isCompositePrimaryKeyField && field.fieldTypeLocalDateSaathratri) {
-                    // Composite Primary Key Code - UTC_DATE field (no timezone shift)
-    _%>
+    <%_ } else if (primaryKeySaathratri.composite && !field.isCompositePrimaryKeyField && field.fieldTypeLocalDateSaathratri) { _%>
     		    	<td>{{ <%= entityInstance %>.<%= fieldName %> | formatUtcDate }}</td>
     <%_ } else if (field.fieldTypeTimed) { _%>
                     <td>{{ <%= entityInstance %>.<%= fieldName %> | formatMediumDatetime }}</td>
     <%_ } else if (field.fieldTypeLocalDate) { _%>
-                    <td>{{ <%= entityInstance %>.<%= fieldName %> }}</td>
+                    <td>{{ <%= entityInstance %>.<%= fieldName %> | formatMediumDate }}</td>
     <%_ } else if (field.fieldTypeDuration) { _%>
                     <td title="{{ <%= entityInstance %>.<%= fieldName %> }}">{{ <%= entityInstance %>.<%= fieldName %> | duration }}</td>
     <%_ } else { _%>
+<%# Saathratri change: composite key fields displayed from nested compositeId object with type-appropriate pipes. Not in upstream. #%>
                     <%_
                         // Saathratri: Composite Primary Key Code
                         if (primaryKeySaathratri.composite && field.isCompositePrimaryKeyField) {
@@ -531,73 +532,74 @@ _%>
 		            _%>
                             <td>{{ <%= entityInstance %>!.<%= primaryKeySaathratri.name %>.<%= fieldName %> | formatUtcDate }}</td>
                         <%_
-                            } else if(field.fieldTypeTimed || field.fieldTypeTimedSaathratri) { 
+                            } else if(field.fieldTypeTimed || field.fieldTypeTimedSaathratri) {
                         _%>
                             <td>{{ <%= entityInstance %>!.<%= primaryKeySaathratri.name %>.<%= fieldName %> | formatMediumDatetime }}</td>
-                        <%_ 
-                            } else { 
+                        <%_
+                            } else {
                         _%>
 			                <td>{{ <%= entityInstance %>!.<%= primaryKeySaathratri.name %>.<%= fieldName %> }}</td>
- 			            <%_ 
-                            } 
+ 			            <%_
+                            }
                         %>
-                    <%_ 
+                    <%_
                         // Saathratri: Single-value Primary Key Code
-                        } else { 
+                        } else {
                     _%>
                     <td<% if (field.id) { %>><a<%- routerLink %><% } %>>{{ <%= entityInstance %>.<%= fieldName %> }}<% if (field.id) { %></a><% } %></td>
-                    <%_ 
-		            } 
-			    // Saathratri 
+                    <%_
+		            }
+			    // Saathratri
 		    _%>
     <%_ } _%>
 <%_ } _%>
                     <td class="text-end">
                         <div class="btn-group">
-                    <%_ 
+<%# Saathratri change: view/edit/delete buttons use composite key routerLink when applicable. Not in upstream. #%>
+                    <%_
                         // Saathratri: Composite Primary Key Code
-                        if (primaryKeySaathratri.composite) { 
+                        if (primaryKeySaathratri.composite) {
                     _%>
 		    	    <a [routerLink]="['/<%= entityPage %>', <%= getCompositePrimaryKeyClientListRouterLink(entityInstance, primaryKeySaathratri) %>, 'view']"
                                class="btn btn-info btn-sm" data-cy="entityDetailsButton">
-                                <fa-icon icon="eye"></fa-icon>
+                                <fa-icon icon="eye" />
                                 <span class="d-none d-md-inline">__jhiTranslateTag__('entity.action.view')</span>
                             </a>
-                    <%_ 
+                    <%_
                         // Saathratri: Single-value Primary Key Code
-                        } else { 
+                        } else {
                     _%>
                             <a [routerLink]="['/<%= entityPage %>', <%= entityInstance %>.<%= primaryKey.name %>, 'view']"
                                class="btn btn-info btn-sm" data-cy="entityDetailsButton">
-                                <fa-icon icon="eye"></fa-icon>
+                                <fa-icon icon="eye" />
                                 <span class="d-none d-md-inline">__jhiTranslateTag__('entity.action.view')</span>
                             </a>
-		    <%_ 
-		    	} 
-		    	// Saathratri 
+		    <%_
+		    	}
+		    	// Saathratri
 		    _%>
 <%_ if (!readOnly && updatableEntity) { _%>
-                    <%_ 
+                    <%_
                         // Saathratri: Composite Primary Key Code
-                        if (primaryKeySaathratri.composite) { 
+                        if (primaryKeySaathratri.composite) {
                     _%>
                             <a [routerLink]="['/<%= entityPage %>', <%= getCompositePrimaryKeyClientListRouterLink(entityInstance, primaryKeySaathratri) %>, 'edit']"
                                class="btn btn-primary btn-sm" data-cy="entityEditButton">
-                                <fa-icon icon="pencil-alt"></fa-icon>
+                                <fa-icon icon="pencil-alt" />
                                 <span class="d-none d-md-inline">__jhiTranslateTag__('entity.action.edit')</span>
                             </a>
-                    <%_ 
+                    <%_
                         // Saathratri: Single-value Primary Key Code
-                        } else { 
+                        } else {
                     _%>
                             <a [routerLink]="['/<%= entityPage %>', <%= entityInstance %>.<%= primaryKey.name %>, 'edit']"
                                class="btn btn-primary btn-sm" data-cy="entityEditButton">
-                                <fa-icon icon="pencil-alt"></fa-icon>
+                                <fa-icon icon="pencil-alt" />
                                 <span class="d-none d-md-inline">__jhiTranslateTag__('entity.action.edit')</span>
                             </a>
-		    <%_ 
-		    	} 
-		    	// Saathratri 
+		    <%_
+		    	}
+		    	// Saathratri
 		    _%>
 <%_ } _%>
 <%_ if (!readOnly) { _%>
@@ -605,7 +607,7 @@ _%>
                             <button type="submit" (click)="delete(<%= entityInstance %>)"
                                     class="btn btn-danger btn-sm"
                                     data-cy="entityDeleteButton">
-                                <fa-icon icon="times"></fa-icon>
+                                <fa-icon icon="times" />
                                 <span class="d-none d-md-inline">__jhiTranslateTag__('entity.action.delete')</span>
                             </button>
 <%_ } _%>
@@ -628,30 +630,31 @@ _%>
         }
 
         <!-- End of List Indicator -->
-        @if (!isLoadingMore && !hasMorePage() && <%= entityInstancePlural %> && <%= entityInstancePlural %>.length > 0) {
+        @if (!isLoadingMore && !hasMorePage() && <%= entityInstancePlural %>.length > 0) {
             <div class="d-flex justify-content-center align-items-center p-3 text-muted">
-                <fa-icon icon="check-circle" class="me-2"></fa-icon>
+                <fa-icon icon="check-circle" class="me-2" />
                 <span>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.endOfList')</span>
             </div>
         }
 <%_ } _%>
+<%# Saathratri change: Cassandra Load More button and loading/end-of-list indicators. Not in upstream. #%>
 <%_ if (databaseTypeCassandra && paginationNo) { _%>
         <div class="d-flex justify-content-center mt-3 mb-3">
             @if (hasNextPage && !isLoadingMore) {
                 <button class="btn btn-primary d-none" (click)="loadMore()" [disabled]="isLoadingMore">
-                    <fa-icon icon="sync"></fa-icon>
+                    <fa-icon icon="sync" />
                     <span>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.loadMore')</span>
                 </button>
             }
             @if (isLoadingMore) {
                 <button class="btn btn-primary" disabled>
-                    <fa-icon icon="sync" [animation]="'spin'"></fa-icon>
+                    <fa-icon icon="sync" [animation]="'spin'" />
                     <span>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.loadingMore')</span>
                 </button>
             }
-            @if (!hasNextPage && <%= entityInstancePlural %> && <%= entityInstancePlural %>.length > 0) {
+            @if (!hasNextPage && <%= entityInstancePlural %>.length > 0) {
                 <div class="text-muted">
-                    <fa-icon icon="check-circle" class="me-2"></fa-icon>
+                    <fa-icon icon="check-circle" class="me-2" />
                     <span>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.endOfList')</span>
                 </div>
             }
@@ -660,14 +663,14 @@ _%>
     </div>
 }
 <%_ if (paginationPagination) { _%>
-@if (<%= entityInstancePlural %> && <%= entityInstancePlural %>.length > 0) {
+@if (<%= entityInstancePlural %>.length > 0) {
     <div>
         <div class="d-flex justify-content-center">
-            <<%= jhiPrefixDashed %>-item-count [params]="{ page: page, totalItems: totalItems, itemsPerPage: itemsPerPage }"></<%= jhiPrefixDashed %>-item-count>
+            <<%= jhiPrefixDashed %>-item-count [params]="{ page: page(), totalItems: totalItems(), itemsPerPage: itemsPerPage() }" />
         </div>
 
         <div class="d-flex justify-content-center">
-            <ngb-pagination [collectionSize]="totalItems" [page]="page" [pageSize]="itemsPerPage" [maxSize]="5" [rotate]="true" [boundaryLinks]="true" (pageChange)="navigateToPage($event)"></ngb-pagination>
+            <ngb-pagination [collectionSize]="totalItems()" [page]="page()" [pageSize]="itemsPerPage()" [maxSize]="5" [rotate]="true" [boundaryLinks]="true" (pageChange)="navigateToPage($event)" />
         </div>
     </div>
 }

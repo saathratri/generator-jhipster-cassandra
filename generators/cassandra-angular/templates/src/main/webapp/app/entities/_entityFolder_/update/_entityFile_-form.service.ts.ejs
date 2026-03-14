@@ -1,5 +1,5 @@
 <%#
- Copyright 2013-2024 the original author or authors from the JHipster project.
+ Copyright 2013-2026 the original author or authors from the JHipster project.
 
  This file is part of the JHipster project, see https://www.jhipster.tech/
  for more information.
@@ -17,18 +17,22 @@
  limitations under the License.
 -%>
 <%_
+<%# Saathratri change: formDefaultProperties split by composite vs non-composite key, includes Saathratri timed types. Not in upstream. #%>
   let formDefaultProperties = [];
-  if(primaryKeySaathratri.composite) { 
+  if(primaryKeySaathratri.composite) {
     formDefaultProperties = [
       ...fields.filter(field => !field.isCompositePrimaryKeyField && (field.fieldTypeTimed || field.fieldTypeTimedSaathratri || field.fieldTypeBoolean)).map(field => field.fieldName),
+      ...relationships.filter(relationship => relationship.collection && relationship.persistableRelationship).map(relationship => relationship.propertyName),
     ];
     formDefaultProperties.push(primaryKeySaathratri.name);
-} else { 
+} else {
     formDefaultProperties = [
       ...fields.filter(field => field.fieldTypeTimed || field.fieldTypeTimedSaathratri || field.fieldTypeBoolean || field.id).map(field => field.fieldName),
+      ...relationships.filter(relationship => relationship.collection && relationship.persistableRelationship).map(relationship => relationship.propertyName),
   ];
 }
   const containDefaultProperties = formDefaultProperties.length > 0;
+<%# Saathratri change: hasTimedConversions/hasUtcDateConversions/hasDateConversions for Cassandra Long epoch date handling. Not in upstream. #%>
   const hasTimedConversions = anyFieldIsTimeDerived || anyFieldIsTimeDerivedSaathratri;
   const hasUtcDateConversions = fields.some(field => field.fieldTypeLocalDateSaathratri);
   const hasDateConversions = hasTimedConversions || hasUtcDateConversions;
@@ -42,14 +46,17 @@ import { FormGroup, FormControl, Validators } from '@angular/forms';
 import dayjs from 'dayjs/esm';
 import { DATE_TIME_FORMAT } from 'app/config/input.constants';
 <%_ } _%>
+<%# Saathratri change: UTC date conversion utilities for Cassandra Long epoch date fields. Not in upstream. #%>
 <%_ if (fields.some(field => field.fieldTypeLocalDateSaathratri)) { _%>
 import { localDayjsToUtcDayjs, utcDayjsToLocalDayjs } from 'app/shared/date/saathratri-local-dayjs-and-utc-unix-utils';
 <%_ } _%>
+<%# Saathratri change: composite key ID type import. Not in upstream. #%>
 import { I<%= entityAngularName %>, <%_ if(primaryKeySaathratri.composite) { _%> I<%= entityAngularName %>Id, <%_ } _%> New<%= entityAngularName %> } from '../<%= entityFileName %>.model';
 
 /**
  * A partial Type with required key is used as form input.
  */
+<%# Saathratri change: composite key PartialWithRequiredKeyOf type requires all key sub-fields. Not in upstream. #%>
 <%_ if(primaryKeySaathratri.composite) { _%>
 type PartialWithRequiredKeyOf<T extends { <%= primaryKeySaathratri.name %>: { <%- primaryKeySaathratri.ids.map(field => `${field.fieldName}: unknown`).join(',\n') %> } }> = Partial<Omit<T, '<%= primaryKeySaathratri.name %>'>> & { <%= primaryKeySaathratri.name %>: T['<%= primaryKeySaathratri.name %>'] };
 <%_ } else { _%>
@@ -61,6 +68,7 @@ type PartialWithRequiredKeyOf<T extends { <%= primaryKey.name %>: unknown }> = P
  * It accepts I<%= entityAngularName %> for edit and New<%= entityAngularName %>FormGroupInput for create.
  */
 type <%= entityAngularName %>FormGroupInput = I<%= entityAngularName %> | PartialWithRequiredKeyOf<New<%= entityAngularName %>>;
+<%# Saathratri change: FormValueOf includes Cassandra timed types and Map<Dayjs> type handling. Not in upstream. #%>
 <%_ if (hasTimedConversions) { _%>
 
 /**
@@ -86,6 +94,7 @@ type <%= entityAngularName %>FormDefaults = Pick<New<%= entityAngularName %>, '<
 <%_ } _%>
 
 type <%= entityAngularName %>FormGroupContent = {
+<%# Saathratri change: composite key FormGroupContent uses nested FormGroup for composite key fields. Not in upstream. #%>
 <%_ if(primaryKeySaathratri.composite) { _%>
 <%- primaryKeySaathratri.name %>: FormGroup<{
 <%_ for (field of fields.filter(field => field.isCompositePrimaryKeyField)) {
@@ -104,13 +113,18 @@ _%>
 <%_ } _%>
 <%_ } else { _%>
 <%_ for (field of fields) {
-      const { fieldName, fieldType, fieldTypeBlobContent, fieldValidationRequired, tsType, fieldIsEnum } = field;
+      const { fieldName } = field;
 _%>
-  <%= fieldName %>: FormControl<<%= entityFormName %>['<%= fieldName %>']>;
+  <%= fieldName %>: FormControl<<%= entityFormName %>['<%= fieldName %>']<% if (field.id) { %> | New<%= entityAngularName %>['<%= fieldName %>']<% } %>>;
   <%_ if ((field.fieldTypeBinary || field.fieldTypeBinarySaathratri) && !field.blobContentTypeText) { _%>
   <%= fieldName %>ContentType: FormControl<<%= entityFormName %>['<%= fieldName %>ContentType']>;
   <%_ } _%>
 <%_ } _%>
+<%_ } _%>
+<%_ for (const relationship of relationships.filter(relationship => relationship.persistableRelationship)) {
+      const { propertyName } = relationship;
+_%>
+  <%= propertyName %>: FormControl<<%= entityFormName %>['<%= propertyName %>']>;
 <%_ } _%>
 };
 
@@ -118,6 +132,7 @@ export type <%= entityAngularName %>FormGroup = FormGroup<<%= entityAngularName 
 
 @Injectable({ providedIn: 'root' })
 export class <%= entityAngularName %>FormService {
+<%# Saathratri change: composite key createFormGroup uses explicit composite default values. Not in upstream. #%>
 <%_ if(primaryKeySaathratri.composite) { _%>
   create<%= entityAngularName %>FormGroup(<%= entityInstance %>: <%= entityAngularName %>FormGroupInput = { <%= primaryKeySaathratri.name %>: { <%- primaryKeySaathratri.ids.map(field => `${field.fieldName}: null`).join(',') %> } }): <%= entityAngularName %>FormGroup {
 <%_ } else { _%>
@@ -141,6 +156,7 @@ export class <%= entityAngularName %>FormService {
     ;
 
     return new FormGroup<<%= entityAngularName %>FormGroupContent>({
+<%# Saathratri change: composite key form controls use nested FormGroup with composite key field accessors. Not in upstream. #%>
 <%_ if(primaryKeySaathratri.composite) { _%>
   <%= primaryKeySaathratri.name %>: new FormGroup({
 <%_ for (const field of fields.filter( field => field.isCompositePrimaryKeyField )) {
@@ -167,7 +183,7 @@ _%>
             Validators.max(<%= field.fieldValidateRulesMax %>),
     <%_ } _%>
     <%_ if (field.fieldValidationPattern) { _%>
-            Validators.pattern('<%= field.fieldValidateRulesPattern.replace(/\\/g, '\\\\') %>'),
+            Validators.pattern('<%= field.fieldValidateRulesPattern.replace(/\\/g, '\\\\') %>'), // NOSONAR
     <%_ } _%>
           ],
         }
@@ -203,7 +219,7 @@ _%>
         Validators.max(<%= field.fieldValidateRulesMax %>),
 <%_ } _%>
 <%_ if (field.fieldValidationPattern) { _%>
-        Validators.pattern('<%= field.fieldValidateRulesPattern.replace(/\\/g, '\\\\') %>'),
+        Validators.pattern('<%= field.fieldValidateRulesPattern.replace(/\\/g, '\\\\') %>'), // NOSONAR
 <%_ } _%>
       ],
     }
@@ -220,7 +236,7 @@ _%>
 _%>
       <%= fieldName %>: new FormControl(
   <%_ if (field.id) { _%>
-        { value: <%= entityInstance %>RawValue.<%= fieldName %>, disabled: <%= entityInstance %>RawValue.<%= fieldName %> !== '' },
+        { value: <%= entityInstance %>RawValue.<%= fieldName %>, disabled: <% if (field.autoGenerate) { %>true<% } else { %><%= entityInstance %>RawValue.<%= fieldName %> !== ''<% } %> },
   <%_ } else { _%>
         <%= entityInstance %>RawValue.<%= fieldName %>,
   <%_ } _%>
@@ -246,7 +262,7 @@ _%>
             Validators.max(<%= field.fieldValidateRulesMax %>),
     <%_ } _%>
     <%_ if (field.fieldValidationPattern) { _%>
-            Validators.pattern('<%= field.fieldValidateRulesPattern.replace(/\\/g, '\\\\') %>'),
+            Validators.pattern('<%= field.fieldValidateRulesPattern.replace(/\\/g, '\\\\') %>'), // NOSONAR
     <%_ } _%>
           ],
         }
@@ -256,6 +272,18 @@ _%>
       <%= fieldName %>ContentType: new FormControl(<%= entityInstance %>RawValue.<%= fieldName %>ContentType),
   <%_ } _%>
 <%_ } _%>
+<%_ } _%>
+<%_ for (const relationship of relationships.filter(relationship => relationship.persistableRelationship)) {
+      const { relationshipRequired, propertyName, collection } = relationship;
+_%>
+      <%= propertyName %>: new FormControl(
+        <%= entityInstance %>RawValue.<%= propertyName %><% if (collection) { %> ?? []<% } %>
+  <%_ if (!collection && relationshipRequired) { _%>
+        , {
+          validators: [Validators.required],
+        }
+  <%_ } _%>
+      ),
 <%_ } _%>
     });
   }
@@ -284,6 +312,7 @@ _%>
     ;
     form.reset({
       ...<%= entityInstance %>RawValue,
+<%# Saathratri change: composite key reset disables all sub-fields; non-composite reset handles Saathratri date types. Not in upstream. #%>
 <%_ if(primaryKeySaathratri.composite) { _%>
   <%= primaryKeySaathratri.name %>: {
 <%_ for (const field of primaryKeySaathratri.ids) { _%>
@@ -313,13 +342,20 @@ _%>
 <%_ if (containDefaultProperties) { _%>
 
   private getFormDefaults(): <%= entityAngularName %>FormDefaults {
+<%# Saathratri change: composite key getFormDefaults sets null for all key sub-fields, handles Saathratri boolean/Set/Map types. Not in upstream. #%>
+  <%_ if (fields.some(field => field.fieldTypeTimed)) { _%>
+      const currentTime = dayjs();
+  <%_ } _%>
+
     return {
   <%_ if(primaryKeySaathratri.composite) { _%>
-  <%= primaryKeySaathratri.name %>: {  
+  <%= primaryKeySaathratri.name %>: {
   <%_ for (field of fields.filter( field => field.isCompositePrimaryKeyField) ) {
         const { fieldName, fieldTypeBoolean, fieldTypeTimed, fieldTypeLocalDate, fieldTypeLocalDateSaathratri, fieldTypeTimedSaathratri } = field;
   _%>
-    <%_ if (fieldTypeBoolean) { _%>
+    <%_ if (field.fieldTsDefaultValue) { _%>
+        <%= fieldName %>: <%- field.fieldTsDefaultValue %>,
+    <%_ } else if (fieldTypeBoolean) { _%>
       <%= fieldName %>: false,
     <%_ } else { _%>
         <%= fieldName %>: null,
@@ -329,24 +365,42 @@ _%>
 <%_ for (field of fields.filter( field => !field.isCompositePrimaryKeyField )) {
     const { fieldName, fieldTypeBoolean, fieldTypeTimed, fieldTypeLocalDate, fieldTypeSetSaathratri, fieldTypeMapSaathratri } = field;
 _%>
-      <%_ if (fieldTypeBoolean && !fieldTypeSetSaathratri && !fieldTypeMapSaathratri) { _%>
+    <%_ if (field.fieldTsDefaultValue) { _%>
+        <%= fieldName %>: <%- field.fieldTsDefaultValue %>,
+    <%_ } else if (fieldTypeBoolean && !fieldTypeSetSaathratri && !fieldTypeMapSaathratri) { _%>
         <%= fieldName %>: false,
-      <%_ } _%>
+    <%_ } else if (fieldTypeTimed) { _%>
+        <%= fieldName %>: currentTime,
+    <%_ } _%>
     <%_ } _%>
   <%_ } else { _%>
   <%_ for (field of fields) {
         const { fieldName, fieldTypeBoolean, fieldTypeTimed, fieldTypeLocalDate, fieldTypeSetSaathratri, fieldTypeMapSaathratri } = field;
   _%>
+    <%_ if (field.fieldTsDefaultValue) { _%>
+        <%= fieldName %>: <%- field.fieldTsDefaultValue %>,
+    <%_ } else { _%>
     <%_ if (field.id) { _%>
       <%= fieldName %>: '',
     <%_ } else if (fieldTypeBoolean && !fieldTypeSetSaathratri && !fieldTypeMapSaathratri) { _%>
       <%= fieldName %>: false,
+    <%_ } else if (fieldTypeTimed) { _%>
+      <%= fieldName %>: currentTime,
   <%_ } _%>
+    <%_ } _%>
+    <%_ } _%>
+  <%_ } _%>
+  <%_ for (const relationship of relationships.filter(({ persistableRelationship }) => persistableRelationship)) {
+        const { propertyName, collection } = relationship;
+  _%>
+    <%_ if (collection) { _%>
+      <%= propertyName %>: [],
     <%_ } _%>
   <%_ } _%>
     };
   }
 <%_ } _%>
+<%# Saathratri change: date conversion methods handle Cassandra Long epoch dates (localDayjsToUtcDayjs/utcDayjsToLocalDayjs), Map<Dayjs> types, and composite key date fields. Not in upstream. #%>
 <%_ if (hasDateConversions) { _%>
 
   private convert<%= entityAngularName %>RawValueTo<%= entityAngularName %>(raw<%= entityAngularName %>: <%= entityAngularName %>FormRawValue | New<%= entityAngularName %>FormRawValue): I<%= entityAngularName %> | New<%= entityAngularName %> {
@@ -459,6 +513,13 @@ _%>
       <%= fieldName %>: utcDayjsToLocalDayjs(<%= entityInstance %>.<%= fieldName %>),
   <%_ } _%>
 <%_ } _%>
+<%_ } _%>
+<%_ for (const relationship of relationships.filter(({ persistableRelationship }) => persistableRelationship)) {
+      const { propertyName, collection } = relationship;
+_%>
+  <%_ if (collection) { _%>
+      <%= propertyName %>: <%= entityInstance %>.<%= propertyName %> ?? [],
+  <%_ } _%>
 <%_ } _%>
     };
   }

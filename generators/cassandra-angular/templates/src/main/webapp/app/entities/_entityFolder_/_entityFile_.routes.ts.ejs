@@ -1,5 +1,5 @@
 <%#
- Copyright 2013-2024 the original author or authors from the JHipster project.
+ Copyright 2013-2026 the original author or authors from the JHipster project.
 
  This file is part of the JHipster project, see https://www.jhipster.tech/
  for more information.
@@ -25,7 +25,7 @@ import { ASC } from 'app/config/navigation.constants';
 const <%= entityInstance %>Route: Routes = [
   {
     path: '',
-    loadComponent: () => import('./list/<%= entityFileName %>.component').then(m => m.<%= entityAngularName %>Component),
+    loadComponent: () => import('./list/<%= entityFileName %>').then(m => m.<%= entityAngularName %>),
     data: {
 <%_ if (primaryKey.typeLong && primaryKey.autoGenerate) { _%>
       defaultSort: '<%- primaryKey.name %>,' + ASC,
@@ -37,21 +37,13 @@ const <%= entityInstance %>Route: Routes = [
     canActivate: [UserRouteAccessService],
   },
   {
-        <%_ 
-            // Saathratri: Composite Primary Key Code
-            if (primaryKeySaathratri.composite) { 
-        _%>
-            path: '<%= getCompositePrimaryKeyClientRouteUrlParameters(primaryKeySaathratri) %>/view',
-        <%_
-            // Saathratri: Single-value Primary Key Code 
-            } else { 
-        _%>
+<%# Saathratri change: composite primary key route uses multiple URL parameters. Not in upstream. #%>
+    <%_ if (primaryKeySaathratri.composite) { _%>
+    path: '<%= getCompositePrimaryKeyClientRouteUrlParameters(primaryKeySaathratri) %>/view',
+    <%_ } else { _%>
     path: ':<%= primaryKey.name %>/view',
-    	<%_ 
-    	    } 
-    	    // Saathratri 
-    	_%>
-    loadComponent: () => import('./detail/<%= entityFileName %>-detail.component').then(m => m.<%= entityAngularName %>DetailComponent),
+    <%_ } _%>
+    loadComponent: () => import('./detail/<%= entityFileName %>-detail').then(m => m.<%= entityAngularName %>Detail),
     resolve: {
       <%= entityInstance %>: <%= entityAngularName %>Resolve
     },
@@ -65,7 +57,7 @@ const <%= entityInstance %>Route: Routes = [
 <%_ if (!readOnly) { _%>
   {
     path: 'new',
-    loadComponent: () => import('./update/<%= entityFileName %>-update.component').then(m => m.<%= entityAngularName %>UpdateComponent),
+    loadComponent: () => import('./update/<%= entityFileName %>-update').then(m => m.<%= entityAngularName %>Update),
     resolve: {
       <%= entityInstance %>: <%= entityAngularName %>Resolve
     },
@@ -79,21 +71,13 @@ const <%= entityInstance %>Route: Routes = [
 <%_ } _%>
 <%_ if (!readOnly && updatableEntity) { _%>
   {
-        <%_ 
-            // Saathratri: Composite Primary Key Code
-            if (primaryKeySaathratri.composite) { 
-        _%>
-            path: '<%= getCompositePrimaryKeyClientRouteUrlParameters(primaryKeySaathratri) %>/edit',
-        <%_ 
-            // Saathratri: Single-value Primary Key Code
-            } else { 
-        _%>
+<%# Saathratri change: composite primary key route uses multiple URL parameters. Not in upstream. #%>
+    <%_ if (primaryKeySaathratri.composite) { _%>
+    path: '<%= getCompositePrimaryKeyClientRouteUrlParameters(primaryKeySaathratri) %>/edit',
+    <%_ } else { _%>
     path: ':<%= primaryKey.name %>/edit',
-    	<%_ 
-    	    } 
-    	    // Saathratri 
-    	_%>
-    loadComponent: () => import('./update/<%= entityFileName %>-update.component').then(m => m.<%= entityAngularName %>UpdateComponent),
+    <%_ } _%>
+    loadComponent: () => import('./update/<%= entityFileName %>-update').then(m => m.<%= entityAngularName %>Update),
     resolve: {
       <%= entityInstance %>: <%= entityAngularName %>Resolve
     },

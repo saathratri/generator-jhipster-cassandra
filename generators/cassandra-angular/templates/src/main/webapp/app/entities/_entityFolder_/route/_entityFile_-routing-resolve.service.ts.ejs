@@ -1,5 +1,5 @@
 <%#
- Copyright 2013-2024 the original author or authors from the JHipster project.
+ Copyright 2013-2026 the original author or authors from the JHipster project.
 
  This file is part of the JHipster project, see https://www.jhipster.tech/
  for more information.
@@ -16,44 +16,49 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 -%>
+import { HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { HttpResponse } from '@angular/common/http';
 import { ActivatedRouteSnapshot, Router } from '@angular/router';
-import { of, EMPTY, Observable } from 'rxjs';
-import { mergeMap } from 'rxjs/operators';
+
+import { EMPTY, Observable, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 import { I<%= entityAngularName %> } from '../<%= entityFileName %>.model';
 import { <%= entityAngularName %>Service } from '../service/<%= entityFileName %>.service';
 
 const <%= entityInstance %>Resolve = (route: ActivatedRouteSnapshot): Observable<null | I<%= entityAngularName %>> => {
-  <%_ if(primaryKeySaathratri.composite) { _%> 
+<%# Saathratri change: extract multiple route params for composite primary key, or single param for simple key. Not in upstream. #%>
+  <%_ if(primaryKeySaathratri.composite) { _%>
     <%- primaryKeySaathratri.ids.map(field => `const ${field.fieldName} =  route.params['${field.fieldName}'];`).join('\n') %>
   <%_ } else { _%>
-  const id = route.params['<%= primaryKey.name %>'];
+  const <%= primaryKey.name %> = route.params['<%= primaryKey.name %>'];
   <%_ } _%>
-  
-  <%_ if(primaryKeySaathratri.composite) { _%> 
+
+  <%_ if(primaryKeySaathratri.composite) { _%>
   if (<%- primaryKeySaathratri.ids.map(field => field.fieldName).join(' && ') %>) {
   <%_ } else { _%>
-  if (id) {
+  if (<%= primaryKey.name %>) {
   <%_ } _%>
-    return inject(<%= entityAngularName %>Service)
-    <%_ if(primaryKeySaathratri.composite) { _%> 
+    const router = inject(Router);
+    const service = inject(<%= entityAngularName %>Service);
+    return service
+    <%_ if(primaryKeySaathratri.composite) { _%>
       .find(<%- primaryKeySaathratri.ids.map(field => field.fieldName).join(', ') %>)
-    <%_ } else { _%> 
-      .find(id)
+    <%_ } else { _%>
+      .find(<%= primaryKey.name %>)
     <%_ } _%>
       .pipe(
-        mergeMap((<%= entityInstance %>: HttpResponse<I<%= entityAngularName %>>) => {
-          if (<%= entityInstance %>.body) {
-            return of(<%= entityInstance %>.body);
+        catchError((error: HttpErrorResponse) => {
+          if (error.status === 404) {
+            router.navigate(['404']);
           } else {
-            inject(Router).navigate(['404']);
-            return EMPTY;
+            router.navigate(['error']);
           }
+          return EMPTY;
         }),
       );
   }
+
   return of(null);
 };
 

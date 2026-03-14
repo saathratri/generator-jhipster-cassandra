@@ -1,5 +1,5 @@
 <%#
- Copyright 2013-2024 the original author or authors from the JHipster project.
+ Copyright 2013-2026 the original author or authors from the JHipster project.
 
  This file is part of the JHipster project, see https://www.jhipster.tech/
  for more information.
@@ -21,11 +21,14 @@ let searchType = 'Search';
 if (paginationPagination || paginationInfiniteScroll) {
     searchType = 'SearchWithPagination';
 }
+// Saathratri change: requiresRestTypeConversion also includes Saathratri date/Set types, not just upstream temporal fields.
+const requiresRestTypeConversion = (!builtInUserManagement && (anyFieldIsDateDerived || anyFieldIsDateDerivedSaathratri || anyFieldIsSetSaathratri)) || (builtInUserManagement && !userManagement.skipClient);
+const entityRestName = requiresRestTypeConversion ? `Rest${entityAngularName}` : `I${entityAngularName}`;
 _%>
-import { inject, Injectable } from '@angular/core';
-import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
+import { computed, inject, Injectable, signal } from '@angular/core';
+import { HttpClient, HttpParams, HttpResponse, httpResource } from '@angular/common/http';
 import {
-<%_ if (builtInUserManagement || anyFieldIsDateDerived || anyFieldIsDateDerivedSaathratri) { _%>
+<%_ if (requiresRestTypeConversion) { _%>
   map,
 <%_ } _%>
   Observable,
@@ -53,26 +56,30 @@ import { createRequestOption } from 'app/core/request/request-util';
 import { <%= searchType %> } from 'app/core/request/request.model';
 <%_ } _%>
 import { I<%= entityAngularName %><% if (!readOnly) { %>, New<%= entityAngularName %><% } %> } from '../<%= entityFileName %>.model';
-<%_ 
-    // Saathratri:
-    if (anyFieldIsDateDerived || anyFieldIsDateDerivedSaathratri) { 
+<%#
+    Saathratri change: import Saathratri date utility functions for Cassandra Long epoch date conversion. Not in upstream.
+_%>
+<%_
+    if (anyFieldIsDateDerived || anyFieldIsDateDerivedSaathratri) {
 _%>
     import { dayjsToDateLong, formattedStringDateToDateLong, formattedStringToDateTimeLong, DATE_FORMAT_2, DATE_TIME_FORMAT_2 } from '../../../../shared/date/saathratri-local-dayjs-and-utc-unix-utils';
-<%_ 
-    }     
-    // Saathratri 
+<%_
+    }
 _%>
+<%# Saathratri change: import composite primary key types when composite keys are used. Not in upstream. #%>
 import { I<%= entityAngularName %>, I<%= entityAngularName %>Id, <%= entityAngularName %>Id, get<%= entityAngularName %>Identifier } from '../<%= entityFileName %>.model';
 <%_ if (!readOnly && updatableEntity) { _%>
 <%_ if (primaryKeySaathratri.composite) { _%>
+
 export type PartialUpdate<%= entityAngularName %> = Partial<I<%= entityAngularName %>> & Pick<I<%= entityAngularName %>, '<%= primaryKeySaathratri.name %>'>;
 <%_ } else { _%>
+
 export type PartialUpdate<%= entityAngularName %> = Partial<I<%= entityAngularName %>> & Pick<I<%= entityAngularName %>, '<%= primaryKey.name %>'>;
 <%_ } _%>
 <%_ } _%>
 
-<%_ const entityRestName = anyFieldIsDateDerived || anyFieldIsDateDerivedSaathratri || anyFieldIsSetSaathratri ? `Rest${entityAngularName}` : `I${entityAngularName}`; _%>
-<%_ if (anyFieldIsDateDerived || anyFieldIsDateDerivedSaathratri || anyFieldIsSetSaathratri) { _%>
+<%# Saathratri change: RestOf type includes Saathratri date/Set/Map field types, composite key fields, and Cassandra-specific conversions. Not in upstream (upstream only handles fieldTypeTemporal). #%>
+<%_ if (requiresRestTypeConversion) { _%>
 type RestOf<T extends I<%= entityAngularName %><% if (!readOnly) { %> | New<%= entityAngularName %><% } %>> =
   Omit<T, '<%- fields.filter(field => field.fieldTypeLocalDateSaathratri || field.fieldTypeTimedSaathratri || field.fieldTypeSetSaathratri).map(field => field.fieldName).join("' | '") %>'> &
   {
@@ -107,126 +114,179 @@ export type PartialUpdate<%= entityRestName %> = RestOf<PartialUpdate<%= entityA
   <%_ } _%>
 <%_ } _%>
 
-export type EntityResponseType = HttpResponse<I<%= entityAngularName %>>;
-export type EntityArrayResponseType = HttpResponse<I<%= entityAngularName %>[]>;
+@Injectable()
+export class <%- entityAngularNamePlural %>Service {
+  readonly <%- entityInstancePlural %>Params = signal<Record<string, string | number | boolean | readonly (string | number | boolean)[]> | undefined>(undefined);
+  readonly <%- entityInstancePlural %>Resource = httpResource<<%- entityRestName %>[]>(() => {
+    const params = this.<%- entityInstancePlural %>Params();
+    if (!params) {
+      return undefined;
+    }
+    return { url: <% if (searchEngineAny) { %>params.query ? this.resourceSearchUrl : <% } %>this.resourceUrl, params };
+  });
+  /**
+   * This signal holds the list of <%- entityInstance %> that have been fetched. It is updated when the <%- entityInstancePlural %>Resource emits a new value.
+   * In case of error while fetching the <%- entityInstancePlural %>, the signal is set to an empty array.
+   */
+  readonly <%- entityInstancePlural %> = computed(() => (this.<%- entityInstancePlural %>Resource.hasValue() ? this.<%- entityInstancePlural %>Resource.value() : [])
+    <% if (requiresRestTypeConversion) { %>.map(item => this.convertValueFromServer(item))<% } %>
+  );
+  protected readonly applicationConfigService = inject(ApplicationConfigService);
+  protected readonly resourceUrl = this.applicationConfigService.getEndpointFor('api/<%- entityApiUrl %>'<% if ((applicationTypeGateway || applicationTypeMicroservice) && locals.microserviceName) { %>, '<%- microserviceName.toLowerCase() %>'<% } %>);
+<%_ if (searchEngineAny) { _%>
+  protected readonly resourceSearchUrl = this.applicationConfigService.getEndpointFor('api/<%- entityApiUrl %>/_search'<% if ((applicationTypeGateway || applicationTypeMicroservice) && locals.microserviceName) { %>, '<%- microserviceName.toLowerCase() %>'<% } %>);
+<%_ } _%>
+<%_ if (requiresRestTypeConversion) { _%>
+
+<%# Saathratri change: convertValueFromServer handles Saathratri date/Set/Map types and composite key fields. Upstream only handles fieldTypeTemporal. #%>
+  protected convertValueFromServer(rest<%= entityAngularName %>: <%= entityRestName %>): I<%= entityAngularName %> {
+    return {
+      ...rest<%- entityAngularName %>,
+<%_ if (primaryKeySaathratri.composite) { _%>
+            <%= primaryKeySaathratri.name %>: {
+            <%_ for (const field of primaryKeySaathratri.ids) { _%>
+                <%_ if (field.fieldTypeTimedSaathratri) { _%>
+                    <%= field.fieldName %>: rest<%= entityAngularName %>.<%= primaryKeySaathratri.name %>.<%= field.fieldName %> ? dayjs(rest<%= entityAngularName %>.<%= primaryKeySaathratri.name %>.<%= field.fieldName %>) : null,
+                <%_ } else if (field.fieldTypeLocalDateSaathratri) { _%>
+                    <%= field.fieldName %>: rest<%= entityAngularName %>.<%= primaryKeySaathratri.name %>.<%= field.fieldName %> ? dayjs.utc(rest<%= entityAngularName %>.<%= primaryKeySaathratri.name %>.<%= field.fieldName %>) : null,
+                <%_ } else { %>
+                    <%= field.fieldName %>: rest<%= entityAngularName %>.<%= primaryKeySaathratri.name %>.<%= field.fieldName %>,
+                <%_ } _%>
+            <%_ } _%>
+            },
+<%_ } _%>
+  <%_ for (const field of fields.filter(field => !field.isCompositePrimaryKeyField)) { _%>
+    <%_ if (field.fieldTypeSetSaathratri) { _%>
+        <%= field.fieldName %>: rest<%= entityAngularName %>.<%= field.fieldName %> ? new Set(rest<%= entityAngularName %>.<%= field.fieldName %>) : new Set<string>(),
+    <%_ } else if (field.fieldTypeMapDayjsSaathratri) { _%>
+        <%= field.fieldName %>: rest<%= entityAngularName %>.<%= field.fieldName %>
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+            ? Object.fromEntries(Object.entries(rest<%= entityAngularName %>.<%= field.fieldName %>).map(([k, v]) => [k, dayjs(v)])) : {},
+    <%_ } else if (field.fieldTypeTimedSaathratri) { _%>
+      <%= field.fieldName %>: rest<%= entityAngularName %>.<%= field.fieldName %> ? dayjs(rest<%= entityAngularName %>.<%= field.fieldName %>) : null,
+    <%_ } else if (field.fieldTypeLocalDateSaathratri) { _%>
+      <%= field.fieldName %>: rest<%= entityAngularName %>.<%= field.fieldName %> ? dayjs.utc(rest<%= entityAngularName %>.<%= field.fieldName %>) : null,
+    <%_ } _%>
+  <%_ } _%>
+  <%_ if (builtInUserManagement) { _%>
+      authorities: rest<%- entityAngularName %>.authorities?.map(authority => ({ name: authority as unknown as string })),
+  <%_ } _%>
+    }
+  }
+
+<%_ } _%>
+}
 
 @Injectable({ providedIn: 'root' })
-export class <%= entityAngularName %>Service {
+export class <%- entityAngularName %>Service extends <%- entityAngularNamePlural %>Service {
     protected readonly http = inject(HttpClient);
-    protected readonly applicationConfigService = inject(ApplicationConfigService);
-
-    protected resourceUrl = this.applicationConfigService.getEndpointFor('api/<%= entityApiUrl %>'<% if ((applicationTypeGateway || applicationTypeMicroservice) && locals.microserviceName) { %>, '<%= microserviceName.toLowerCase() %>'<% } %>);
-<%_ if (searchEngineAny) { _%>
-    protected resourceSearchUrl = this.applicationConfigService.getEndpointFor('api/<%= entityApiUrl %>/_search'<% if ((applicationTypeGateway || applicationTypeMicroservice) && locals.microserviceName) { %>, '<%= microserviceName.toLowerCase() %>'<% } %>);
-<%_ } _%>
 
 <%_ if (!readOnly) { _%>
-    create(<%= entityInstance %>: New<%= entityAngularName %>): Observable<EntityResponseType> {
-    <%_ if (anyFieldIsDateDerived || anyFieldIsDateDerivedSaathratri || anyFieldIsSetSaathratri) { _%>
-        const copy = this.convertDateFromClient(<%= entityInstance %>);
+    create(<%= entityInstance %>: New<%= entityAngularName %>): Observable<I<%= entityAngularName %>> {
+    <%_ if (requiresRestTypeConversion) { _%>
+        const copy = this.convertValueFromClient(<%= entityInstance %>);
     <%_ } _%>
     <%_ if (builtInUserManagement) { _%>
         const copy = this.convertUserManagementFromClient(<%= entityInstance %>);
     <%_ } _%>
-        return this.http.post<<%= entityRestName %>>(this.resourceUrl,
-                <% if (anyFieldIsDateDerived || anyFieldIsDateDerivedSaathratri || builtInUserManagement  || anyFieldIsSetSaathratri) { %> copy <% } else { %> <%= entityInstance %> <% } %>,
-                { observe: 'response' })
-        <% if (anyFieldIsDateDerived || anyFieldIsDateDerivedSaathratri) { %>.pipe(map(res => this.convertResponseFromServer(res)))<% } %>
-        <% if (builtInUserManagement) { %>.pipe(map(res => this.convertUserManagementResponseFromServer(res)))<% } %>;
+        return this.http.post<<%= entityRestName %>>(
+          this.resourceUrl,
+          <% if (requiresRestTypeConversion || builtInUserManagement) { %> copy <% } else { %> <%= entityInstance %> <% } %>
+        )
+        <% if (requiresRestTypeConversion) { %>.pipe(map(res => this.convertResponseFromServer(res)))<% } %>;
     }
 <%_ } _%>
 <%_ if (!readOnly && updatableEntity) { _%>
 
-    update(<%= entityInstance %>: I<%= entityAngularName %>): Observable<EntityResponseType> {
-    <%_ if (anyFieldIsDateDerived || anyFieldIsDateDerivedSaathratri || anyFieldIsSetSaathratri) { _%>
-        const copy = this.convertDateFromClient(<%= entityInstance %>);
+    update(<%= entityInstance %>: I<%= entityAngularName %>): Observable<I<%= entityAngularName %>> {
+    <%_ if (requiresRestTypeConversion) { _%>
+        const copy = this.convertValueFromClient(<%= entityInstance %>);
     <%_ } _%>
     <%_ if (builtInUserManagement) { _%>
         const copy = this.convertUserManagementFromClient(<%= entityInstance %>);
     <%_ } _%>
-    <%_ 
+    <%_
         // Saathratri: Composite Primary Key Code
-        if (primaryKeySaathratri.composite) { 
+        if (primaryKeySaathratri.composite) {
     _%>
         return this.http.put<<%= entityRestName %>>(`${this.resourceUrl}/<%- getCompositePrimaryKeyClientServiceUrl(entityInstance, primaryKeySaathratri) %>`,
-    <%_ 
+    <%_
         // Saathratri: Single-value Primary Key Code
-        } else { 
+        } else {
     _%>
-        return this.http.put<<%= entityRestName %>>(`${this.resourceUrl}/${this.get<%= entityAngularName %>Identifier(<%= entityInstance %>)}`,
-    <%_ 
-        } 
-        // Saathratri 
-    _%>    
-                <% if (anyFieldIsDateDerived || anyFieldIsDateDerivedSaathratri || builtInUserManagement || anyFieldIsSetSaathratri) { %> copy <% } else { %> <%= entityInstance %> <% } %>,
-                { observe: 'response' })
-        <% if (anyFieldIsDateDerived || anyFieldIsDateDerivedSaathratri) { %>.pipe(map(res => this.convertResponseFromServer(res)))<% } %>;
+        return this.http.put<<%= entityRestName %>>(`${this.resourceUrl}/${encodeURIComponent(this.get<%= entityAngularName %>Identifier(<%= entityInstance %>))}`,
+    <%_
+        }
+        // Saathratri
+    _%>
+                <% if (requiresRestTypeConversion || builtInUserManagement) { %> copy <% } else { %> <%= entityInstance %> <% } %>,
+                )
+        <% if (requiresRestTypeConversion) { %>.pipe(map(res => this.convertResponseFromServer(res)))<% } %>;
     }
 
-    partialUpdate(<%= entityInstance %>: PartialUpdate<%= entityAngularName %>): Observable<EntityResponseType> {
-    <%_ if (anyFieldIsDateDerived || anyFieldIsDateDerivedSaathratri || anyFieldIsSetSaathratri) { _%>
-        const copy = this.convertDateFromClient(<%= entityInstance %>);
+    partialUpdate(<%= entityInstance %>: PartialUpdate<%= entityAngularName %>): Observable<I<%= entityAngularName %>> {
+    <%_ if (requiresRestTypeConversion) { _%>
+        const copy = this.convertValueFromClient(<%= entityInstance %>);
     <%_ } _%>
     <%_ if (builtInUserManagement) { _%>
         const copy = this.convertUserManagementFromClient(<%= entityInstance %>);
     <%_ } _%>
-    <%_ 
+    <%_
         // Saathratri: Composite Primary Key Code
-        if (primaryKeySaathratri.composite) { 
+        if (primaryKeySaathratri.composite) {
     _%>
         return this.http.patch<<%= entityRestName %>>(`${this.resourceUrl}/<%- getCompositePrimaryKeyClientServiceUrl(entityInstance, primaryKeySaathratri) %>`,
-    <%_ 
+    <%_
         // Saathratri: Single-value Primary Key Code
-        } else { 
+        } else {
     _%>
-        return this.http.patch<<%= entityRestName %>>(`${this.resourceUrl}/${this.get<%= entityAngularName %>Identifier(<%= entityInstance %>)}`,
-    <%_ 
-        } 
-        // Saathratri 
+        return this.http.patch<<%= entityRestName %>>(`${this.resourceUrl}/${encodeURIComponent(this.get<%= entityAngularName %>Identifier(<%= entityInstance %>))}`,
+    <%_
+        }
+        // Saathratri
     _%>
-                <% if (anyFieldIsDateDerived || anyFieldIsDateDerivedSaathratri || builtInUserManagement || anyFieldIsSetSaathratri) { %> copy <% } else { %> <%= entityInstance %> <% } %>,
-                { observe: 'response' })
-        <% if (anyFieldIsDateDerived || anyFieldIsDateDerivedSaathratri) { %>.pipe(map(res => this.convertResponseFromServer(res)))<% } %>
-        <% if (builtInUserManagement) { %>.pipe(map(res => this.convertUserManagementResponseFromServer(res)))<% } %>;
+                <% if (requiresRestTypeConversion || builtInUserManagement) { %> copy <% } else { %> <%= entityInstance %> <% } %>,
+                )
+        <% if (requiresRestTypeConversion) { %>.pipe(map(res => this.convertResponseFromServer(res)))<% } %>;
     }
 <%_ } _%>
 
+<%# Saathratri change: find() supports composite primary key with query parameters, or single-value primary key with path parameter. Not in upstream. #%>
 <%_ if( primaryKeySaathratri.composite ) { _%>
-    find(<%- generateEntityClientFieldsSaathratri(fields, 'Service') %>): Observable<EntityResponseType> {
+    find(<%- generateEntityClientFieldsSaathratri(fields, 'Service') %>): Observable<I<%= entityAngularName %>> {
 <%_ } else { _%>
-    find(id: <%= tsKeyType %>): Observable<EntityResponseType> {
+    find(<%= primaryKey.name %>: <%= tsKeyType %>): Observable<I<%= entityAngularName %>> {
 <%_ } _%>
-        <%_ 
+        <%_
             // Saathratri: Composite Primary Key Code
-            if (primaryKeySaathratri.composite) { 
+            if (primaryKeySaathratri.composite) {
         _%>
         let data = { <%- getCompositePrimaryKeyClientDataParameters(primaryKeySaathratri) %> };
-	    return this.http.get<<%= entityRestName %>>(`${this.resourceUrl}/get`, { params: data, observe: 'response' })
-        <%_ 
+	    return this.http.get<<%= entityRestName %>>(`${this.resourceUrl}/get`, { params: data })
+        <%_
             // Saathratri: Single-value Primary Key Code
-            } else { 
+            } else {
         _%>
-        return this.http.get<<%= entityRestName %>>(`${this.resourceUrl}/${id}`, { observe: 'response' })
+        return this.http.get<<%= entityRestName %>>(`${this.resourceUrl}/${encodeURIComponent(<%= primaryKey.name %>)}`)
         <%_ } _%>
-            <% if (anyFieldIsDateDerived || anyFieldIsDateDerivedSaathratri) { %>.pipe(map(res => this.convertResponseFromServer(res)))<% } %>
-            <% if (builtInUserManagement) { %>.pipe(map(res => this.convertUserManagementResponseFromServer(res)))<% } %>;
+            <% if (requiresRestTypeConversion) { %>.pipe(map(res => this.convertResponseFromServer(res)))<% } %>;
     }
 
-    query(req?: any): Observable<EntityArrayResponseType> {
+    query(req?: any): Observable<HttpResponse<I<%= entityAngularName %>[]>> {
         const options = createRequestOption(req);
         return this.http.get<<%= entityRestName %>[]>(this.resourceUrl, { params: options, observe: 'response' })
-            <% if (anyFieldIsDateDerived || anyFieldIsDateDerivedSaathratri) { %>.pipe(map(res => this.convertResponseArrayFromServer(res)))<% } %>
-            <% if (builtInUserManagement) { %>.pipe(map(res => this.convertUserManagementResponseArrayFromServer(res)))<% } %>;
+            <% if (requiresRestTypeConversion) { %>.pipe(map(res => res.clone({ body: this.convertResponseArrayFromServer(res.body!) })))<% } %>;
     }
+<%# Saathratri change: Cassandra-specific querySlice method for Slice-based pagination. Not in upstream. #%>
 <%_ if (databaseTypeCassandra && paginationNo) { _%>
 
-    querySlice(req?: any): Observable<EntityArrayResponseType> {
+    querySlice(req?: any): Observable<HttpResponse<I<%= entityAngularName %>[]>> {
         const options = createRequestOption(req);
         return this.http.get<<%= entityRestName %>[]>(`${this.resourceUrl}/slice`, { params: options, observe: 'response' })
-            <% if (anyFieldIsDateDerived || anyFieldIsDateDerivedSaathratri) { %>.pipe(map(res => this.convertResponseArrayFromServer(res)))<% } %>
-            <% if (builtInUserManagement) { %>.pipe(map(res => this.convertUserManagementResponseArrayFromServer(res)))<% } %>;
+            <% if (requiresRestTypeConversion) { %>.pipe(map(res => res.clone({ body: this.convertResponseArrayFromServer(res.body!) })))<% } %>;
     }
 <%_ } _%>
+<%# Saathratri change: Cassandra composite key progressive findAllBy...Pageable methods, comparison methods, and findBy exact match. Not in upstream. #%>
 <%_ if (databaseTypeCassandra && primaryKeySaathratri.composite) {
     // Generate findBy paginated methods for each combination of partition/clustering keys
     const pkFields = primaryKeySaathratri.ids;
@@ -266,14 +326,13 @@ _%>
      * Find <%= entityClassPluralHumanized %> by <%- paramNames.join(', ') %> with pagination.
      * Uses Cassandra Slice-based pagination.
      */
-    <%= methodName %>(<%- paramDeclarations.join(', ') %>, req?: any): Observable<EntityArrayResponseType> {
+    <%= methodName %>(<%- paramDeclarations.join(', ') %>, req?: any): Observable<HttpResponse<I<%= entityAngularName %>[]>> {
         let options = createRequestOption(req);
 <%_ for (const pName of paramNames) { _%>
         options = options.set('<%= pName %>', String(<%= pName %>));
 <%_ } _%>
         return this.http.get<<%= entityRestName %>[]>(`${this.resourceUrl}/<%= urlPath %>`, { params: options, observe: 'response' })
-            <% if (anyFieldIsDateDerived || anyFieldIsDateDerivedSaathratri) { %>.pipe(map(res => this.convertResponseArrayFromServer(res)))<% } %>
-            <% if (builtInUserManagement) { %>.pipe(map(res => this.convertUserManagementResponseArrayFromServer(res)))<% } %>;
+            <% if (requiresRestTypeConversion) { %>.pipe(map(res => res.clone({ body: this.convertResponseArrayFromServer(res.body!) })))<% } %>;
     }
 <%_ } // end for loop
 
@@ -320,14 +379,13 @@ _%>
      * Find <%= entityClassPluralHumanized %> by <%- baseParamNames.join(', ') %> with <%= op %> comparison and pagination.
      * Uses Cassandra Slice-based pagination.
      */
-    <%= compMethodName %>(<%- baseParamDeclarations.join(', ') %>, req?: any): Observable<EntityArrayResponseType> {
+    <%= compMethodName %>(<%- baseParamDeclarations.join(', ') %>, req?: any): Observable<HttpResponse<I<%= entityAngularName %>[]>> {
         let options = createRequestOption(req);
 <%_ for (const pName of baseParamNames) { _%>
         options = options.set('<%= pName %>', String(<%= pName %>));
 <%_ } _%>
         return this.http.get<<%= entityRestName %>[]>(`${this.resourceUrl}/<%= compUrlPath %>`, { params: options, observe: 'response' })
-            <% if (anyFieldIsDateDerived || anyFieldIsDateDerivedSaathratri) { %>.pipe(map(res => this.convertResponseArrayFromServer(res)))<% } %>
-            <% if (builtInUserManagement) { %>.pipe(map(res => this.convertUserManagementResponseArrayFromServer(res)))<% } %>;
+            <% if (requiresRestTypeConversion) { %>.pipe(map(res => res.clone({ body: this.convertResponseArrayFromServer(res.body!) })))<% } %>;
     }
 <%_     } // end comparisonOps for loop
     } // end pkFields for loop
@@ -362,53 +420,52 @@ _%>
      * Find single <%= entityClassHumanized %> by all primary key fields.
      * Returns exactly one record when all partition and clustering keys are provided.
      */
-    <%= findByMethodName %>(<%- allParamDeclarations.join(', ') %>): Observable<EntityResponseType> {
+    <%= findByMethodName %>(<%- allParamDeclarations.join(', ') %>): Observable<I<%= entityAngularName %>> {
         let options = new HttpParams();
 <%_ for (const pName of allParamNames) { _%>
         options = options.set('<%= pName %>', String(<%= pName %>));
 <%_ } _%>
-        return this.http.get<<%= entityRestName %>>(`${this.resourceUrl}/<%= findByUrlPath %>`, { params: options, observe: 'response' })
-            <% if (anyFieldIsDateDerived || anyFieldIsDateDerivedSaathratri) { %>.pipe(map(res => this.convertResponseFromServer(res)))<% } %>
-            <% if (builtInUserManagement) { %>.pipe(map(res => this.convertUserManagementResponseFromServer(res)))<% } %>;
+        return this.http.get<<%= entityRestName %>>(`${this.resourceUrl}/<%= findByUrlPath %>`, { params: options })
+            <% if (requiresRestTypeConversion) { %>.pipe(map(res => this.convertResponseFromServer(res)))<% } %>;
     }
 <%_ }
 } // end if databaseTypeCassandra _%>
 
 <%_ if (!readOnly) { _%>
-    <%_ 
+    <%_
         // Saathratri: Composite Primary Key Code
-        if (primaryKeySaathratri.composite) { 
+        if (primaryKeySaathratri.composite) {
     _%>
-        delete(<%= entityInstance %>: I<%= entityAngularName %>): Observable<HttpResponse<{}>> {
-            <%_ if (anyFieldIsDateDerived || anyFieldIsDateDerivedSaathratri || anyFieldIsSetSaathratri) { _%>
-                const copy = this.convertDateFromClient(<%= entityInstance %>);
+        delete(<%= entityInstance %>: I<%= entityAngularName %>): Observable<undefined> {
+            <%_ if (requiresRestTypeConversion) { _%>
+                const copy = this.convertValueFromClient(<%= entityInstance %>);
             <%_ } _%>
-            return this.http.delete(`${this.resourceUrl}/<%- getCompositePrimaryKeyClientServiceUrl(entityInstance, primaryKeySaathratri) %>`, { observe: 'response' });
+            return this.http.delete<undefined>(`${this.resourceUrl}/<%- getCompositePrimaryKeyClientServiceUrl(entityInstance, primaryKeySaathratri) %>`);
         }
-    <%_ 
+    <%_
         // Saathratri: Single-value Primary Key Code
-        } else { 
+        } else {
     _%>
-    delete(id: <%= tsKeyType %>): Observable<HttpResponse<{}>> {
-        return this.http.delete(`${this.resourceUrl}/${id}`, { observe: 'response' });
+    delete(<%= primaryKey.name %>: <%= tsKeyType %>): Observable<undefined> {
+        return this.http.delete<undefined>(`${this.resourceUrl}/${encodeURIComponent(<%= primaryKey.name %>)}`);
     }
-    <%_ 
-        } // Saathratri 
+    <%_
+        } // Saathratri
     _%>
-<%_ } _%>
 
+<%_ } _%>
 <%_ if (searchEngineAny) { _%>
-    search(req: <%= searchType %>): Observable<EntityArrayResponseType> {
+    search(req: <%= searchType %>): Observable<I<%= entityAngularName %>[]> {
         const options = createRequestOption(req);
-        return this.http.get<<%= entityRestName %>[]>(this.resourceSearchUrl, { params: options, observe: 'response' })
+        return this.http.get<<%= entityRestName %>[]>(this.resourceSearchUrl, { params: options })
             .pipe(
-              <% if (anyFieldIsDateDerived || anyFieldIsDateDerivedSaathratri) { %>map(res => this.convertResponseArrayFromServer(res)), <% } %>
-              <% if (builtInUserManagement) { %>.pipe(map(res => this.convertUserManagementResponseArrayFromServer(res)))<% } %>
-              catchError(() => scheduled([new HttpResponse<I<%= entityAngularName %>[]>()], asapScheduler)),
+              <% if (requiresRestTypeConversion) { %>map(res => this.convertResponseArrayFromServer(res)), <% } %>
+              catchError(() => scheduled([], asapScheduler)),
             );
     }
 <%_ } _%>
 
+<%# Saathratri change: getIdentifier/compare/addToCollection use composite primary key type when applicable. Not in upstream. #%>
 <%_ if(primaryKeySaathratri.composite) { _%>
     get<%= entityAngularName %>Identifier(<%= entityInstance %>: Pick<I<%= entityAngularName %>, '<%= primaryKeySaathratri.name %>'>): I<%= primaryKeySaathratri.type %> {
         return <%= entityInstance %>.<%= primaryKeySaathratri.name %>;
@@ -444,28 +501,29 @@ _%>
         return <%= entityInstance %>Collection;
     }
 
-    <%_ if (anyFieldIsDateDerived || anyFieldIsDateDerivedSaathratri || anyFieldIsSetSaathratri) { _%>
-    protected convertDateFromClient<T extends I<%= entityAngularName %><% if (!readOnly) { %> | New<%= entityAngularName %><% } %><% if (!readOnly && updatableEntity) { %> | PartialUpdate<%= entityAngularName %><% } %>>(<%= entityInstance %>: T): RestOf<T> {
-        return {
-            ...<%= entityInstance %>,
-            <%_ if (primaryKeySaathratri.composite) { _%>
-                <%= primaryKeySaathratri.name %>: {
-                    ...<%= entityInstance %>.<%= primaryKeySaathratri.name %>,
-                    <%_ for (const field of primaryKeySaathratri.ids) { _%>
-                        <%_ if (field.fieldTypeTimedSaathratri) { _%>
-                            <%= field.fieldName %>: <%= entityInstance %>.<%= primaryKeySaathratri.name %>.<%= field.fieldName %> ? <%= entityInstance %>.<%= primaryKeySaathratri.name %>.<%= field.fieldName %>.valueOf() : null,
-                        <%_ } else if (field.fieldTypeLocalDateSaathratri) { _%>
-                            <%= field.fieldName %>: <%= entityInstance %>.<%= primaryKeySaathratri.name %>.<%= field.fieldName %> ? <%= entityInstance %>.<%= primaryKeySaathratri.name %>.<%= field.fieldName %>.valueOf() : null,
-                        <%_ } %>
+<%# Saathratri change: convertValueFromClient handles Saathratri date/Set/Map types and composite key fields. Upstream uses convertValueFromClient with fieldTypeTimed/fieldTypeLocalDate only. #%>
+<%_ if (requiresRestTypeConversion) { _%>
+  protected convertValueFromClient<T extends I<%= entityAngularName %><% if (!readOnly) { %> | New<%= entityAngularName %><% } %><% if (!readOnly && updatableEntity) { %> | PartialUpdate<%= entityAngularName %><% } %>>(<%= entityInstance %>: T): RestOf<T> {
+    return {
+        ...<%= entityInstance %>,
+        <%_ if (primaryKeySaathratri.composite) { _%>
+            <%= primaryKeySaathratri.name %>: {
+                ...<%= entityInstance %>.<%= primaryKeySaathratri.name %>,
+                <%_ for (const field of primaryKeySaathratri.ids) { _%>
+                    <%_ if (field.fieldTypeTimedSaathratri) { _%>
+                        <%= field.fieldName %>: <%= entityInstance %>.<%= primaryKeySaathratri.name %>.<%= field.fieldName %> ? <%= entityInstance %>.<%= primaryKeySaathratri.name %>.<%= field.fieldName %>.valueOf() : null,
+                    <%_ } else if (field.fieldTypeLocalDateSaathratri) { _%>
+                        <%= field.fieldName %>: <%= entityInstance %>.<%= primaryKeySaathratri.name %>.<%= field.fieldName %> ? <%= entityInstance %>.<%= primaryKeySaathratri.name %>.<%= field.fieldName %>.valueOf() : null,
+                    <%_ } %>
+                <%_ } _%>
+            },
         <%_ } _%>
-                },
-            <%_ } _%>
     <%_ for (const field of fields.filter(field => !field.isCompositePrimaryKeyField)) { _%>
         <%_ if (field.fieldTypeSetSaathratri) { _%>
             <%= field.fieldName %>: <%= entityInstance %>.<%= field.fieldName %> ? Array.from(<%= entityInstance %>.<%= field.fieldName %>) : [],
         <%_ } else if(field.fieldTypeMapDayjsSaathratri) { _%>
             /* eslint-disable @typescript-eslint/no-unnecessary-condition */
-            <%= field.fieldName %>: <%= entityInstance %>.<%= field.fieldName %> 
+            <%= field.fieldName %>: <%= entityInstance %>.<%= field.fieldName %>
                 ? Object.fromEntries(Object.entries(<%= entityInstance %>.<%= field.fieldName %>).map(([k, v]) => [k, v?.valueOf()])) : {},
             /* eslint-enable @typescript-eslint/no-unnecessary-condition */
         <%_ } else if (field.fieldTypeTimedSaathratri) { _%>
@@ -474,51 +532,18 @@ _%>
             <%= field.fieldName %>: <%= entityInstance %>.<%= field.fieldName %> ? <%= entityInstance %>.<%= field.fieldName %>.valueOf() : null,
         <%_ } _%>
     <%_ } _%>
-        } as RestOf<T>;
-    }
-
-    protected convertDateFromServer(rest<%= entityAngularName %>: <%= entityRestName %>): I<%= entityAngularName %> {
-        return {
-            ...rest<%= entityAngularName %>,
-            <%_ if (primaryKeySaathratri.composite) { _%>
-                <%= primaryKeySaathratri.name %>: {
-                    <%_ for (const field of primaryKeySaathratri.ids) { _%>
-                        <%_ if (field.fieldTypeTimedSaathratri) { _%>
-                            <%= field.fieldName %>: rest<%= entityAngularName %>.<%= primaryKeySaathratri.name %>.<%= field.fieldName %> ? dayjs(rest<%= entityAngularName %>.<%= primaryKeySaathratri.name %>.<%= field.fieldName %>) : null,
-                        <%_ } else if (field.fieldTypeLocalDateSaathratri) { _%>
-                            <%= field.fieldName %>: rest<%= entityAngularName %>.<%= primaryKeySaathratri.name %>.<%= field.fieldName %> ? dayjs.utc(rest<%= entityAngularName %>.<%= primaryKeySaathratri.name %>.<%= field.fieldName %>) : null,
-                        <%_ } else { %>
-                            <%= field.fieldName %>: rest<%= entityAngularName %>.<%= primaryKeySaathratri.name %>.<%= field.fieldName %>,
-                        <%_ } _%>
-                    <%_ } _%>
-                },
-            <%_ } _%>
-    <%_ for (const field of fields.filter(field => !field.isCompositePrimaryKeyField)) { _%>
-        <%_ if (field.fieldTypeSetSaathratri) { _%>
-            <%= field.fieldName %>: rest<%= entityAngularName %>.<%= field.fieldName %> ? new Set(rest<%= entityAngularName %>.<%= field.fieldName %>) : new Set<string>(),
-        <%_ } else if (field.fieldTypeMapDayjsSaathratri) { _%>
-            <%= field.fieldName %>: rest<%= entityAngularName %>.<%= field.fieldName %> 
-                // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-                ? Object.fromEntries(Object.entries(rest<%= entityAngularName %>.<%= field.fieldName %>).map(([k, v]) => [k, dayjs(v)])) : {},
-        <%_ } else if (field.fieldTypeTimedSaathratri) { _%>
-        <%= field.fieldName %>: rest<%= entityAngularName %>.<%= field.fieldName %> ? dayjs(rest<%= entityAngularName %>.<%= field.fieldName %>) : null,
-        <%_ } else if (field.fieldTypeLocalDateSaathratri) { _%>
-        <%= field.fieldName %>: rest<%= entityAngularName %>.<%= field.fieldName %> ? dayjs.utc(rest<%= entityAngularName %>.<%= field.fieldName %>) : null,
-        <%_ } _%>
+    <%_ if (builtInUserManagement) { _%>
+        authorities: <%= entityInstance %>.authorities?.map(authority => authority.name),
     <%_ } _%>
-        };
-    }
-
-  protected convertResponseFromServer(res: HttpResponse<<%= entityRestName %>>): HttpResponse<I<%= entityAngularName %>> {
-    return res.clone({
-      body: res.body ? this.convertDateFromServer(res.body) : null,
-    });
+    };
   }
 
-  protected convertResponseArrayFromServer(res: HttpResponse<<%= entityRestName %>[]>): HttpResponse<I<%= entityAngularName %>[]> {
-    return res.clone({
-      body: res.body ? res.body.map(item => this.convertDateFromServer(item)) : null,
-    });
+  protected convertResponseFromServer(res: <%= entityRestName %>): I<%= entityAngularName %> {
+    return this.convertValueFromServer(res);
+  }
+
+  protected convertResponseArrayFromServer(res: <%= entityRestName %>[]): I<%= entityAngularName %>[] {
+    return res.map(item => this.convertValueFromServer(item));
   }
 <%_ } _%>
 <%_ if (builtInUserManagement) { _%>

@@ -1,5 +1,5 @@
 <%#
- Copyright 2013-2024 the original author or authors from the JHipster project.
+ Copyright 2013-2026 the original author or authors from the JHipster project.
 
  This file is part of the JHipster project, see https://www.jhipster.tech/
  for more information.
@@ -24,15 +24,17 @@
 
       <hr>
 
-      <<%= jhiPrefixDashed %>-alert-error></<%= jhiPrefixDashed %>-alert-error>
+      <<%= jhiPrefixDashed %>-alert-error />
 
-      <<%= jhiPrefixDashed %>-alert></<%= jhiPrefixDashed %>-alert>
+      <<%= jhiPrefixDashed %>-alert />
 
       <dl class="row-md jh-entity-details">
+<%# Saathratri change: filter out 'id' field for composite primary keys since individual key fields are displayed instead. Not in upstream. #%>
 <%_ for (const field of fields.filter(field => !field.hidden && ((primaryKeySaathratri.composite && field.fieldName !== 'id') || !primaryKeySaathratri.composite))) {
     const fieldName = field.fieldName;
     const fieldType = field.fieldType;
 _%>
+<%# Saathratri change: kept field.fieldTranslationKey instead of upstream field.propertyTranslationKey for composite key field compatibility. Not in upstream. #%>
         <dt><span<% if (field.documentation) { if (enableTranslation) { %> [ngbTooltip]="'<%= i18nKeyPrefix %>.help.<%= fieldName %>' | translate"<% } else { %> ngbTooltip="<%= field.documentation %>"<% } } %>>__jhiTranslateTag__('<%- field.fieldTranslationKey %>')</span></dt>
         <dd>
     <%_ if (field.fieldIsEnum) { _%>
@@ -41,45 +43,48 @@ _%>
     <%_ } else if (field.fieldTypeBinary && field.blobContentTypeImage) { _%>
         @if (<%= entityInstance %>Ref.<%= fieldName %>) {
           <div>
-            <a (click)="openFile(<%= entityInstance %>Ref.<%= fieldName %> ?? '', <%= entityInstance %>Ref.<%= fieldName %>ContentType)">
+            <a (click)="openFile(<%= entityInstance %>Ref.<%= fieldName %>, <%= entityInstance %>Ref.<%= fieldName %>ContentType)">
               <img [src]="'data:' + <%= entityInstance %>Ref.<%= fieldName %>ContentType + ';base64,' + <%= entityInstance %>Ref.<%= fieldName %>" style="max-width: 100%;" alt="<%= entityInstance %>"/>
             </a>
-            {{ <%= entityInstance %>Ref.<%= fieldName %>ContentType }}, {{ byteSize(<%= entityInstance %>Ref.<%= fieldName %> ?? '') }}
+            {{ <%= entityInstance %>Ref.<%= fieldName %>ContentType }}, {{ byteSize(<%= entityInstance %>Ref.<%= fieldName %>) }}
           </div>
         }
     <%_ } else if (field.fieldTypeBinary && field.blobContentTypeAny) { _%>
         @if (<%= entityInstance %>Ref.<%= fieldName %>) {
           <div>
-            <a (click)="openFile(<%= entityInstance %>Ref.<%= fieldName %> ?? '', <%= entityInstance %>Ref.<%= fieldName %>ContentType)">__jhiTranslateTag__('entity.action.open')</a>
-            {{ <%= entityInstance %>Ref.<%= fieldName %>ContentType }}, {{ byteSize(<%= entityInstance %>Ref.<%= fieldName %> ?? '') }}
+            <a (click)="openFile(<%= entityInstance %>Ref.<%= fieldName %>, <%= entityInstance %>Ref.<%= fieldName %>ContentType)">__jhiTranslateTag__('entity.action.open')</a>
+            {{ <%= entityInstance %>Ref.<%= fieldName %>ContentType }}, {{ byteSize(<%= entityInstance %>Ref.<%= fieldName %>) }}
           </div>
-    <%_ } else if (field.fieldTypeSetSaathratri) { 
-                    // Composite Primary Key Code
-    _%>   
-          <dl *ngIf="<%= entityInstance %>Ref.<%= fieldName %>">
-            <div *ngFor="let item of toArray(<%= entityInstance %>Ref.<%= fieldName %>)">
-              <dt>{{ item }}</dt>
-            </div>
+        }
+<%# Saathratri change: Set field display for Cassandra Set collection type. Not in upstream. #%>
+    <%_ } else if (field.fieldTypeSetSaathratri) { _%>
+        @if (<%= entityInstance %>Ref.<%= fieldName %>) {
+          <dl>
+            @for (item of toArray(<%= entityInstance %>Ref.<%= fieldName %>); track item) {
+              <div>
+                <dt>{{ item }}</dt>
+              </div>
+            }
           </dl>
-    <%_ } else if (field.fieldTypeMapSaathratri) { 
-                    // Composite Primary Key Code
-    _%>
-              <dl *ngIf="<%= entityInstance %>Ref.<%= fieldName %>">
-                <div *ngFor="let item of <%= entityInstance %>Ref.<%= fieldName %> | keyvalue">
-                  <dt>{{ item.key }}</dt>
-                  <dd>
-                    <td>{{ item.value <%_ if(field.fieldTypeMapDayjsSaathratri) { _%> | formatMediumDatetime<%_ } _%>}}</td>
-                  </dd>
-                </div>
-              </dl>
-    <%_ } else if (primaryKeySaathratri.composite && !field.isCompositePrimaryKeyField && field.fieldTypeTimedSaathratri) { 
-                    // Composite Primary Key Code
-    _%>
-    		    	<td>{{ <%= entityInstance %>Ref.<%= fieldName %> | formatMediumDatetime }}</td>
-    <%_ } else if (primaryKeySaathratri.composite && !field.isCompositePrimaryKeyField && field.fieldTypeLocalDateSaathratri) {
-                    // Composite Primary Key Code - UTC_DATE field (no timezone shift)
-    _%>
-    		    	<td>{{ <%= entityInstance %>Ref.<%= fieldName %> | formatUtcDate }}</td>
+        }
+<%# Saathratri change: Map field display for Cassandra Map collection type. Not in upstream. #%>
+    <%_ } else if (field.fieldTypeMapSaathratri) { _%>
+        @if (<%= entityInstance %>Ref.<%= fieldName %>) {
+          <dl>
+            @for (item of (<%= entityInstance %>Ref.<%= fieldName %> | keyvalue); track item.key) {
+              <div>
+                <dt>{{ item.key }}</dt>
+                <dd>{{ item.value <%_ if(field.fieldTypeMapDayjsSaathratri) { _%> | formatMediumDatetime<%_ } _%> }}</dd>
+              </div>
+            }
+          </dl>
+        }
+<%# Saathratri change: Cassandra Long epoch Timed date display for non-composite-key fields. Not in upstream. #%>
+    <%_ } else if (primaryKeySaathratri.composite && !field.isCompositePrimaryKeyField && field.fieldTypeTimedSaathratri) { _%>
+          <span>{{ <%= entityInstance %>Ref.<%= fieldName %> | formatMediumDatetime }}</span>
+<%# Saathratri change: Cassandra Long epoch UTC_DATE display (no timezone shift) for non-composite-key fields. Not in upstream. #%>
+    <%_ } else if (primaryKeySaathratri.composite && !field.isCompositePrimaryKeyField && field.fieldTypeLocalDateSaathratri) { _%>
+          <span>{{ <%= entityInstance %>Ref.<%= fieldName %> | formatUtcDate }}</span>
     <%_ } else if (field.fieldTypeDuration) { _%>
           <span>{{ <%= entityInstance %>Ref.<%= fieldName %> | duration }} ({{<%= entityInstance %>Ref.<%= fieldName %> }})</span>
     <%_ } else if (field.fieldTypeTimed) { _%>
@@ -88,7 +93,7 @@ _%>
           <span>{{ <%= entityInstance %>Ref.<%= fieldName %> | formatMediumDate }}</span>
     <%_ } else { _%>
         <%_
-            // Saathratri: Composite Primary Key Code
+            // Saathratri change: Composite Primary Key field display - reads from nested compositeId object. Not in upstream.
             if (primaryKeySaathratri.composite && field.isCompositePrimaryKeyField) {
                 if(field.fieldTypeLocalDate) {
         _%>
@@ -101,7 +106,7 @@ _%>
         <%_
                 } else if(field.fieldTypeTimed || field.fieldTypeTimedSaathratri) {
         _%>
-            <span>{{ <%= entityInstance %>Ref.<%= primaryKeySaathratri.name %>.<%= fieldName %> | formatMediumDatetime }}</span>  
+            <span>{{ <%= entityInstance %>Ref.<%= primaryKeySaathratri.name %>.<%= fieldName %> | formatMediumDatetime }}</span>
         <%_
                 } else {
         _%>
@@ -110,13 +115,13 @@ _%>
                 }
         _%>
         <%_
-            // Saathratri: Single-value Primary Key Code 
-            } else { 
+            // Saathratri: Single-value Primary Key Code
+            } else {
         _%>
           <span>{{ <%= entityInstance %>Ref.<%= fieldName %> }}</span>
-        <%_ 
-	    } 
-	    // Saathratri 
+        <%_
+	    }
+	    // Saathratri
 	_%>
     <%_ } _%>
         </dd>
@@ -127,27 +132,26 @@ _%>
           (click)="previousState()"
           class="btn btn-info"
           data-cy="entityDetailsBackButton">
-        <fa-icon icon="arrow-left"></fa-icon>&nbsp;<span>__jhiTranslateTag__('entity.action.back')</span>
+        <fa-icon icon="arrow-left" />&nbsp;<span>__jhiTranslateTag__('entity.action.back')</span>
       </button>
 <%_ if (!readOnly && updatableEntity) { _%>
 
       <button type="button"
-                    <%_ 
-                        // Saathratri: Composite Primary Key Code    
-                        if (primaryKeySaathratri.composite) { 
+<%# Saathratri change: composite primary key edit routerLink. Not in upstream. #%>
+                    <%_
+                        if (primaryKeySaathratri.composite) {
                     _%>
                         [routerLink]="['/<%= entityPage %>', <%= getCompositePrimaryKeyClientRouterLink(entityInstance, primaryKeySaathratri) %>, 'edit']"
                     <%_
-                        // Saathratri: Single-value Primary Key Code
-                        } else { 
+                        } else {
                     _%>
           [routerLink]="['/<%= entityPage %>', <%= entityInstance %>Ref.<%= primaryKey.name %>, 'edit']"
-		    <%_ 
-		    	} 
-		    	// Saathratri 
+		    <%_
+		    	}
+		    	// Saathratri
 		    _%>
           class="btn btn-primary">
-        <fa-icon icon="pencil-alt"></fa-icon>&nbsp;<span>__jhiTranslateTag__('entity.action.edit')</span>
+        <fa-icon icon="pencil-alt" />&nbsp;<span>__jhiTranslateTag__('entity.action.edit')</span>
       </button>
 <%_ } _%>
     </div>

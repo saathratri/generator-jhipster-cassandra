@@ -1,5 +1,5 @@
 <%#
- Copyright 2013-2024 the original author or authors from the JHipster project.
+ Copyright 2013-2026 the original author or authors from the JHipster project.
 
  This file is part of the JHipster project, see https://www.jhipster.tech/
  for more information.
@@ -19,11 +19,12 @@
 <div class="d-flex justify-content-center">
     <div class="col-8">
         <form name="editForm" novalidate (ngSubmit)="save()" [formGroup]="editForm">
-            <h2 id="<%= jhiPrefixDashed %>-<%= entityFileName %>-heading" data-cy="<%= entityClass %>CreateUpdateHeading">__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.createOrEditLabel')</h2>
+            <h2 id="<%= jhiPrefixDashed %>-<%= entityFileName %>-heading" data-cy="<%- entityNameCapitalized %>CreateUpdateHeading">__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.createOrEditLabel')</h2>
 
             <div>
-                <<%= jhiPrefixDashed %>-alert-error></<%= jhiPrefixDashed %>-alert-error>
+                <<%= jhiPrefixDashed %>-alert-error />
 
+<%# Saathratri change: composite primary key fields rendered inside formGroupName group. Not in upstream. #%>
 <%_ if (primaryKeySaathratri.composite) { _%>
     <div formGroupName="<%= primaryKeySaathratri.name %>">
     <%_ for (const field of primaryKeySaathratri.ids.filter(field => !field.hidden && ((primaryKeySaathratri.composite && field.fieldName !== 'id') || !primaryKeySaathratri.composite))) {
@@ -34,6 +35,7 @@
   const readonly = field.readonly;
   let fieldInputType = 'text';
   const translationKey = field.fieldTranslationKey;
+<%# Saathratri change: Cassandra date types affect fieldInputType logic. Not in upstream. #%>
     if (field.fieldTypeNumeric && !field.fieldTypeLocalDateSaathratri && !field.fieldTypeTimedSaathratri) {
     fieldInputType = 'number';
     } else if (field.fieldTypeLocalDate || field.fieldTypeLocalDateSaathratri) {
@@ -48,6 +50,7 @@
 _%>
 
                 <div class="mb-3">
+<%# Saathratri change: hide label for date/time fields (label comes from Material datepicker or DateTimeComponent). Not in upstream. #%>
                     <%_ if(!field.fieldTypeLocalDate && !field.fieldTypeLocalDateSaathratri && !field.fieldTypeTimed && !field.fieldTypeTimedSaathratri) { _%>
                     <label class="form-label" for="field_<%= fieldName %>"<% if (field.documentation) { if (enableTranslation) { %> [ngbTooltip]="'<%= i18nKeyPrefix %>.help.<%= fieldName %>' | translate"<% } else { %> ngbTooltip="<%= field.documentation %>"<% } } %>>__jhiTranslateTag__('<%= i18nKeyPrefix %>.<%= fieldName %>')</label>
                     <%_ } _%>
@@ -81,15 +84,16 @@ _%>
                                 <button type="button" (click)="editForm.patchValue({ <%= primaryKeySaathratri.name %>.<%= fieldName %>: undefined, <%= primaryKeySaathratri.name %>.<%= fieldName %>ContentType: undefined });"
                                         class="btn btn-secondary btn-xs pull-end">
         <%_ } _%>
-                                    <fa-icon icon="times"></fa-icon>
+                                    <fa-icon icon="times" />
                                 </button>
                             </div>
                         }
                             <input type="file" id="file_<%= fieldName %>" data-cy="<%= fieldName %>" (change)="setFileData($event, '<%= fieldName %>', <% if (fieldTypeBlobContent === 'image') { %>true)" accept="image/*"<% if (enableTranslation) { %> <%= jhiPrefix %>Translate="entity.action.addimage"<% } %><% } else { %>false)"<% if (enableTranslation) { %> <%= jhiPrefix %>Translate="entity.action.addblob"<% } %><% } %>/>
                         </div>
         <%_ } _%>
+<%# Saathratri change: Material datepicker for Cassandra date fields in composite key (stored as Long epoch). Not in upstream. #%>
         <%_ if (field.fieldTypeLocalDate || field.fieldTypeLocalDateSaathratri) { _%>
-        
+
                         <mat-form-field appearance="fill" class="full-width">
                         <mat-label>__jhiTranslateTag__('<%= i18nKeyPrefix %>.<%= fieldName %>')</mat-label>
                         <br>
@@ -104,6 +108,7 @@ _%>
                         <mat-datepicker #<%= fieldName %>Picker></mat-datepicker>
                         </mat-form-field>
 
+<%# Saathratri change: DateTimeComponent for Cassandra timed fields in composite key (stored as Long epoch). Not in upstream. #%>
         <%_ } else if (field.fieldTypeTimed || field.fieldTypeTimedSaathratri) { _%>
 
                         <app-date-time
@@ -116,40 +121,46 @@ _%>
                             (dirtyStateChange)="updateDirtyState($event)"
                             [isNew]="isNew">
                         </app-date-time>
-                        <button *ngIf="isNew" type="button" class="btn btn-primary" (click)="generateDateTime('<%= primaryKeySaathratri.name %>.<%= fieldName %>')">Generate</button>
+                        @if (isNew) {
+                        <button type="button" class="btn btn-primary" (click)="generateDateTime('<%= primaryKeySaathratri.name %>.<%= fieldName %>')">Generate</button>
                         <button
-                            *ngIf="isNew"
                             type="button"
                             class="btn btn-danger"
                             (click)="resetDateTime('<%= primaryKeySaathratri.name %>.<%= fieldName %>')"
-                            [disabled]="!isDateTimeDirty['<%= primaryKeySaathratri.name %>.<%= fieldName %>']"> 
-                            Reset 
+                            [disabled]="!isDateTimeDirty['<%= primaryKeySaathratri.name %>.<%= fieldName %>']">
+                            Reset
                         </button>
+                        }
         <%_ } else if (field.blobContentTypeText) { _%>
                         <textarea class="form-control" name="<%= fieldName %>" id="field_<%= fieldName %>" data-cy="<%= fieldName %>"
                                 formControlName="<%= fieldName %>"<% if (readonly) { %> [readonly]="true"<% } %>></textarea>
         <%_ } else if (field.fieldTypeBoolean) { _%>
                         <input type="<%= fieldInputType %>" class="form-check" name="<%= fieldName %>" id="field_<%= fieldName %>"
                             data-cy="<%= fieldName %>" formControlName="<%= fieldName %>" <% if (readonly) { %> [readonly]="true"<% } %>/>
+<%# Saathratri change: UUID generate/reset buttons for Cassandra UUID composite key fields. Not in upstream. #%>
         <%_ } else if (field.fieldTypeUuidSaathratri) { _%>
             <input type="<%= fieldInputType %>" class="form-control" name="<%= fieldName %>" id="field_<%= fieldName %>" data-cy="<%= fieldName %>"
                 formControlName="<%= fieldName %>"/>
-            <button *ngIf="isNew" type="button" class="btn btn-primary" (click)="generateUUID('<%= primaryKeySaathratri.name %>.<%= fieldName %>')">Generate</button>
-            <button *ngIf="isNew" type="button" class="btn btn-danger" (click)="reset('<%= primaryKeySaathratri.name %>.<%= fieldName %>')" [disabled]="isResetDisabled['<%= primaryKeySaathratri.name %>.<%= fieldName %>']">
+            @if (isNew) {
+            <button type="button" class="btn btn-primary" (click)="generateUUID('<%= primaryKeySaathratri.name %>.<%= fieldName %>')">Generate</button>
+            <button type="button" class="btn btn-danger" (click)="reset('<%= primaryKeySaathratri.name %>.<%= fieldName %>')" [disabled]="isResetDisabled['<%= primaryKeySaathratri.name %>.<%= fieldName %>']">
                 Reset
             </button>
+            }
+<%# Saathratri change: TimeUUID generate/reset buttons for Cassandra TimeUUID composite key fields. Not in upstream. #%>
         <%_ } else if (field.fieldTypeTimeUuidSaathratri) { _%>
             <input type="<%= fieldInputType %>" class="form-control" name="<%= fieldName %>" id="field_<%= fieldName %>" data-cy="<%= fieldName %>"
                 formControlName="<%= fieldName %>"/>
-            <button *ngIf="isNew" type="button" class="btn btn-primary" (click)="generateTimeUUID('<%= primaryKeySaathratri.name %>.<%= fieldName %>')">Generate</button>
+            @if (isNew) {
+            <button type="button" class="btn btn-primary" (click)="generateTimeUUID('<%= primaryKeySaathratri.name %>.<%= fieldName %>')">Generate</button>
             <button
-                *ngIf="isNew"
                 type="button"
                 class="btn btn-danger"
                 (click)="reset('<%= primaryKeySaathratri.name %>.<%= fieldName %>')"
-                [disabled]="isResetDisabled['<%= primaryKeySaathratri.name %>.<%= fieldName %>']"> 
-                Reset 
+                [disabled]="isResetDisabled['<%= primaryKeySaathratri.name %>.<%= fieldName %>']">
+                Reset
             </button>
+            }
         <%_ } else { _%>
                         <input type="<%= fieldInputType %>" class="form-control" name="<%= fieldName %>" id="field_<%= fieldName %>" data-cy="<%= fieldName %>"
                             formControlName="<%= fieldName %>"/>
@@ -207,6 +218,7 @@ _%>
 <%_ } _%>
     </div>
 <%_ } _%>
+<%# Saathratri change: non-composite-key fields rendered separately, filtering out composite key fields. Not in upstream. #%>
 <%_ for (const field of fields.filter(field => !field.hidden && ((!field.isCompositePrimaryKeyField && primaryKeySaathratri.composite && field.fieldName !== 'id') || !primaryKeySaathratri.composite))) {
     const fieldName = field.fieldName;
     const fieldNameHumanized = field.fieldNameHumanized;
@@ -215,6 +227,7 @@ _%>
     const readonly = field.readonly;
     let fieldInputType = 'text';
     const translationKey = field.fieldTranslationKey;
+<%# Saathratri change: Cassandra date types affect fieldInputType logic. Not in upstream. #%>
     if (field.fieldTypeNumeric && !field.fieldTypeLocalDateSaathratri && !field.fieldTypeTimedSaathratri) {
     fieldInputType = 'number';
     } else if (field.fieldTypeLocalDate || field.fieldTypeLocalDateSaathratri) {
@@ -228,7 +241,10 @@ _%>
   }
 _%>
 
+            <% if (field.autoGenerate) { %>@if (editForm.controls.<%= field.fieldName %>.value !== null) {<% } %>
+                <% if (field.fieldTypeBinary && !field.blobContentTypeText || field.fieldValidate || field.fieldValidateSaathratri) { %>@let <%= fieldName %>Ref = editForm.get('<%= fieldName %>')!;<% } %>
                 <div class="mb-3">
+<%# Saathratri change: hide label for date/time fields and Map<Dayjs> fields (label comes from sub-component). Not in upstream. #%>
                     <%_ if(field.fieldTypeMapDayjsSaathratri || (!field.fieldTypeLocalDate && !field.fieldTypeLocalDateSaathratri && !field.fieldTypeTimed && !field.fieldTypeTimedSaathratri)) { _%>
                     <label class="form-label" for="field_<%= fieldName %>"<% if (field.documentation) { if (enableTranslation) { %> [ngbTooltip]="'<%= i18nKeyPrefix %>.help.<%= fieldName %>' | translate"<% } else { %> ngbTooltip="<%= field.documentation %>"<% } } %>>__jhiTranslateTag__('<%= i18nKeyPrefix %>.<%= fieldName %>')</label>
                     <%_ } _%>
@@ -240,6 +256,7 @@ _%>
                         <option [value]="<%= this._.lowerFirst(fieldType) %>">__jhiTranslatePipeEnum__('<%= enumPrefix %>', { "value": "<%= this._.lowerFirst(fieldType) %>" })</option>
                     }
                     </select>
+<%# Saathratri change: ID field handling with Cassandra date/time/UUID/TimeUUID types. Not in upstream. #%>
   <%_ } else if(field.id) { _%>
     <%_ if (field.fieldTypeLocalDate || field.fieldTypeLocalDateSaathratri) { _%>
                     <mat-form-field appearance="fill" class="full-width">
@@ -266,34 +283,38 @@ _%>
                 (dirtyStateChange)="updateDirtyState($event)"
                 [isNew]="isNew">
             </app-date-time>
-            <button *ngIf="isNew" type="button" class="btn btn-primary" (click)="generateDateTime('<%= fieldName %>')">Generate</button>
+            @if (isNew) {
+            <button type="button" class="btn btn-primary" (click)="generateDateTime('<%= fieldName %>')">Generate</button>
             <button
-                *ngIf="isNew"
                 type="button"
                 class="btn btn-danger"
                 (click)="resetDateTime('<%= fieldName %>')"
-                [disabled]="!isDateTimeDirty['<%= fieldName %>']"> 
-                Reset 
+                [disabled]="!isDateTimeDirty['<%= fieldName %>']">
+                Reset
             </button>
+            }
     <%_ } else if (field.fieldTypeTimeUuidSaathratri) { _%>
             <input type="<%= fieldInputType %>" class="form-control" name="<%= fieldName %>" id="field_<%= fieldName %>" data-cy="<%= fieldName %>"
                 formControlName="<%= fieldName %>"/>
-            <button *ngIf="isNew" type="button" class="btn btn-primary" (click)="generateTimeUUID('<%= fieldName %>')">Generate</button>
+            @if (isNew) {
+            <button type="button" class="btn btn-primary" (click)="generateTimeUUID('<%= fieldName %>')">Generate</button>
             <button
-                *ngIf="isNew"
                 type="button"
                 class="btn btn-danger"
                 (click)="reset('<%= fieldName %>')"
-                [disabled]="isResetDisabled['<%= fieldName %>']"> 
-                Reset 
+                [disabled]="isResetDisabled['<%= fieldName %>']">
+                Reset
             </button>
+            }
     <%_ } else if (field.fieldTypeUuidSaathratri) { _%>
             <input type="<%= fieldInputType %>" class="form-control" name="<%= fieldName %>" id="field_<%= fieldName %>" data-cy="<%= fieldName %>"
                 formControlName="<%= fieldName %>"/>
-            <button *ngIf="isNew" type="button" class="btn btn-primary" (click)="generateUUID('<%= fieldName %>')">Generate</button>
-            <button *ngIf="isNew" type="button" class="btn btn-danger" (click)="reset('<%= fieldName %>')" [disabled]="isResetDisabled['<%= fieldName %>']">
+            @if (isNew) {
+            <button type="button" class="btn btn-primary" (click)="generateUUID('<%= fieldName %>')">Generate</button>
+            <button type="button" class="btn btn-danger" (click)="reset('<%= fieldName %>')" [disabled]="isResetDisabled['<%= fieldName %>']">
                 Reset
             </button>
+            }
     <%_ } else { _%>
         <input type="<%= fieldInputType %>" class="form-control" name="<%= fieldName %>" id="field_<%= fieldName %>" data-cy="<%= fieldName %>"
         formControlName="<%= fieldName %>"/>
@@ -302,17 +323,17 @@ _%>
     <%_ if (field.fieldTypeBinary && !field.blobContentTypeText) { _%>
                     <div>
       <%_ if (field.blobContentTypeImage) { _%>
-                    @if (editForm.get('<%= fieldName %>')!.value) {
-                        <img [src]="'data:' + editForm.get('<%= fieldName %>ContentType')!.value + ';base64,' + editForm.get('<%= fieldName %>')!.value" style="max-height: 100px" alt="<%= entityInstance %>"/>
+                    @if (<%= fieldName %>Ref.value) {
+                        <img [src]="'data:' + editForm.get('<%= fieldName %>ContentType')!.value + ';base64,' + <%= fieldName %>Ref.value" style="max-height: 100px" alt="<%= entityInstance %>"/>
                     }
       <%_ } _%>
-                    @if (editForm.get('<%= fieldName %>')!.value) {
+                    @if (<%= fieldName %>Ref.value) {
                         <div class="form-text text-danger clearfix">
       <%_ if (field.blobContentTypeAny) { _%>
-                            <a class="pull-start" (click)="openFile(editForm.get('<%= fieldName %>')!.value!, editForm.get('<%= fieldName %>ContentType')!.value!)">__jhiTranslateTag__('entity.action.open')</a><br>
-                            <span class="pull-start">{{ editForm.get('<%= fieldName %>ContentType')!.value }}, {{ byteSize(editForm.get('<%= fieldName %>')!.value!) }}</span>
+                            <a class="pull-start" (click)="openFile(<%= fieldName %>Ref.value!, editForm.get('<%= fieldName %>ContentType')!.value!)">__jhiTranslateTag__('entity.action.open')</a><br>
+                            <span class="pull-start">{{ editForm.get('<%= fieldName %>ContentType')!.value }}, {{ byteSize(<%= fieldName %>Ref.value!) }}</span>
       <%_ } else { _%>
-                            <span class="pull-start">{{ editForm.get('<%= fieldName %>ContentType')!.value }}, {{ byteSize(editForm.get('<%= fieldName %>')!.value!) }}</span>
+                            <span class="pull-start">{{ editForm.get('<%= fieldName %>ContentType')!.value }}, {{ byteSize(<%= fieldName %>Ref.value!) }}</span>
       <%_ } _%>
       <%_ if (field.blobContentTypeImage) { _%>
                             <button type="button" (click)="clearInputImage('<%= fieldName %>', '<%= fieldName %>ContentType', 'file_<%= fieldName %>')" class="btn btn-secondary btn-xs pull-end">
@@ -320,38 +341,44 @@ _%>
                             <button type="button" (click)="editForm.patchValue({ <%= fieldName %>: undefined, <%= fieldName %>ContentType: undefined });"
                                     class="btn btn-secondary btn-xs pull-end">
       <%_ } _%>
-                                  <fa-icon icon="times"></fa-icon>
+                                  <fa-icon icon="times" />
                             </button>
                         </div>
                     }
                         <input type="file" id="file_<%= fieldName %>" data-cy="<%= fieldName %>" (change)="setFileData($event, '<%= fieldName %>', <% if (fieldTypeBlobContent === 'image') { %>true)" accept="image/*"<% if (enableTranslation) { %> <%= jhiPrefix %>Translate="entity.action.addimage"<% } %><% } else { %>false)"<% if (enableTranslation) { %> <%= jhiPrefix %>Translate="entity.action.addblob"<% } %><% } %>/>
                     </div>
     <%_ } _%>
+<%# Saathratri change: Cassandra Set type UI component. Not in upstream. #%>
     <%_ if (field.fieldTypeSetSaathratri) { _%>
-            <app-set-string-component 
-                [inputFields]="inputFields<%= this._.upperFirst(field.fieldName) %>" 
+            <app-set-string-component
+                [inputFields]="inputFields<%= this._.upperFirst(field.fieldName) %>"
                 (dataChange)="handle<%= this._.upperFirst(field.fieldName) %>InputChange($event)">
             </app-set-string-component>
+<%# Saathratri change: Cassandra Map<Boolean> type UI component. Not in upstream. #%>
     <%_ } else if (field.fieldTypeMapBooleanSaathratri) { _%>
-            <app-map-boolean-component 
-                [inputFields]="inputFields<%= this._.upperFirst(field.fieldName) %>" 
+            <app-map-boolean-component
+                [inputFields]="inputFields<%= this._.upperFirst(field.fieldName) %>"
                 (dataChange)="handle<%= this._.upperFirst(field.fieldName) %>InputChange($event)">
             </app-map-boolean-component>
+<%# Saathratri change: Cassandra Map<Number> type UI component. Not in upstream. #%>
     <%_ } else if (field.fieldTypeMapNumberSaathratri) { _%>
-            <app-map-number-component 
-                [inputFields]="inputFields<%= this._.upperFirst(field.fieldName) %>" 
+            <app-map-number-component
+                [inputFields]="inputFields<%= this._.upperFirst(field.fieldName) %>"
                 (dataChange)="handle<%= this._.upperFirst(field.fieldName) %>InputChange($event)">
             </app-map-number-component>
+<%# Saathratri change: Cassandra Map<String> type UI component. Not in upstream. #%>
     <%_ } else if (field.fieldTypeMapStringSaathratri) { _%>
-            <app-map-string-component 
-                [inputFields]="inputFields<%= this._.upperFirst(field.fieldName) %>" 
+            <app-map-string-component
+                [inputFields]="inputFields<%= this._.upperFirst(field.fieldName) %>"
                 (dataChange)="handle<%= this._.upperFirst(field.fieldName) %>InputChange($event)">
             </app-map-string-component>
+<%# Saathratri change: Cassandra Map<Dayjs> type UI component. Not in upstream. #%>
     <%_ } else if (field.fieldTypeMapDayjsSaathratri) { _%>
-            <app-map-dayjs-component 
-                [inputFields]="inputFields<%= this._.upperFirst(field.fieldName) %>" 
+            <app-map-dayjs-component
+                [inputFields]="inputFields<%= this._.upperFirst(field.fieldName) %>"
                 (dataChange)="handle<%= this._.upperFirst(field.fieldName) %>InputChange($event)">
             </app-map-dayjs-component>
+<%# Saathratri change: Material datepicker for Cassandra date fields (stored as Long epoch). Not in upstream. #%>
     <%_ } else if (field.fieldTypeLocalDate || field.fieldTypeLocalDateSaathratri) { _%>
                     <mat-form-field appearance="fill" class="full-width">
                         <mat-label>__jhiTranslateTag__('<%= i18nKeyPrefix %>.<%= fieldName %>')</mat-label>
@@ -366,6 +393,7 @@ _%>
                         <mat-datepicker-toggle matSuffix [for]="<%= fieldName %>Picker"></mat-datepicker-toggle>
                         <mat-datepicker #<%= fieldName %>Picker></mat-datepicker>
                     </mat-form-field>
+<%# Saathratri change: DateTimeComponent for Cassandra timed fields (stored as Long epoch). Not in upstream. #%>
     <%_ } else if (field.fieldTypeTimed || field.fieldTypeTimedSaathratri) { _%>
                     <app-date-time
                         fieldName="<%= fieldName %>"
@@ -382,8 +410,8 @@ _%>
                         type="button"
                         class="btn btn-danger"
                         (click)="resetDateTime('<%= fieldName %>')"
-                        [disabled]="!isDateTimeDirty['<%= fieldName %>']"> 
-                        Reset 
+                        [disabled]="!isDateTimeDirty['<%= fieldName %>']">
+                        Reset
                     </button>
     <%_ } else if (field.blobContentTypeText) { _%>
                     <textarea class="form-control" name="<%= fieldName %>" id="field_<%= fieldName %>" data-cy="<%= fieldName %>"
@@ -391,6 +419,10 @@ _%>
     <%_ } else if (field.fieldTypeBoolean) { _%>
                     <input type="<%= fieldInputType %>" class="form-check" name="<%= fieldName %>" id="field_<%= fieldName %>"
                            data-cy="<%= fieldName %>" formControlName="<%= fieldName %>" <% if (readonly) { %> [readonly]="true"<% } %>/>
+    <%_ } else if (field.fieldTypeLocalTime) { _%>
+                    <input type="time" class="form-control" name="<%= fieldName %>" id="field_<%= fieldName %>" data-cy="<%= fieldName %>"
+                           formControlName="<%= fieldName %>"<% if (readonly) { %> [readonly]="true"<% } %>/>
+<%# Saathratri change: TimeUUID generate/reset buttons for Cassandra TimeUUID fields. Not in upstream. #%>
     <%_ } else if (field.fieldTypeTimeUuidSaathratri) { _%>
             <input type="<%= fieldInputType %>" class="form-control" name="<%= fieldName %>" id="field_<%= fieldName %>" data-cy="<%= fieldName %>"
                 formControlName="<%= fieldName %>"/>
@@ -399,9 +431,10 @@ _%>
                 type="button"
                 class="btn btn-danger"
                 (click)="reset('<%= fieldName %>')"
-                [disabled]="isResetDisabled['<%= fieldName %>']"> 
-                Reset 
+                [disabled]="isResetDisabled['<%= fieldName %>']">
+                Reset
             </button>
+<%# Saathratri change: UUID generate/reset buttons for Cassandra UUID fields. Not in upstream. #%>
     <%_ } else if (field.fieldTypeUuidSaathratri) { _%>
             <input type="<%= fieldInputType %>" class="form-control" name="<%= fieldName %>" id="field_<%= fieldName %>" data-cy="<%= fieldName %>"
                 formControlName="<%= fieldName %>"/>
@@ -411,15 +444,16 @@ _%>
             </button>
     <%_ } else { _%>
                     <input type="<%= fieldInputType %>" class="form-control" name="<%= fieldName %>" id="field_<%= fieldName %>" data-cy="<%= fieldName %>"
-                             formControlName="<%= fieldName %>"/>
+                             formControlName="<%= fieldName %>"<% if (field.id && !field.autoGenerate) { %> [readonly]="editForm.get('<%= primaryKey.name %>')!.disabled"<% } else if (readonly) { %> [readonly]="true"<% } %>/>
       <%_ if (field.fieldTypeBinary && !field.blobContentTypeText) { _%>
                     <input type="hidden" class="form-control" name="<%= fieldName %>ContentType" id="field_<%= fieldName %>ContentType"
                            formControlName="<%= fieldName %>ContentType" />
       <%_ } _%>
     <%_ } _%>
   <%_ } _%>
+<%# Saathratri change: Cassandra-specific validation types (fieldValidateSaathratri, fieldValidationRequiredSaathratri, fieldTypeTimedSaathratri). Not in upstream. #%>
     <%_ if (field.fieldValidate || field.fieldValidateSaathratri) { _%>
-                @if (editForm.get('<%= fieldName %>')!.invalid && (editForm.get('<%= fieldName %>')!.dirty || editForm.get('<%= fieldName %>')!.touched)) {
+                @if (<%= fieldName %>Ref.invalid && (<%= fieldName %>Ref.dirty || <%= fieldName %>Ref.touched)) {
                     <div>
       <%_ if (field.fieldValidationRequired || field.fieldValidationRequiredSaathratri) { _%>
                     @if (editForm.get('<%= fieldName %>')?.errors?.required) {
@@ -464,17 +498,69 @@ _%>
 
     <%_ } _%>
                 </div>
+            <% if (field.autoGenerate) { %>}<% } %>
 
+<%_ } _%>
+<%_ for (const relationship of relationships.filter(rel => rel.otherEntity.primaryKey)) {
+  const { otherEntity, relationshipName, propertyName, otherEntityField, relationshipRequired } = relationship;
+  const otherEntityName = relationship.otherEntityName;
+  const relationshipFieldName = relationship.relationshipFieldName;
+  const relationshipFieldNamePlural = relationship.relationshipFieldNamePlural;
+_%>
+  <%_ if (relationship.persistableRelationship && !relationship.collection) { _%>
+
+                <div class="mb-3">
+                    <label class="form-label" for="field_<%= relationshipName %>">__jhiTranslateTag__('<%- relationship.propertyTranslationKey %>')</label>
+                    <select class="form-control" id="field_<%= relationshipName %>" data-cy="<%= propertyName %>" name="<%= relationshipName %>" formControlName="<%= propertyName %>" [compareWith]="compare<%= otherEntity.entityAngularName %>">
+    <%_ if (!relationshipRequired) { _%>
+                        <option [ngValue]="null"></option>
+    <%_ } else if (!relationship.otherRelationship) { _%>
+                    @if (!editForm.get('<%= relationshipName %>')!.value) {
+                        <option [ngValue]="null" selected></option>
+                    }
+    <%_ } else { _%>
+                    @if (editForm.get(['<%- relationship.propertyName %>'])!.value === null) {
+                        <option [ngValue]="null" selected></option>
+                    }
+    <%_ } _%>
+                    @for (<%= otherEntityName %>Option of <% if (!relationship.otherRelationship || relationship.relationshipManyToOne) { %><%= otherEntity.entityInstancePlural %>Shared<% } else { %><%= relationshipFieldNamePlural %><% } %>Collection(); track $index) {
+                        <option [ngValue]="<%= otherEntityName %>Option">{{ <%= otherEntityName %>Option.<%= otherEntityField %> }}</option>
+                    }
+                    </select>
+                </div>
+  <%_ } else if (relationship.persistableRelationship) { _%>
+
+                <div class="mb-3">
+                    <label for="field_<%= relationshipFieldNamePlural %>">__jhiTranslateTag__('<%- relationship.propertyTranslationKey %>')</label>
+                    <select class="form-control" id="field_<%= relationshipFieldNamePlural %>" data-cy="<%= relationshipFieldName %>" multiple name="<%= propertyName %>" formControlName="<%= propertyName %>" [compareWith]="compare<%= otherEntity.entityAngularName %>">
+                    @for (<%= otherEntityName %>Option of <%= otherEntity.entityInstancePlural %>SharedCollection(); track $index) {
+                        <option [ngValue]="<%= otherEntityName %>Option">{{ <%= otherEntityName %>Option.<%= otherEntityField %> }}</option>
+                    }
+                    </select>
+                </div>
+  <%_ } _%>
+  <%_ if (relationship.relationshipValidate && relationship.persistableRelationship) { _%>
+            @if (editForm.get(['<%- relationship.propertyName %>'])!.invalid && (editForm.get(['<%- relationship.propertyName %>'])!.dirty || editForm.get(['<%- relationship.propertyName %>'])!.touched)) {
+                <div>
+    <%_ if (relationshipRequired) { _%>
+                @if (editForm.get(['<%- relationship.propertyName %>'])?.errors?.required) {
+                    <small class="form-text text-danger">__jhiTranslateTag__('entity.validation.required')</small>
+                }
+    <%_ } _%>
+                </div>
+            }
+  <%_ } _%>
 <%_ } _%>
             </div>
 
             <div>
                 <button type="button" id="cancel-save" data-cy="entityCreateCancelButton" class="btn btn-secondary" (click)="previousState()">
-                    <fa-icon icon="ban"></fa-icon>&nbsp;<span>__jhiTranslateTag__('entity.action.cancel')</span>
+                    <fa-icon icon="ban" />&nbsp;<span>__jhiTranslateTag__('entity.action.cancel')</span>
                 </button>
 
-                <button type="submit" id="save-entity" data-cy="entityCreateSaveButton" [disabled]="editForm.invalid || isSaving<%_ if( anyFieldIsTimeDerivedSaathratri ) { _%> || !areAllDateTimeFieldsValid <%_ } _%>" class="btn btn-primary">
-                    <fa-icon icon="save"></fa-icon>&nbsp;<span>__jhiTranslateTag__('entity.action.save')</span>
+<%# Saathratri change: areAllDateTimeFieldsValid added to save button disabled check for Cassandra DateTime validation. Not in upstream. #%>
+                <button type="submit" id="save-entity" data-cy="entityCreateSaveButton" [disabled]="editForm.invalid || isSaving()<%_ if( anyFieldIsTimeDerivedSaathratri ) { _%> || !areAllDateTimeFieldsValid<%_ } _%>" class="btn btn-primary">
+                    <fa-icon icon="save" />&nbsp;<span>__jhiTranslateTag__('entity.action.save')</span>
                 </button>
             </div>
         </form>

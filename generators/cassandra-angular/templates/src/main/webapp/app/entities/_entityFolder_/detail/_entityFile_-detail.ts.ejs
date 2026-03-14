@@ -1,5 +1,5 @@
 <%#
- Copyright 2013-2024 the original author or authors from the JHipster project.
+ Copyright 2013-2026 the original author or authors from the JHipster project.
 
  This file is part of the JHipster project, see https://www.jhipster.tech/
  for more information.
@@ -17,9 +17,25 @@
  limitations under the License.
 -%>
 import { Component, <% if (anyFieldIsBlobDerived) { %>inject, <% } %>input } from '@angular/core';
-import { RouterModule } from '@angular/router';
+<%# Saathratri change: KeyValuePipe for Map field display in Cassandra entities. Not in upstream. #%>
+<%_ if (anyFieldIsMapSaathratri) { _%>
+import { KeyValuePipe } from '@angular/common';
+<%_ } _%>
+<%_ if (entityFileName != 'authority' && updatableEntity) { _%>
+import { RouterLink } from '@angular/router';
+<%_ } _%>
 
-import SharedModule from 'app/shared/shared.module';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { Alert } from 'app/shared/alert/alert';
+import { AlertError } from 'app/shared/alert/alert-error';
+<%_ if (anyFieldHasDocumentation) { _%>
+import { NgbTooltip } from '@ng-bootstrap/ng-bootstrap/tooltip';
+<%_ } _%>
+<%_ if (enableTranslation) { _%>
+import { TranslateDirective } from 'app/shared/language';
+import { TranslateModule } from '@ngx-translate/core';
+<%_ } _%>
+<%# Saathratri change: added FormatUtcDatePipe and ConvertFromDayjsToDateLongPipe for Cassandra Long epoch date handling. Not in upstream. #%>
 import { DurationPipe, FormatMediumDatetimePipe, FormatMediumDatePipe, FormatUtcDatePipe, ConvertFromDayjsToDateLongPipe } from 'app/shared/date';
 import { I<%= entityAngularName %> } from '../<%= entityFileName %>.model';
 <%_ if (anyFieldIsBlobDerived) { _%>
@@ -27,13 +43,42 @@ import { DataUtils } from 'app/core/util/data-util.service';
 <%_ } _%>
 
 @Component({
-    standalone: true,
     selector: '<%= jhiPrefixDashed %>-<%= entityFileName %>-detail',
-    templateUrl: './<%= entityFileName %>-detail.component.html',
-    imports: [SharedModule, RouterModule, DurationPipe, FormatMediumDatetimePipe, FormatMediumDatePipe, FormatUtcDatePipe, ConvertFromDayjsToDateLongPipe],
+    templateUrl: './<%= entityFileName %>-detail.html',
+    imports: [
+      FontAwesomeModule,
+<%_ if (anyFieldHasDocumentation) { _%>
+      NgbTooltip,
+<%_ } _%>
+      Alert,
+      AlertError,
+<%_ if (enableTranslation) { _%>
+      TranslateDirective,
+      TranslateModule,
+<%_ } _%>
+<%_ if (entityFileName != 'authority' && updatableEntity) { _%>
+      RouterLink,
+<%_ } _%>
+<%_ if (anyFieldIsDuration) { _%>
+      DurationPipe,
+<%_ } _%>
+<%_ if (anyFieldIsTimeDerived) { _%>
+      FormatMediumDatetimePipe,
+<%_ } _%>
+<%_ if (anyFieldIsLocalDate) { _%>
+      FormatMediumDatePipe,
+<%_ } _%>
+<%# Saathratri change: always include Saathratri date pipes for Cassandra Long epoch date handling. Not in upstream. #%>
+      FormatUtcDatePipe,
+      ConvertFromDayjsToDateLongPipe,
+<%# Saathratri change: KeyValuePipe for Map field display in Cassandra entities. Not in upstream. #%>
+<%_ if (anyFieldIsMapSaathratri) { _%>
+      KeyValuePipe,
+<%_ } _%>
+    ],
 })
-export class <%= entityAngularName %>DetailComponent {
-    <%= entityInstance %> = input<I<%= entityAngularName %> | null>(null);
+export class <%= entityAngularName %>Detail {
+    readonly <%= entityInstance %> = input<I<%= entityAngularName %> | null>(null);
 
 <%_ if (anyFieldIsBlobDerived) { _%>
     protected dataUtils = inject(DataUtils);
@@ -49,14 +94,15 @@ export class <%= entityAngularName %>DetailComponent {
     }
 <%_ } _%>
 
+<%# Saathratri change: toArray helper for Set fields in Cassandra entities. Not in upstream. #%>
 <%_ if (anyFieldIsSetSaathratri) { _%>
     toArray(set: Set<string> | null | undefined): string[] {
         return set ? Array.from(set) : [];
-      }
+    }
 <%_ } _%>
 
     previousState(): void {
-        window.history.back();
+        globalThis.history.back();
     }
 
 }
