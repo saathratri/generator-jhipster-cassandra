@@ -54,18 +54,20 @@ fields = realFields; _%>
         this.<%= primaryKeySaathratri.ids[idx].fieldName %> = <%= primaryKeySaathratri.ids[idx].fieldName %>;
 <%_ }_%>
     }
-    <%_ for (reference of dtoReferences) { _%>
-        <%_ if (isCompositePrimaryKeyServerReference(primaryKeySaathratri, reference)) { _%>
+    <%_ for (reference of restProperties) { _%>
+        <%_ if (isCompositePrimaryKeyServerReference(primaryKeySaathratri, reference)) {
+          const refName = reference.name || reference.propertyName || reference.fieldName;
+          const refType = reference.type || reference.propertyDtoJavaType || reference.fieldType; _%>
             public <%= buildJavaGetter(reference) %> {
-                return this.<%= reference.name %>;
+                return this.<%= refName %>;
             }
-        
+
             public void <%= buildJavaSetter(reference) %> {
-                this.<%= reference.name %> = <%= reference.name %>;
+                this.<%= refName %> = <%= refName %>;
             }
-    
-            public <%= persistClass %>Id <%= reference.name %>(<%= reference.type %> <%= reference.name %>) {
-                this.<%= reference.name %> = <%= reference.name %>;
+
+            public <%= persistClass %>Id <%= refName %>(<%= refType %> <%= refName %>) {
+                this.<%= refName %> = <%= refName %>;
                 return this;
             }
         <%_ } _%>
@@ -93,10 +95,11 @@ fields = realFields; _%>
     @Override
     public String toString() {
         return "<%= entityClass %>Id { " +
-    <%_ for ([idx, reference] of dtoReferences.entries()) {
-      const isQuoted = reference.field && !reference.field.fieldTypeNumeric; _%>
+    <%_ for ([idx, reference] of restProperties.entries()) {
+      const refName = reference.name || reference.propertyName || reference.fieldName;
+      const isQuoted = (reference.field || reference).fieldTypeString || (reference.field || reference).fieldTypeUUID; _%>
       <%_ if (isCompositePrimaryKeyServerReference(primaryKeySaathratri, reference)) { _%>
-                "<%= idx === 0 ? '' : ',' %><%= reference.name %>=<% if (isQuoted) { %>'<% } %>" + <%= buildJavaGet(reference) %> <% if (isQuoted) { %>+ "'" <% } %>+
+                "<%= idx === 0 ? '' : ',' %><%= refName %>=<% if (isQuoted) { %>'<% } %>" + <%= buildJavaGet(reference) %> <% if (isQuoted) { %>+ "'" <% } %>+
     <%_       
           }
         }

@@ -1,5 +1,5 @@
 <%#
- Copyright 2013-2026 the original author or authors from the JHipster project.
+ Copyright 2013-2024 the original author or authors from the JHipster project.
 
  This file is part of the JHipster project, see https://www.jhipster.tech/
  for more information.
@@ -17,12 +17,9 @@
  limitations under the License.
 -%>
 
-<%_ /* Saathratri change: use entityInstanceSnakeCase for snake_case table names (upstream uses entityInstance) */ _%>
 CREATE TABLE IF NOT EXISTS <%= entityInstanceSnakeCase %> (
 <%_ for (const field of fields) {
-  const fieldName = field.fieldName;
   const fieldNameUnderscored = field.fieldNameUnderscored; _%>
-<%_ /* Saathratri change: Set and Map collection type support */ _%>
   <%_ if (field.fieldTypeSetSaathratri) { _%>
     <%= fieldNameUnderscored %> set<text>,
   <%_ } else if (field.fieldTypeMapSaathratri) { _%>
@@ -33,9 +30,8 @@ CREATE TABLE IF NOT EXISTS <%= entityInstanceSnakeCase %> (
     <%_ } else if (field.fieldTypeMapStringSaathratri) { _%>
       <%= fieldNameUnderscored %> map<text, text>,
     <%_ } else if (field.fieldTypeMapDayjsSaathratri) { _%>
-          <%= fieldNameUnderscored %> map<text, bigint>,
-    <%_ } _%>
-<%_ /* Saathratri change: use fieldNameUnderscored for snake_case column names (upstream uses fieldName) */ _%>
+          <%= fieldNameUnderscored %> map<text, bigint>,  
+    <%_ } _%>   
   <%_ } else if (field.fieldTypeUUID) { _%>
     <%= fieldNameUnderscored %> uuid,
   <%_ } else if (field.fieldTypeString || field.fieldIsEnum) { _%>
@@ -58,8 +54,6 @@ CREATE TABLE IF NOT EXISTS <%= entityInstanceSnakeCase %> (
     <%= fieldNameUnderscored %> text,
   <%_ } else if (field.fieldTypeZonedDateTime) { _%>
     <%= fieldNameUnderscored %> tuple<timestamp,varchar>,
-  <%_ } else if (field.fieldTypeLocalTime) { _%>
-    <%= fieldNameUnderscored %> time,
   <%_ } else if (field.fieldTypeBoolean) { _%>
     <%= fieldNameUnderscored %> boolean,
   <%_ } else if (field.fieldTypeByteBuffer) { _%>
@@ -71,7 +65,6 @@ CREATE TABLE IF NOT EXISTS <%= entityInstanceSnakeCase %> (
     <%_ } _%>
   <%_ } _%>
 <%_ } _%>
-<%_ /* Saathratri change: composite primary key support with partitioned/clustered keys and clustering order (upstream uses simple PRIMARY KEY(id)) */ _%>
 <%_ if (primaryKeySaathratri.composite) { _%>
   primary key (
     (<%_ primaryKeySaathratri.ids.filter(field => field.isPartitionedKeySaathratri)
@@ -83,7 +76,6 @@ CREATE TABLE IF NOT EXISTS <%= entityInstanceSnakeCase %> (
     <%_ primaryKeySaathratri.ids.filter(field => field.isClusteredKeySaathratri)
       .forEach((field, index) => { _%><%= index === 0 ? `${field.fieldNameUnderscored} desc` : `, ${field.fieldNameUnderscored} desc` %><%_ }) _%>);
 <%_ } else { _%>
-<%_ /* Saathratri change: use primaryKeyNameSnakeCase for snake_case primary key name (upstream uses hardcoded 'id') */ _%>
-  PRIMARY KEY(<%= primaryKeyNameSnakeCase %>)
+  primary key (<%= primaryKeyNameSnakeCase %>)
 );
 <%_ } _%>

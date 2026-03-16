@@ -1,6 +1,5 @@
 import BaseApplicationGenerator from 'generator-jhipster/generators/base-application';
 import { javaMainPackageTemplatesBlock, javaTestPackageTemplatesBlock } from 'generator-jhipster/generators/java/support';
-import command from './command.js';
 import { javaSaathratriUtils } from './cassandra-java-domain-utils.js';
 import { cassandraSpringBootUtils } from '../../../cassandra-spring-boot/cassandra-spring-boot-utils.js';
 
@@ -11,10 +10,7 @@ export default class extends BaseApplicationGenerator {
 
   get [BaseApplicationGenerator.INITIALIZING]() {
     return this.asInitializingTaskGroup({
-      async initializingTemplateTask() {
-        this.parseJHipsterArguments(command.arguments);
-        this.parseJHipsterOptions(command.options);
-      },
+      async initializingTemplateTask() {},
     });
   }
 

@@ -40,7 +40,7 @@
     "vitest": "vitest"
   },
   "dependencies": {
-    "generator-jhipster": "8.10.0"
+    "generator-jhipster": "9.0.0"
   },
   "devDependencies": {
     "ejs-lint": "^2.0.0",

@@ -1,5 +1,4 @@
 import BaseApplicationGenerator from 'generator-jhipster/generators/base-application';
-import command from './command.js';
 
 export default class extends BaseApplicationGenerator {
   constructor(args, opts, features) {
@@ -8,10 +7,7 @@ export default class extends BaseApplicationGenerator {
 
   get [BaseApplicationGenerator.INITIALIZING]() {
     return this.asInitializingTaskGroup({
-      async initializingTemplateTask() {
-        this.parseJHipsterArguments(command.arguments);
-        this.parseJHipsterOptions(command.options);
-      },
+      async initializingTemplateTask() {},
     });
   }
 
@@ -29,12 +25,7 @@ export default class extends BaseApplicationGenerator {
 
   get [BaseApplicationGenerator.COMPOSING]() {
     return this.asComposingTaskGroup({
-      async composingTemplateTask() {
-        if (['angularX', 'angular'].includes(this.jhipsterConfigWithDefaults.clientFramework)) {
-         // Delegate the client sub-generator to the angular blueprint.
-         await this.composeWithJHipster('jhipster-cassandra:cassandra-angular');
-        }
-      },
+      async composingTemplateTask() {},
     });
   }
 

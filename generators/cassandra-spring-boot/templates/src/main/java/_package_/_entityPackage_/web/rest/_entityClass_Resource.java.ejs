@@ -1,5 +1,5 @@
 <%#
- Copyright 2013-2026 the original author or authors from the JHipster project.
+ Copyright 2013-2024 the original author or authors from the JHipster project.
 
  This file is part of the JHipster project, see https://www.jhipster.tech/
  for more information.
@@ -21,7 +21,6 @@ package <%= entityAbsolutePackage %>.web.rest;
 <%_
 const viaService = !serviceNo;
 _%>
-<%_ /* Saathratri change: composite primary key ID class import (upstream has no composite key support) */ _%>
 <%_ if (primaryKeySaathratri.composite) { _%>
 import <%= entityAbsolutePackage %>.domain.<%= persistClass %>Id;
 <%_ } _%>
@@ -33,7 +32,7 @@ import <%= entityAbsolutePackage %>.repository.<%= entityClass %>Repository;
 import <%= entityAbsolutePackage %>.service.<%= entityClass %>Service;
 <%_ } else { _%>
   <%_ if (isUsingMapsId === true) { _%>
-import <%= entityAbsolutePackage %>.repository.<%= mapsIdAssoc.otherEntity.entityNameCapitalized %>Repository;
+import <%= entityAbsolutePackage %>.repository.<%= mapsIdAssoc.otherEntityNameCapitalized %>Repository;
   <%_ } _%>
   <%_ if (searchEngineElasticsearch) { _%>
 import <%= entityAbsolutePackage %>.repository.search.<%= entityClass %>SearchRepository;
@@ -52,7 +51,7 @@ import <%= entityAbsolutePackage %>.service.dto.<%= dtoClass %>;
 import <%= entityAbsolutePackage %>.service.mapper.<%= entityClass %>Mapper;
   <%_ } _%>
 <%_ } _%>
-<%_ if (jpaMetamodelFiltering && !reactive) { _%>
+<%_ if (jpaMetamodelFiltering && !reactive) {  _%>
 import <%= entityAbsolutePackage %>.service.criteria.<%= entityClass %>Criteria;
 import <%= entityAbsolutePackage %>.service.<%= entityClass %>QueryService;
 <%_ } else if (jpaMetamodelFiltering && reactive) { _%>
@@ -72,12 +71,10 @@ import org.springframework.security.access.prepost.PreAuthorize;
 <%_ } _%>
 <%_ if (!paginationNo) { _%>
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
   <%_ if (reactive) { _%>
 import org.springframework.data.domain.PageImpl;
   <%_ } _%>
-<%_ } _%>
-<%_ /* Saathratri change: HttpHeaders/Pageable/Slice imports expanded for composite key and Cassandra paging (upstream only imports with !paginationNo) */ _%>
-<%_ if (!paginationNo || primaryKeySaathratri.composite || (databaseTypeCassandra && paginationNo)) { _%>
 import org.springframework.http.HttpHeaders;
   <%_ if (reactive) { _%>
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -87,19 +84,6 @@ import org.springframework.web.util.ForwardedHeaderUtils;
   <%_ } else { _%>
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
   <%_ } _%>
-<%_ } _%>
-<%_ if (!paginationNo || primaryKeySaathratri.composite || (databaseTypeCassandra && paginationNo)) { _%>
-import org.springframework.data.domain.Pageable;
-<%_ } _%>
-<%_ /* Saathratri change: Cassandra cursor-based paging imports (upstream has no Cassandra paging support) */ _%>
-<%_ if (databaseTypeCassandra && paginationNo) { _%>
-import org.springframework.data.cassandra.core.query.CassandraPageRequest;
-import org.springframework.data.domain.PageRequest;
-import java.nio.ByteBuffer;
-import java.util.Base64;
-<%_ } _%>
-<%_ if (primaryKeySaathratri.composite || (databaseTypeCassandra && paginationNo)) { _%>
-import org.springframework.data.domain.Slice;
 <%_ } _%>
 <%_ if (reactive || (!jpaMetamodelFiltering && !paginationNo)) { _%>
 import org.springframework.http.HttpStatus;
@@ -136,16 +120,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-<%_ /* Saathratri change: UUID/TimeUUID imports extended for composite key UUID and Cassandra TimeUUID types (upstream only checks primaryKey.hasUUID) */ _%>
 <%_ if (primaryKey.hasUUID || primaryKeySaathratri.hasUUID || primaryKeySaathratri.hasTimeUUID) { _%>
 import java.util.UUID;
 <%_ } _%>
-<%_ /* Saathratri change: Cassandra TimeUUID support via DataStax driver (upstream has no TimeUUID support) */ _%>
 <%_ if (primaryKeySaathratri.hasTimeUUID) { _%>
 import com.datastax.oss.driver.api.core.uuid.Uuids;
-<%_ } _%>
-<%_ if (updatableEntity && !viaService && !dtoMapstruct && fields.some(field => !field.id && !field.transient)) { _%>
-import java.util.function.Consumer;
 <%_ } _%>
 <%_ if ((searchEngineAny || fieldsContainNoOwnerOneToOne) && !reactive) { _%>
   <%_ if (!viaService) { _%>
@@ -156,7 +135,6 @@ import java.util.stream.StreamSupport;
   <%_ } _%>
 <%_ } _%>
 
-<%_ /* Saathratri change: URLEncoder for composite key path variable encoding (upstream has no composite key URL encoding) */ _%>
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 /**
@@ -178,7 +156,7 @@ public class <%= entityClass %>Resource {
   } _%>
     private static final String ENTITY_NAME = "<%= entityName %>";
 
-    @Value("${jhipster.clientApp.name:<%= camelizedBaseName %>}")
+    @Value("${jhipster.clientApp.name}")
     private String applicationName;
 <%_ } _%>
     <%_
@@ -203,7 +181,7 @@ public class <%= entityClass %>Resource {
     public <% if (reactive) { %>Mono<<% } %>ResponseEntity<<%= instanceType %>><% if (reactive) { %>><% } %> create<%= entityClass %>(<% if (anyPropertyHasValidation) { %>@Valid <% } %>@RequestBody <%= instanceType %> <%= instanceName %>) throws URISyntaxException {
         LOG.debug("REST request to save <%= entityClass %> : {}", <%= instanceName %>);
   <%_ if (primaryKey.autoGenerate) { _%>
-<%_ /* Saathratri change: create method - composite key branches for TimeUUID generation, null-check validation, and response URI construction (upstream uses simple propertySupplierName null check) */ _%>
+
         <%_ if (primaryKeySaathratri.composite) { _%>
           // Composite Primary Key Code
           <%_ if (primaryKeySaathratri.hasTimeUUID) { _%>
@@ -244,12 +222,6 @@ public class <%= entityClass %>Resource {
         }
   <%_ } _%>
   <%_ } _%>
-  <%_ if (isUsingMapsId) { _%>
-<%_ /* Saathratri change: upstream uses propertySupplierName(); kept get<Capitalized>() pattern */ _%>
-        if (Objects.isNull(<%= instanceName %>.get<%= mapsIdAssoc.relationshipNameCapitalized %>())) {
-            throw new BadRequestAlertException("Invalid association value provided", ENTITY_NAME, "null");
-        }
-  <%_ } _%>
   <%_ if (saveUserSnapshot) { _%>
     <% for (const userRelationship of relationships.filter(rel => rel.otherEntity.builtInUser)) { %>
       <%_ if (userRelationship.collection) { _%>
@@ -265,12 +237,7 @@ public class <%= entityClass %>Resource {
       <%_ } _%>
     <% } %>
   <%_ } _%>
-  <%_ if (!isUsingMapsId) { _%>
-    <%_ for (field of primaryKey.fields.filter(f => f.autoGenerateByService)) { _%>
-<%_ /* Saathratri change: upstream uses propertyConsumerName(); kept set<Capitalized>() pattern */ _%>
-        <%= instanceName %>.set<%= field.fieldInJavaBeanMethod %>(UUID.randomUUID());
-    <%_ } _%>
-  <%_ } _%>
+
   <%_ if (!primaryKey.autoGenerate && reactive) { _%>
         return <%= entityInstance %>Repository
             .existsById(<%- instanceName %>.get<%= primaryKey.nameCapitalized %>())
@@ -280,7 +247,7 @@ public class <%= entityClass %>Resource {
                 }
   <%_ } _%>
   <%_ if (serviceNo) { _%>
-<%- include(`/_global_partials_entity_/save_template_${reactive ? 'reactive' : 'imperative'}`, {saveNewEntityOperation: true, returnDirectly: false}); -%>
+<%- include('/_global_partials_entity_/save_template', {saveNewEntityOperation: true, returnDirectly: false}); -%>
   <%_ } _%>
   <%_ if (reactive) { _%>
     <%_ if (!serviceNo) { _%>
@@ -318,7 +285,7 @@ public class <%= entityClass %>Resource {
     }
 <%_ } _%>
 <%_ if (!readOnly && updatableEntity) { _%>
-<%_ /* Saathratri change: PUT method - composite key branches for URL mapping, path variables, logging, null/equivalence checks, existsById, and response headers (upstream uses simple /{id} pattern) */ _%>
+
     /**
     <%_ if (primaryKeySaathratri.composite) { _%>
      * // Composite Primary Key Code
@@ -426,7 +393,7 @@ public class <%= entityClass %>Resource {
     <% } %>
   <%_ } _%>
   <%_ if (serviceNo) { _%>
-<%- include(`/_global_partials_entity_/save_template_${reactive ? 'reactive' : 'imperative'}`, {saveNewEntityOperation: false, returnDirectly: false}); -%>
+<%- include('/_global_partials_entity_/save_template', {saveNewEntityOperation: false, returnDirectly: false}); -%>
   <%_ } _%>
   <%_ if (reactive) { _%>
     <%_ if (!serviceNo) { _%>
@@ -458,7 +425,6 @@ public class <%= entityClass %>Resource {
     }
 
 
-<%_ /* Saathratri change: PATCH method - composite key branches for URL mapping, path variables, logging, null/equivalence checks, existsById, and response headers (upstream uses simple /{id} pattern) */ _%>
     /**
     <%_ if (primaryKeySaathratri.composite) { _%>
      * // Composite Primary Key Code
@@ -593,7 +559,7 @@ public class <%= entityClass %>Resource {
 <%_ } _%>
 
     /**
-     * {@code GET  /<%= entityApiUrl %>} : get all the <%= entityNamePluralHumanized %>.
+     * {@code GET  /<%= entityApiUrl %>} : get all the <%= entityInstancePlural %>.
      *
 <%_ if (!paginationNo) { _%>
      * @param pageable the pagination information.
@@ -601,15 +567,12 @@ public class <%= entityClass %>Resource {
      * @param request a {@link ServerHttpRequest} request.
   <%_ } _%>
 <%_ } _%>
-<%_ if (!jpaMetamodelFiltering && implementsEagerLoadApis) { _%>
-     * @param eagerload flag to eager load entities from relationships (This is applicable for many-to-many).
-<%_ } _%>
 <%_ if (jpaMetamodelFiltering) { _%>
      * @param criteria the criteria which the requested entities should match.
 <%_ } else if (fieldsContainNoOwnerOneToOne) { _%>
      * @param filter the filter of the request.
 <%_ } _%>
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of <%= entityNamePluralHumanized %> in body.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of <%= entityInstancePlural %> in body.
      */
 <%_ if (reactive) { _%>
     @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -626,8 +589,8 @@ public class <%= entityClass %>Resource {
 
 <%_ if (!jpaMetamodelFiltering && reactive && paginationNo) { _%>
     /**
-     * {@code GET  /<%= entityApiUrl %>} : get all the <%= entityNamePluralHumanized %> as a stream.
-     * @return the {@link Flux} of <%= entityNamePluralHumanized %>.
+     * {@code GET  /<%= entityApiUrl %>} : get all the <%= entityInstancePlural %> as a stream.
+     * @return the {@link Flux} of <%= entityInstancePlural %>.
      */
     @GetMapping(value = "", produces = MediaType.APPLICATION_NDJSON_VALUE)
   <%_ if (databaseTypeSql && isUsingMapsId && !viaService) { _%>
@@ -646,10 +609,9 @@ public class <%= entityClass %>Resource {
     }
 
 <%_ } _%>
-<%_ /* Saathratri change: GET-by-ID method - composite key uses /get with query params and constructs EntityId from params (upstream uses simple /{id} path variable) */ _%>
     /**
     <%_ if (primaryKeySaathratri.composite) { _%>
-     * // Composite Primary Key Code
+     * // Composite Primary Key Code   
      * {@code GET  /<%= getCompositePrimaryKeyPutPatchGetDeleteMappingJavaDocUrl(primaryKeySaathratri) %>} : get the "<%= primaryKey.name %>" <%= entityInstance %>.
     <%_ } else { _%>
      * // Single-value Primary Key Code
@@ -702,7 +664,6 @@ public class <%= entityClass %>Resource {
     }
 <%_ if (!readOnly) { _%>
 
-<%_ /* Saathratri change: DELETE method - composite key branches for URL mapping, path variables, logging, and EntityId construction (upstream uses simple /{id} pattern) */ _%>
     /**
     <%_ if (primaryKeySaathratri.composite) { _%>
      * // Composite Primary Key Code
@@ -787,16 +748,7 @@ public class <%= entityClass %>Resource {
   <%_ } _%>
 <%- include('../../_partials_entity_/search_template', {viaService}); -%>
 <%_ } _%>
-<%_ if (updatableEntity && !viaService && !dtoMapstruct && fields.some(field => !field.id && !field.transient)) { _%>
-
-    private <T> void updateIfPresent(Consumer<T> setter, T value) {
-        if (value != null) {
-            setter.accept(value);
-        }
-    }
-<%_ } _%>
-<%# Saathratri change: composite key helper methods and URL encoding utility (upstream has neither) #%>
-<% if (primaryKeySaathratri.composite) {
+<% if (primaryKeySaathratri.composite) { 
   let methodsArray = generatePrimaryKeyMethods(entityClass, entityInstance, entityInstanceSnakeCase, primaryKeySaathratri, "Resource");
   // Output all method names at once, joined by newlines for readability
   let methodsOutput = methodsArray.join('\n');

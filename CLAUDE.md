@@ -13,7 +13,7 @@ This is a **JHipster Side-by-Side (SBS) blueprint** that extends JHipster to pro
 **Version:** 1.0.13
 **Author:** Amar Premsaran Patel
 **License:** MIT
-**JHipster Base Version:** 8.10.0
+**JHipster Base Version:** 9.0.0
 
 ## What Problem Does This Solve?
 
@@ -1118,7 +1118,7 @@ MIT License - See LICENSE file for details
 ## Version History
 
 **1.0.13** (Current)
-- Support for JHipster 8.10.0
+- Support for JHipster 9.0.0
 - Composite primary key support
 - SET and MAP data types
 - TimeUUID support

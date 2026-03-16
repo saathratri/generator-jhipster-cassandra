@@ -1,6 +1,5 @@
 import BaseApplicationGenerator from 'generator-jhipster/generators/base-application';
 import { javaMainPackageTemplatesBlock, javaTestPackageTemplatesBlock } from 'generator-jhipster/generators/java/support';
-import command from './command.js';
 import { javaSaathratriUtils } from '../cassandra-java/generators/domain/cassandra-java-domain-utils.js';
 import { springDataCassandraSaathratriUtils } from './generators/data-cassandra/cassandra-spring-data-cassandra-utils.js';
 import { cassandraSpringBootUtils } from './cassandra-spring-boot-utils.js';
@@ -19,12 +18,9 @@ export default class extends BaseApplicationGenerator {
 
   get [BaseApplicationGenerator.INITIALIZING]() {
     return this.asInitializingTaskGroup({
-      async initializingTemplateTask() {
-        this.parseJHipsterArguments(command.arguments);
-        this.parseJHipsterOptions(command.options);
-      },
+      async initializingTemplateTask() {},
     });
-  } 
+  }
 
   get [BaseApplicationGenerator.PROMPTING]() {
     return this.asPromptingTaskGroup({

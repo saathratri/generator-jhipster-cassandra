@@ -1,5 +1,5 @@
 <%#
- Copyright 2013-2026 the original author or authors from the JHipster project.
+ Copyright 2013-2024 the original author or authors from the JHipster project.
 
  This file is part of the JHipster project, see https://www.jhipster.tech/
  for more information.
@@ -26,20 +26,23 @@ const optionalOrMono = (reactive) ? 'Mono' : 'Optional';
 const listOrFlux = (reactive) ? 'Flux' : 'List';
 const pageOrFlux = (reactive) ? 'Flux' : 'Page';
 const mapper = entityInstance  + 'Mapper';
+const dtoToEntity = mapper + '.'+ 'toEntity';
+const entityToDto = 'toDto';
 const entityToDtoReference = mapper + '::'+ 'toDto';
 const repository = entityInstance  + 'Repository';
+const searchRepository = entityInstance  + 'SearchRepository';
 
 _%>
 <%_ if (serviceImpl) { _%>
 import <%= entityAbsolutePackage %>.service.<%= entityClass %>Service;
 <%_ } _%>
 import <%= entityAbsolutePackage %>.domain.<%= persistClass %>;
-<%_ if (jpaMetamodelFiltering && reactive) { _%>
+<%_ if (jpaMetamodelFiltering && reactive) {  _%>
 import <%= entityAbsolutePackage %>.domain.criteria.<%= entityClass %>Criteria;
 <%_ }  _%>
 import <%= entityAbsolutePackage %>.repository.<%= entityClass %>Repository;
 <%_ if (isUsingMapsId === true) { _%>
-import <%= entityAbsolutePackage %>.repository.<%= mapsIdAssoc.otherEntity.entityNameCapitalized %>Repository;
+import <%= entityAbsolutePackage %>.repository.<%= mapsIdAssoc.otherEntityNameCapitalized %>Repository;
 <%_ } _%>
 <%_ if (searchEngineElasticsearch) { _%>
 import <%= entityAbsolutePackage %>.repository.search.<%= entityClass %>SearchRepository;
@@ -55,13 +58,7 @@ import org.slf4j.LoggerFactory;
   <%_ if (!reactive) { _%>
 import org.springframework.data.domain.Page;
   <%_ } _%>
-<%_ } _%>
-<%_ /* Saathratri change: Pageable/Slice imports expanded for composite key and Cassandra cursor-based paging (upstream only imports with !paginationNo || implementsEagerLoadApis) */ _%>
-<%_ if (!paginationNo || implementsEagerLoadApis || primaryKeySaathratri.composite || (databaseTypeCassandra && paginationNo)) { _%>
 import org.springframework.data.domain.Pageable;
-<%_ } _%>
-<%_ if (primaryKeySaathratri.composite || (databaseTypeCassandra && paginationNo)) { _%>
-import org.springframework.data.domain.Slice;
 <%_ } _%>
 import org.springframework.stereotype.Service;
 <%_ if (databaseTypeSql) { _%>
@@ -81,21 +78,15 @@ import java.util.List;
 <%_ if (!reactive) { _%>
 import java.util.Optional;
 <%_ } _%>
-<%_ if (updatableEntity && !dtoMapstruct && fields.some(field => !field.id && !field.transient)) { _%>
-import java.util.function.Consumer;
-<%_ } _%>
-<%_ /* Saathratri change: UUID import extended for composite key UUID and Cassandra TimeUUID types (upstream only checks primaryKey.typeUUID) */ _%>
 <%_ if (primaryKey.typeUUID || (primaryKeySaathratri.composite && primaryKeySaathratri.hasUUID) || (primaryKeySaathratri.composite && primaryKeySaathratri.hasTimeUUID)) { _%>
 import java.util.UUID;
 <%_ } _%>
-<%_ /* Saathratri change: Collectors import extended for Cassandra paging with DTO mapping (upstream doesn't include databaseTypeCassandra condition) */ _%>
-<%_ if (fieldsContainNoOwnerOneToOne || (paginationNo && ((searchEngine) || dtoMapstruct)) || (databaseTypeCassandra && paginationNo && dtoMapstruct)) { _%>
+<%_ if (fieldsContainNoOwnerOneToOne || (paginationNo && ((searchEngine) || dtoMapstruct))) { _%>
 import java.util.stream.Collectors;
 <%_ } _%>
 <%_ if (fieldsContainNoOwnerOneToOne || (paginationNo && searchEngineElasticsearch)) { _%>
 import java.util.stream.StreamSupport;
 <%_ } _%>
-<%_ /* Saathratri change: composite primary key ID class import (upstream has no composite key support) */ _%>
 <%_ if (primaryKeySaathratri.composite) { _%>
 import <%= entityAbsolutePackage %>.domain.<%= persistClass %>Id;
 <%_ } _%>
@@ -123,7 +114,7 @@ public class <%= serviceClassName %><% if (serviceImpl) { %> implements <%= enti
 <%_ } _%>
     public <% if (reactive) { %>Mono<<% } %><%= instanceType %><% if (reactive) { %>><% } %> save(<%= instanceType %> <%= instanceName %>) {
         LOG.debug("Request to save <%= entityClass %> : {}", <%= instanceName %>);
-<%- include(`/_global_partials_entity_/save_template_${reactive ? 'reactive' : 'imperative'}`, {saveNewEntityOperation: true, returnDirectly: true}); -%>
+<%- include('/_global_partials_entity_/save_template', {saveNewEntityOperation: true, returnDirectly: true}); -%>
     }
 <%_ if (updatableEntity) { _%>
 
@@ -140,7 +131,7 @@ public class <%= serviceClassName %><% if (serviceImpl) { %> implements <%= enti
   <%_ } _%>
     public <% if (reactive) { %>Mono<<% } %><%= instanceType %><% if (reactive) { %>><% } %> update(<%= instanceType %> <%= instanceName %>) {
         LOG.debug("Request to update <%= entityClass %> : {}", <%= instanceName %>);
-<%- include(`/_global_partials_entity_/save_template_${reactive ? 'reactive' : 'imperative'}`, {saveNewEntityOperation: false, returnDirectly: true}); -%>
+<%- include('/_global_partials_entity_/save_template', {saveNewEntityOperation: false, returnDirectly: true}); -%>
     }
 
   <%_ if (!serviceImpl) { _%>
@@ -188,24 +179,8 @@ public class <%= serviceClassName %><% if (serviceImpl) { %> implements <%= enti
             .map(<%= entityToDtoReference %>);<% } %>
   <%_ } _%>
     }
-<%_ /* Saathratri change: Cassandra cursor-based paging via findAllSlice returning Slice (upstream has no Cassandra paging support) */ _%>
-    <%_ if (databaseTypeCassandra && paginationNo) { _%>
-
-    <%_ if (serviceImpl) { _%>
-    @Override
-    <%_ } _%>
-    public Slice<<%= instanceType %>> findAllSlice(Pageable pageable) {
-        LOG.debug("Request to get a slice of <%= entityClassPlural %> (Cassandra pagination)");
-        Slice<<%= persistClass %>> slice = <%= entityInstance %>Repository.findAll(pageable);
-      <%_ if (dtoMapstruct) { _%>
-        return slice.map(<%= entityToDtoReference %>);
-      <%_ } else { _%>
-        return slice;
-      <%_ } _%>
-    }
-    <%_ } _%>
 <%_ } _%>
-<%_ if (jpaMetamodelFiltering && reactive) { _%>
+<%_ if (jpaMetamodelFiltering && reactive) {  _%>
 
     <%_ if (!serviceImpl) { _%>
     /**
@@ -241,7 +216,9 @@ public class <%= serviceClassName %><% if (serviceImpl) { %> implements <%= enti
         LOG.debug("Request to get the count of all <%= entityClassPlural %> by Criteria");
         return <%= entityInstance %>Repository.countByCriteria(criteria);
     }
-<%_ } _%>
+<%_ }  _%>
+
+
 
 <%- include('../../_partials_entity_/get_filtered_template'); -%>
 <%_ if (reactive) { _%>
@@ -283,7 +260,6 @@ public class <%= serviceClassName %><% if (serviceImpl) { %> implements <%= enti
 <%_ if (databaseTypeSql) { _%>
     @Transactional(readOnly = true)
     <%_ } _%>
-<%_ /* Saathratri change: findOne/delete use composite key type signature PersistClassId when composite (upstream uses primaryKey.type id) */ _%>
     public <%= optionalOrMono %><<%= instanceType %>> findOne(<%- primaryKeySaathratri.composite ? `${persistClass}Id ${primaryKeySaathratri.name}` : `${primaryKey.type} ${primaryKey.name}` %>) {
         LOG.debug("Request to get <%= entityClass %> : {}", <%_ if (primaryKeySaathratri.composite) { _%><%= primaryKeySaathratri.name %><%_ } else { _%><%= primaryKey.name %><%_ } _%>);<%- include('../../_partials_entity_/get_template', {viaService: false, returnDirectly:true, implementsEagerLoadApis}); -%>
     }
@@ -334,16 +310,7 @@ public class <%= serviceClassName %><% if (serviceImpl) { %> implements <%= enti
   <%_ } } _%>
     }
 <%_ } _%>
-<%_ if (updatableEntity && !dtoMapstruct && fields.some(field => !field.id && !field.transient)) { _%>
-
-    private <T> void updateIfPresent(Consumer<T> setter, T value) {
-        if (value != null) {
-            setter.accept(value);
-        }
-    }
-<%_ } _%>
-<%# Saathratri change: composite key helper methods generated by generatePrimaryKeyMethods (upstream has no composite key support) #%>
-<% if (primaryKeySaathratri.composite) {
+<% if (primaryKeySaathratri.composite) { 
   let methodsArray = generatePrimaryKeyMethods(entityClass, entityInstance, entityInstanceSnakeCase, primaryKeySaathratri, "ServiceImpl");
   // Output all method names at once, joined by newlines for readability
   let methodsOutput = methodsArray.join('\n');

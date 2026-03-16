@@ -1,5 +1,5 @@
 <%#
- Copyright 2013-2026 the original author or authors from the JHipster project.
+ Copyright 2013-2024 the original author or authors from the JHipster project.
 
  This file is part of the JHipster project, see https://www.jhipster.tech/
  for more information.
@@ -41,7 +41,7 @@ public class <%= persistClass %>TestSamples {
     private static final Random random = new Random();
 <%_ } _%>
 <%_ if (fields.some(field => field.fieldTypeLong)) { _%>
-    private static final AtomicLong longCount = new AtomicLong(random.nextInt() + ( 2L * Integer.MAX_VALUE ));
+    private static final AtomicLong longCount = new AtomicLong(random.nextInt() + ( 2 * Integer.MAX_VALUE ));
 <%_ } _%>
 <%_ if (fields.some(field => field.fieldTypeInteger)) { _%>
     private static final AtomicInteger intCount = new AtomicInteger(random.nextInt() + ( 2 * Short.MAX_VALUE ));
@@ -49,7 +49,6 @@ public class <%= persistClass %>TestSamples {
 
     public static <%= persistClass %> get<%= persistClass %>Sample1() {
 <%_ if (fluentMethods) { _%>
-<%# Saathratri change: composite primary key — build PersistClassId with key fields, then chain non-key fields separately. Upstream uses flat fluent chain for all fields. #%>
         <%_ if (primaryKeySaathratri.composite) { %> return new <%= persistClass %> _%>().<%= primaryKeySaathratri.name %>( new <%= persistClass %>Id()<%_ sampleFields.forEach(field => { _%><%_ if (field.isCompositePrimaryKeyField) { _%>.<%- field.fieldName %>(<%- field.javaValueSample1 %>)<%_ } } ) _%>)
         <%_ sampleFields.forEach(field => { _%><%_ if (!field.isCompositePrimaryKeyField && field.fieldName !== 'id') { _%>.<%- field.fieldName %>(<%- field.javaValueSample1 %>)<%_ } } ) _%>;
         <%_ } else { _%>
@@ -57,7 +56,6 @@ public class <%= persistClass %>TestSamples {
         <%_ } _%>
 <%_ } else { _%>
         <%= persistClass %> <%= persistInstance %> = new <%= persistClass %>();
-<%# Saathratri change: uses set<fieldNameCapitalized>() instead of upstream's propertyConsumerName() — deferred migration. #%>
   <%_ for (const field of sampleFields) { _%>
         <%= persistInstance %>.set<%= field.fieldNameCapitalized %>(<%- field.javaValueSample1 %>);
   <%_ } _%>
@@ -67,7 +65,6 @@ public class <%= persistClass %>TestSamples {
 
     public static <%= persistClass %> get<%= persistClass %>Sample2() {
 <%_ if (fluentMethods) { _%>
-<%# Saathratri change: composite primary key — build PersistClassId with key fields using javaValueSample2, then chain non-key fields with javaValueSample1. Upstream uses flat fluent chain for all fields. #%>
         <%_ if (primaryKeySaathratri.composite) { %> return new <%= persistClass %> _%>().<%= primaryKeySaathratri.name %>( new <%= persistClass %>Id()<%_ sampleFields.forEach(field => { _%><%_ if (field.isCompositePrimaryKeyField) { _%>.<%- field.fieldName %>(<%- field.javaValueSample2 %>)<%_ } } ) _%>)
         <%_ sampleFields.forEach(field => { _%><%_ if (!field.isCompositePrimaryKeyField && field.fieldName !== 'id') { _%>.<%- field.fieldName %>(<%- field.javaValueSample1 %>)<%_ } } ) _%>;
         <%_ } else { _%>
@@ -75,7 +72,6 @@ public class <%= persistClass %>TestSamples {
         <%_ } _%>
 <%_ } else { _%>
         <%= persistClass %> <%= persistInstance %> = new <%= persistClass %>();
-<%# Saathratri change: uses set<fieldNameCapitalized>() instead of upstream's propertyConsumerName() — deferred migration. #%>
   <%_ for (const field of sampleFields) { _%>
         <%= persistInstance %>.set<%= field.fieldNameCapitalized %>(<%- field.javaValueSample2 %>);
   <%_ } _%>
@@ -85,7 +81,6 @@ public class <%= persistClass %>TestSamples {
 
     public static <%= persistClass %> get<%= persistClass %>RandomSampleGenerator() {
 <%_ if (fluentMethods) { _%>
-<%# Saathratri change: composite primary key — build PersistClassId with key fields using javaValueGenerator, then chain non-key fields with javaValueSample1. Also, Set/Map collection types (fieldTypeSetSaathratri, fieldTypeMapSaathratri) fall back to javaValueSample1 instead of javaValueGenerator since collections have no random generator. Upstream uses flat fluent chain with javaValueGenerator for all fields. #%>
         <%_ if (primaryKeySaathratri.composite) { %> return new <%= persistClass %> _%>().<%= primaryKeySaathratri.name %>( new <%= persistClass %>Id()<%_ sampleFields.forEach(field => { _%><%_ if (field.isCompositePrimaryKeyField) { _%>.<%- field.fieldName %>(<%- field.javaValueGenerator %>)<%_ } } ) _%>)
         <%_ sampleFields.forEach(field => { _%><%_ if (!field.isCompositePrimaryKeyField && field.fieldName !== 'id') { _%>.<%- field.fieldName %>(<%- field.javaValueSample1 %>)<%_ } } ) _%>;
         <%_ } else { _%>
@@ -93,7 +88,6 @@ public class <%= persistClass %>TestSamples {
         <%_ } _%>
 <%_ } else { _%>
         <%= persistClass %> <%= persistInstance %> = new <%= persistClass %>();
-<%# Saathratri change: uses set<fieldNameCapitalized>() instead of upstream's propertyConsumerName() — deferred migration. #%>
   <%_ for (const field of sampleFields) { _%>
         <%= persistInstance %>.set<%= field.fieldNameCapitalized %>(<%- field.javaValueGenerator %>);
   <%_ } _%>

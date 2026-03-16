@@ -1,5 +1,5 @@
 <%#
- Copyright 2013-2026 the original author or authors from the JHipster project.
+ Copyright 2013-2024 the original author or authors from the JHipster project.
 
  This file is part of the JHipster project, see https://www.jhipster.tech/
  for more information.
@@ -21,7 +21,6 @@ package <%= entityAbsolutePackage %>.service.dto;
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import <%= packageName %>.web.rest.TestUtil;
-<%_ /* Saathratri change: composite primary key imports for Random/AtomicLong/AtomicInteger (upstream has no composite key support) */ _%>
 <%_ if (primaryKeySaathratri.composite) { _%>
     <%_ if (primaryKeySaathratri.ids.some(field => field.fieldTypeString) || fields.some(field => field.fieldTypeUUID)) { _%>
 import java.util.UUID;
@@ -36,29 +35,27 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicInteger;
     <%_ } _%>
 <%_ } else { _%>
-<%_ /* Saathratri change: upstream 9.0.0 uses primaryKey.hasUUID; also check typeString for Cassandra string IDs */ _%>
-    <%_ if ((primaryKey && primaryKey.hasUUID) || primaryKey.typeString) { _%>
+    <%_ if (primaryKey && primaryKey.hasUUID) { _%>
 import java.util.UUID;
     <%_ } _%>
 <%_ } _%>
 <%_
 let id1;
 let id2;
-<%_ /* Saathratri change: upstream 9.0.0 uses primaryKey.javaSampleValues[0]/[1] (was getPrimaryKeyValue()) */ _%>
 if (!embedded) {
-    id1 = primaryKey.javaSampleValues[0];
-    id2 = primaryKey.javaSampleValues[1];
-} %>
+        id1 = getPrimaryKeyValue(primaryKey.type, databaseType, '1');
+        id2 = getPrimaryKeyValue(primaryKey.type, databaseType, '2');
+    } 
+%>
 
 class <%= dtoClass %>Test {
 
-<%_ /* Saathratri change: composite primary key static counters for test ID generation (upstream has no composite key support) */ _%>
     <%_ if (primaryKeySaathratri.composite) { _%>
         <%_ if (primaryKeySaathratri.ids.some(field => field.fieldTypeLong || field.fieldTypeInteger)) { _%>
             private static final Random random = new Random();
         <%_ } _%>
         <%_ if (primaryKeySaathratri.ids.some(field => field.fieldTypeLong)) { _%>
-            private static final AtomicLong longCount = new AtomicLong(random.nextInt() + ( 2L * Integer.MAX_VALUE ));
+            private static final AtomicLong longCount = new AtomicLong(random.nextInt() + ( 2 * Integer.MAX_VALUE ));
         <%_ } _%>
         <%_ if (primaryKeySaathratri.ids.some(field => field.fieldTypeInteger)) { _%>
             private static final AtomicInteger intCount = new AtomicInteger(random.nextInt() + ( 2 * Short.MAX_VALUE ));
@@ -69,9 +66,8 @@ class <%= dtoClass %>Test {
         TestUtil.equalsVerifier(<%= dtoClass %>.class);
 <%_if (!embedded) { _%>
         <%= dtoClass %> <%= dtoInstance %>1 = new <%= dtoClass %>();
-<%_ /* Saathratri change: composite key uses DTOId class with generated values; single key uses set/get (upstream uses propertyConsumerName/propertySupplierName) */ _%>
         <%_ if(primaryKeySaathratri.composite) { _%>
-        <%= dtoInstance %>1.set<%= primaryKeySaathratri.nameCapitalized %>(new <%= entityClass %>DTOId( <%- getCompositePrimaryKeyInstanceVariableInitializationsFromDTOTest(primaryKeySaathratri) %>));
+        <%= dtoInstance %>1.set<%= primaryKeySaathratri.nameCapitalized %>(new <%= entityClass %>DTOId( <%- getCompositePrimaryKeyInstanceVariableInitializationsFromDTOTest(primaryKeySaathratri) %>));    
         <%_ } else { _%>
         <%= dtoInstance %>1.set<%= primaryKey.nameCapitalized %>(<%- id1 %>);
         <%_ } _%>

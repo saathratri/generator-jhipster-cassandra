@@ -29,6 +29,7 @@ export const cassandraSpringBootUtils = {
     },
 
     setSaathratriNonPrimaryKeySampleValues(entity) {
+        if (!entity.fields) return;
         entity.fields.forEach(field => {
             if(field.fieldTypeSetSaathratri) {
                 field.javaValueSample1 = `new java.util.TreeSet<${field.fieldType}>() {{ add("${field.fieldName}1"); }}`;
@@ -150,9 +151,11 @@ export const cassandraSpringBootUtils = {
 
     isCompositePrimaryKeyServerReference(primaryKey, reference) {
         if(!primaryKey || !reference) { return false; }
-        
+
         const primaryKeyFieldNames = primaryKey.ids.map(pk => pk.fieldName);
-        return primaryKeyFieldNames.includes(reference.name);
+        /* Saathratri change: support both JHipster 8 (reference.name) and JHipster 9 (reference.propertyName/fieldName) */
+        const refName = reference.name || reference.propertyName || reference.fieldName;
+        return primaryKeyFieldNames.includes(refName);
     },
 
     isCompositePrimaryKeyServerProperty(primaryKey, property) {
@@ -163,6 +166,7 @@ export const cassandraSpringBootUtils = {
     },
 
     setSaathratriPrimaryKeyAttributesOnEntityAndFields(entity) {
+        if (!entity.fields) return;
 
         this.initializeSaathratriPrimaryKeyAttributes(entity);
 
@@ -185,7 +189,8 @@ export const cassandraSpringBootUtils = {
     initializeSaathratriPrimaryKeyAttributes(entity) {
         if (!entity.primaryKeySaathratri) {
             entity.primaryKeySaathratri = { composite: false, ids: [] };
-            
+            if (!entity.fields) return;
+
             entity.fields.forEach(field => {
                 this.processFieldForPrimaryKey(entity, field);
                 field.fieldJavaValueGenerator = this.getJavaValueGeneratorForType(field.fieldType);
@@ -596,7 +601,8 @@ export const cassandraSpringBootUtils = {
         } else if (Array.isArray(reference)) {
         refPath = reference;
         } else {
-        refPath = [reference.name];
+        /* Saathratri change: support both JHipster 8 (reference.name) and JHipster 9 (reference.propertyName/fieldName) */
+        refPath = [reference.name || reference.propertyName || reference.fieldName];
         }
         return refPath.map(partialPath => `get${this.javaBeanCase(partialPath)}()`).join('.');
     },
@@ -609,8 +615,10 @@ export const cassandraSpringBootUtils = {
      * @param {string} type
      * @return {string}
      */
-    buildJavaGetter(reference, type = reference.type) {
-        return `${type} get${this.javaBeanCase(reference.name)}()`;
+    buildJavaGetter(reference, type = reference.type || reference.propertyDtoJavaType || reference.fieldType) {
+        /* Saathratri change: support both JHipster 8 and 9 property names */
+        const refName = reference.name || reference.propertyName || reference.fieldName;
+        return `${type} get${this.javaBeanCase(refName)}()`;
     },
 
     /**
@@ -621,8 +629,14 @@ export const cassandraSpringBootUtils = {
      * @param {string} valueDefinition
      * @return {string}
      */
-    buildJavaSetter(reference, valueDefinition = `${reference.type} ${reference.name}`) {
-        return `set${this.javaBeanCase(reference.name)}(${valueDefinition})`;
+    buildJavaSetter(reference, valueDefinition) {
+        /* Saathratri change: support both JHipster 8 and 9 property names */
+        const refName = reference.name || reference.propertyName || reference.fieldName;
+        const refType = reference.type || reference.propertyDtoJavaType || reference.fieldType;
+        if (!valueDefinition) {
+            valueDefinition = `${refType} ${refName}`;
+        }
+        return `set${this.javaBeanCase(refName)}(${valueDefinition})`;
     },
 
     /**

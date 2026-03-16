@@ -1,6 +1,5 @@
 import BaseApplicationGenerator from 'generator-jhipster/generators/base-application';
-import command from './command.js';
-import { languagesSaathratriUtils } from '../../cassandra-languages-utils.js';
+import { languagesSaathratriUtils } from '../../cassandra-client-utils.js';
 
 export default class extends BaseApplicationGenerator {
   constructor(args, opts, features) {
@@ -9,10 +8,7 @@ export default class extends BaseApplicationGenerator {
 
   get [BaseApplicationGenerator.INITIALIZING]() {
     return this.asInitializingTaskGroup({
-      async initializingTemplateTask() {
-        this.parseJHipsterArguments(command.arguments);
-        this.parseJHipsterOptions(command.options);
-      },
+      async initializingTemplateTask() {},
     });
   }
 

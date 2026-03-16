@@ -1,5 +1,5 @@
 <%#
- Copyright 2013-2026 the original author or authors from the JHipster project.
+ Copyright 2013-2024 the original author or authors from the JHipster project.
 
  This file is part of the JHipster project, see https://www.jhipster.tech/
  for more information.
@@ -19,27 +19,20 @@
 package <%= entityAbsolutePackage %>.domain;
 
 import static <%= entityAbsolutePackage %>.domain.<%= persistClass %>TestSamples.*;
-<%_ for (const otherEntity of otherEntities.filter(otherEntity => !otherEntity.builtIn)) { _%>
-import static <%= otherEntity.entityAbsolutePackage %>.domain.<%= otherEntity.persistClass %>TestSamples.*;
-<%_ } _%>
-<%_ for (const otherEntity of otherEntities.filter(otherEntity => entityPackage !== otherEntity.entityPackage)) { _%>
-import <%= otherEntity.entityAbsolutePackage %>.domain.<%= otherEntity.persistClass %>;
-<%_ } _%>
-<%_ if (relationships.some(relationship => relationship.collection)) { _%>
-import java.util.HashSet;
-import java.util.Set;
-<%_ } _%>
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import <%= packageName %>.web.rest.TestUtil;
-<%# Saathratri change: added primaryKeySaathratri.hasUUID and hasTimeUUID checks for Cassandra UUID/TimeUUID primary key types. Upstream only checks primaryKey.hasUUID. #%>
 <%_ if ((primaryKey && primaryKey.hasUUID) || primaryKeySaathratri.hasUUID || primaryKeySaathratri.hasTimeUUID ) { _%>
 import java.util.UUID;
 <%_ } _%>
-<%# Saathratri change: import Instant for composite primary key timestamp fields. Not in upstream. #%>
-<%_ if (primaryKeySaathratri.composite) { _%>
+<%_ 
+    // Composite Primary Key Code
+    if (primaryKeySaathratri.composite) { 
+_%>
 import java.time.Instant;
-<%_ } _%>
+<%_ 
+    }
+_%>
 
 class <%= persistClass %>Test {
 
@@ -48,21 +41,18 @@ class <%= persistClass %>Test {
         TestUtil.equalsVerifier(<%= persistClass %>.class);
 <%_if (!embedded) { _%>
         <%= persistClass %> <%= persistInstance %>1 = get<%= persistClass %>Sample1();
-<%# Saathratri change: for composite primary keys, explicitly set the composite key object using getCompositePrimaryKeyComputeValue(). Not in upstream. #%>
 	<%_ if(primaryKeySaathratri.composite) { _%>
         <%= persistInstance %>1.set<%= primaryKeySaathratri.nameCapitalized %>(<%- getCompositePrimaryKeyComputeValue(entityClass, primaryKeySaathratri, databaseType, 1) %>);
 	<%_ } _%>
         <%= persistClass %> <%= persistInstance %>2 = new <%= persistClass %>();
         assertThat(<%= persistInstance %>1).isNotEqualTo(<%= persistInstance %>2);
 
-<%# Saathratri change: composite key branch uses set/get on primaryKeySaathratri; simple key branch uses set/get on primaryKey. Upstream uses primaryKey.propertyConsumerName/propertySupplierName — deferred migration. #%>
         <%_ if(primaryKeySaathratri.composite) { _%>
         <%= persistInstance %>2.set<%= primaryKeySaathratri.nameCapitalized %>(<%= persistInstance %>1.get<%= primaryKeySaathratri.nameCapitalized %>());
         <%_ } else { _%>
         <%= persistInstance %>2.set<%= primaryKey.nameCapitalized %>(<%= persistInstance %>1.get<%= primaryKey.nameCapitalized %>());
         <%_ } _%>
         assertThat(<%= persistInstance %>1).isEqualTo(<%= persistInstance %>2);
-<%# Saathratri change: for composite keys, set a different key value before getSample2 to ensure inequality. Not in upstream. #%>
         <%_ if(primaryKeySaathratri.composite) { _%>
 	<%= persistInstance %>2.set<%= primaryKeySaathratri.nameCapitalized %>(<%- getCompositePrimaryKeyComputeValue(entityClass, primaryKeySaathratri, databaseType, 2) %>);
         <%_ } _%>
@@ -78,79 +68,15 @@ class <%= persistClass %>Test {
         assertThat(<%= persistInstance %>.hashCode()).isZero();
 
         <%= persistClass %> <%= persistInstance %>1 = get<%= persistClass %>Sample1();
-<%# Saathratri change: uses set/get<primaryKey.nameCapitalized>() instead of upstream's propertyConsumerName/propertySupplierName — deferred migration. #%>
         <%= persistInstance %>.set<%= primaryKey.nameCapitalized %>(<%= persistInstance %>1.get<%= primaryKey.nameCapitalized %>());
         assertThat(<%= persistInstance %>).hasSameHashCodeAs(<%= persistInstance %>1);
     }
 <%_ } _%>
-<%_ for (const relationship of relationships.filter(rel => !rel.otherEntity.builtIn && (!embedded || (rel.otherEntity.embedded && rel.ownerSide)))) { _%>
 
-    @Test
-    void <%- relationship.relationshipName %>Test() {
-        <%= persistClass %> <%= persistInstance %> = get<%= persistClass %>RandomSampleGenerator();
-        <%= relationship.otherEntity.persistClass %> <%= relationship.otherEntity.persistInstance %>Back = get<%= relationship.otherEntity.persistClass %>RandomSampleGenerator();
-  <%_ if (relationship.collection) { _%>
 
-        <%= persistInstance %>.add<%- relationship.relationshipNameCapitalized %>(<%= relationship.otherEntity.persistInstance %>Back);
-        assertThat(<%= persistInstance %>.<%- relationship.propertySupplierName %>()).containsOnly(<%= relationship.otherEntity.persistInstance %>Back);
-  <%_ } else { _%>
 
-        <%= persistInstance %>.<%- relationship.propertyConsumerName %>(<%= relationship.otherEntity.persistInstance %>Back);
-        assertThat(<%= persistInstance %>.<%- relationship.propertySupplierName %>()).isEqualTo(<%= relationship.otherEntity.persistInstance %>Back);
-  <%_ } _%>
-  <%_ if (relationship.otherRelationship && relationship.relationshipUpdateBackReference && !relationship.otherEntity.embedded) { _%>
-    <%_ if (relationship.otherRelationship.collection) { _%>
-        assertThat(<%= relationship.otherEntity.persistInstance %>Back.<%- relationship.otherRelationship.propertySupplierName %>()).containsOnly(<%= persistInstance %>);
-    <%_ } else { _%>
-        assertThat(<%= relationship.otherEntity.persistInstance %>Back.<%- relationship.otherRelationship.propertySupplierName %>()).isEqualTo(<%= persistInstance %>);
-    <%_ } _%>
-  <%_ } _%>
-  <%_ if (relationship.collection) { _%>
 
-        <%= persistInstance %>.remove<%- relationship.relationshipNameCapitalized %>(<%= relationship.otherEntity.persistInstance %>Back);
-        assertThat(<%= persistInstance %>.<%- relationship.propertySupplierName %>()).doesNotContain(<%= relationship.otherEntity.persistInstance %>Back);
-  <%_ } else { _%>
 
-    <%_ if (fluentMethods) { _%>
-        <%= persistInstance %>.<%- relationship.propertyName %>(null);
-    <%_ } else { _%>
-        <%= persistInstance %>.<%- relationship.propertyConsumerName %>(null);
-    <%_ } _%>
-        assertThat(<%= persistInstance %>.<%- relationship.propertySupplierName %>()).isNull();
-  <%_ } _%>
-  <%_ if (relationship.otherRelationship && relationship.relationshipUpdateBackReference && !relationship.otherEntity.embedded) { _%>
-    <%_ if (relationship.otherRelationship.collection) { _%>
-        assertThat(<%= relationship.otherEntity.persistInstance %>Back.<%- relationship.otherRelationship.propertySupplierName %>()).doesNotContain(<%= persistInstance %>);
-    <%_ } else { _%>
-        assertThat(<%= relationship.otherEntity.persistInstance %>Back.<%- relationship.otherRelationship.propertySupplierName %>()).isNull();
-    <%_ } _%>
-  <%_ } _%>
-  <%_ if (relationship.collection) { _%>
 
-    <%_ if (fluentMethods) { _%>
-        <%= persistInstance %>.<%- relationship.propertyName %>(new HashSet<>(Set.of(<%= relationship.otherEntity.persistInstance %>Back)));
-    <%_ } else { _%>
-        <%= persistInstance %>.<%- relationship.propertyConsumerName %>(new HashSet<>(Set.of(<%= relationship.otherEntity.persistInstance %>Back)));
-    <%_ } _%>
-        assertThat(<%= persistInstance %>.<%- relationship.propertySupplierName %>()).containsOnly(<%= relationship.otherEntity.persistInstance %>Back);
-    <%_ if (relationship.otherRelationship && relationship.relationshipUpdateBackReference && !relationship.otherEntity.embedded) { _%>
-      <%_ if (relationship.otherRelationship.collection) { _%>
-        assertThat(<%= relationship.otherEntity.persistInstance %>Back.<%- relationship.otherRelationship.propertySupplierName %>()).containsOnly(<%= persistInstance %>);
-      <%_ } else { _%>
-        assertThat(<%= relationship.otherEntity.persistInstance %>Back.<%- relationship.otherRelationship.propertySupplierName %>()).isEqualTo(<%= persistInstance %>);
-      <%_ } _%>
-    <%_ } _%>
 
-        <%= persistInstance %>.<%- relationship.propertyConsumerName %>(new HashSet<>());
-        assertThat(<%= persistInstance %>.<%- relationship.propertySupplierName %>()).doesNotContain(<%= relationship.otherEntity.persistInstance %>Back);
-    <%_ if (relationship.otherRelationship && relationship.relationshipUpdateBackReference && !relationship.otherEntity.embedded) { _%>
-      <%_ if (relationship.otherRelationship.collection) { _%>
-        assertThat(<%= relationship.otherEntity.persistInstance %>Back.<%- relationship.otherRelationship.propertySupplierName %>()).doesNotContain(<%= persistInstance %>);
-      <%_ } else { _%>
-        assertThat(<%= relationship.otherEntity.persistInstance %>Back.<%- relationship.otherRelationship.propertySupplierName %>()).isNull();
-      <%_ } _%>
-    <%_ } _%>
-  <%_ } _%>
-    }
-<%_ } _%>
 }

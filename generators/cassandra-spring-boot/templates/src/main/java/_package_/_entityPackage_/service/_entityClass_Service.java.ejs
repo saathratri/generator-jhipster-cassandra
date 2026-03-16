@@ -1,5 +1,5 @@
 <%#
- Copyright 2013-2026 the original author or authors from the JHipster project.
+ Copyright 2013-2024 the original author or authors from the JHipster project.
 
  This file is part of the JHipster project, see https://www.jhipster.tech/
  for more information.
@@ -27,28 +27,22 @@ const pageOrFlux = (reactive) ? 'Flux' : 'Page';
 _%>
 <%_ if (dtoMapstruct) { _%>
 import <%= entityAbsolutePackage %>.service.dto.<%= dtoClass %>;
-<%_ } else { _%>
-import <%= entityAbsolutePackage %>.domain.<%= persistClass %>;
-<%_ } _%>
-<%_ /* Saathratri change: composite primary key ID class import (upstream has no composite key support) */ _%>
 <%_ if (primaryKeySaathratri.composite) { _%>
 import <%= entityAbsolutePackage %>.domain.<%= persistClass %>Id;
 <%_ } _%>
-<%_ if (jpaMetamodelFiltering && reactive) { _%>
-import <%= entityAbsolutePackage %>.domain.criteria.<%= entityClass %>Criteria;
+<%_ } else { _%>
+import <%= entityAbsolutePackage %>.domain.<%= persistClass %>;
 <%_ } _%>
+<%_ if (jpaMetamodelFiltering && reactive) {  _%>
+import <%= entityAbsolutePackage %>.domain.criteria.<%= entityClass %>Criteria;
+<%_ }  _%>
+import java.util.UUID;
 <%_ if (!paginationNo || implementsEagerLoadApis) { _%>
 
   <%_ if (!reactive) { _%>
 import org.springframework.data.domain.Page;
   <%_ } _%>
-<%_ } _%>
-<%_ /* Saathratri change: Pageable/Slice imports expanded for composite key and Cassandra cursor-based paging (upstream only imports with !paginationNo || implementsEagerLoadApis) */ _%>
-<%_ if (!paginationNo || implementsEagerLoadApis || primaryKeySaathratri.composite || (databaseTypeCassandra && paginationNo)) { _%>
 import org.springframework.data.domain.Pageable;
-<%_ } _%>
-<%_ if (primaryKeySaathratri.composite || (databaseTypeCassandra && paginationNo)) { _%>
-import org.springframework.data.domain.Slice;
 <%_ } _%>
 <%_ if (reactive) { _%>
 import reactor.core.publisher.Flux;
@@ -60,10 +54,6 @@ import java.util.List;
 <%_ } _%>
 <%_ if (!reactive) { _%>
 import java.util.Optional;
-<%_ } _%>
-<%_ /* Saathratri change: UUID import extended for composite key UUID and Cassandra TimeUUID types (upstream only checks primaryKey.typeUUID) */ _%>
-<%_ if (primaryKey.typeUUID || (primaryKeySaathratri.composite && primaryKeySaathratri.hasUUID) || (primaryKeySaathratri.composite && primaryKeySaathratri.hasTimeUUID)) { _%>
-import java.util.UUID;
 <%_ } _%>
 
 /**
@@ -94,7 +84,7 @@ public interface <%= entityClass %>Service {
      * @return the persisted entity.
      */
     <% if (reactive) { %>Mono<% } else { %>Optional<% } %><<%= instanceType %>> partialUpdate(<%= instanceType %> <%= instanceName %>);
-<%_ if (!jpaMetamodelFiltering) { _%>
+<%_ if (!jpaMetamodelFiltering) {  _%>
 
     /**
      * Get all the <%= entityInstancePlural %>.
@@ -103,20 +93,9 @@ public interface <%= entityClass %>Service {
      * @return the list of entities.
      */
     <% if (paginationNo) { %><%= listOrFlux %><% } else { %><%= pageOrFlux %><% } %><<%= instanceType %>> findAll(<% if (!paginationNo) { %>Pageable pageable<% } %>);
-<%_ /* Saathratri change: Cassandra cursor-based paging via findAllSlice returning Slice (upstream has no Cassandra paging support) */ _%>
-    <%_ if (databaseTypeCassandra && paginationNo) { _%>
-
-    /**
-     * Get a slice of <%= entityInstancePlural %> (Cassandra pagination).
-     *
-     * @param pageable the pagination information.
-     * @return the slice of entities.
-     */
-    Slice<<%= instanceType %>> findAllSlice(Pageable pageable);
-    <%_ } _%>
 
 <%_ } _%>
-<%_ if (jpaMetamodelFiltering && reactive) { _%>
+<%_ if (jpaMetamodelFiltering && reactive) {  _%>
       /**
       * Find <%= entityInstancePlural %> by criteria.
       *<% if (!paginationNo) { %>
@@ -133,27 +112,8 @@ public interface <%= entityClass %>Service {
       public Mono<Long> countByCriteria(<%= entityClass %>Criteria criteria);
 <%_ } _%>
 
-<%_ for (const relationship of relationships) { _%>
-  <%_ if (relationship.relationshipOneToOne && !relationship.ownerSide) { _%>
-    /**
-     * Get all the <%= restClass %> where <%= relationship.relationshipNameCapitalized %> is {@code null}.
-     *
-     * @return the {@link <%= listOrFlux %>} of entities.
-     */
-    <%= listOrFlux %><<%= instanceType %>> findAllWhere<%= relationship.relationshipNameCapitalized %>IsNull();
-  <%_ } _%>
-<%_ } _%>
 
-<%_ if (implementsEagerLoadApis) { _%>
-    /**
-     * Get all the <%= entityInstancePlural %> with eager load of many-to-many relationships.
-     *
-     * @param pageable the pagination information.
-     * @return the list of entities.
-     */
-    <%= pageOrFlux %><<%= instanceType %>> findAllWithEagerRelationships(Pageable pageable);
 
-<%_ } _%>
 <%_ if (reactive) { _%>
     /**
     * Returns the number of <%= entityInstancePlural %> available.
@@ -168,9 +128,9 @@ public interface <%= entityClass %>Service {
     *
     */
     Mono<Long> searchCount();
-  <%_ } _%>
+  <%_  } _%>
 
-<%_ } _%>
+<%_  } _%>
 
     /**
      * Get the "id" <%= entityInstance %>.
@@ -178,7 +138,6 @@ public interface <%= entityClass %>Service {
      * @param id the id of the entity.
      * @return the entity.
      */
-<%_ /* Saathratri change: findOne/delete use composite key type signature PersistClassId when composite (upstream uses primaryKey.type id) */ _%>
     <%= optionalOrMono %><<%= instanceType %>> findOne(<%- primaryKeySaathratri.composite ? `${persistClass}Id id` : `${primaryKey.type} ${primaryKey.name}` %>);
 
     /**
@@ -205,7 +164,6 @@ public interface <%= entityClass %>Service {
     <% if (!paginationNo) { %><%= pageOrFlux %><<%= instanceType %><% } else { %><%= listOrFlux %><<%= instanceType %><% } %>> search(String query<% if (!paginationNo) { %>, Pageable pageable<% } %>);
 <%_ } _%>
 
-<%# Saathratri change: composite key helper methods generated by generatePrimaryKeyMethods (upstream has no composite key support) #%>
 <% if (primaryKeySaathratri.composite) {
   let methodsArray = generatePrimaryKeyMethods(entityClass, entityInstance, entityInstanceSnakeCase, primaryKeySaathratri, "Service");
   // Output all method names at once, joined by newlines for readability

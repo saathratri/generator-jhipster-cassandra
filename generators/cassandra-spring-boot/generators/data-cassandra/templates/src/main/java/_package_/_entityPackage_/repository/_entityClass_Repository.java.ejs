@@ -1,5 +1,5 @@
 <%#
- Copyright 2013-2026 the original author or authors from the JHipster project.
+ Copyright 2013-2024 the original author or authors from the JHipster project.
 
  This file is part of the JHipster project, see https://www.jhipster.tech/
  for more information.
@@ -18,42 +18,37 @@
 -%>
 package <%= entityAbsolutePackage %>.repository;
 
-import <%= entityAbsolutePackage %>.domain.<%= persistClass %>;
-<%_ /* Saathratri change: import composite key ID class (upstream has no composite key support) */ _%>
+import java.util.UUID;
 <%_ if (primaryKeySaathratri.composite) { _%>
-import <%= entityAbsolutePackage %>.domain.<%= persistClass %>Id;
+import java.util.List;
+import java.util.Optional;
 <%_ } _%>
 
+<%_ if (primaryKeySaathratri.hasTimeUUID) { _%>
+import java.util.Optional;
+<%_ }  _%>
+
 import org.springframework.data.cassandra.repository.<% if (reactive) { %>Reactive<% } %>CassandraRepository;
-<%_ /* Saathratri change: imports for composite key pagination and TimeUUID queries (upstream has none) */ _%>
-<%_ if (primaryKeySaathratri.composite) { _%>
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
-<%_ } _%>
+import org.springframework.stereotype.Repository;
 <%_ if (primaryKeySaathratri.hasTimeUUID) { _%>
 import org.springframework.data.cassandra.repository.Query;
 <%_ } _%>
-import org.springframework.stereotype.Repository;
-<%_ if (primaryKey.typeUUID) { _%>
 
-import java.util.UUID;
-<%_ } _%>
-<%_ if (primaryKeySaathratri.composite || primaryKeySaathratri.hasTimeUUID) { _%>
-import java.util.List;
-import java.util.Optional;
+import <%= entityAbsolutePackage %>.domain.<%= persistClass %>;
+<%_ if (primaryKeySaathratri.composite) { _%>
+import <%= entityAbsolutePackage %>.domain.<%= persistClass %>Id;
 <%_ } _%>
 
 /**
  * <%= springDataDescription %> repository for the <%= persistClass %> entity.
  */
 @Repository
-<%_ /* Saathratri change: use EntityClassId for composite keys (upstream uses primaryKey.type) */ _%>
 public interface <%= entityClass %>Repository extends <% if (reactive) { %>Reactive<% } %>CassandraRepository<<%= persistClass %>, <%_ if(primaryKeySaathratri.composite) { _%><%= entityClass %>Id<%_ } else { _%><%= primaryKey.type %><%_ } _%>> {
-<%_ /* Saathratri change: generated repository methods for composite primary key queries (upstream has empty interface) */ _%>
-<%_ if (primaryKeySaathratri.composite) {
-      let methodsArray = generatePrimaryKeyMethods(entityClass, entityInstance, entityInstanceSnakeCase, primaryKeySaathratri, "Repository");
-      let methodsOutput = methodsArray.join('\n');
-_%>
+     <% if (primaryKeySaathratri.composite) { 
+          let methodsArray = generatePrimaryKeyMethods(entityClass, entityInstance, entityInstanceSnakeCase, primaryKeySaathratri, "Repository");
+          // Output all method names at once, joined by newlines for readability
+          let methodsOutput = methodsArray.join('\n');
+     %>
      <%- methodsOutput %>
-<%_ } _%>
+     <% } %>
 }

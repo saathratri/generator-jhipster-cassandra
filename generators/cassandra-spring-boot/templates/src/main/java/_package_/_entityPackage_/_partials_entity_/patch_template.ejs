@@ -1,5 +1,5 @@
 <%#
- Copyright 2013-2026 the original author or authors from the JHipster project.
+ Copyright 2013-2024 the original author or authors from the JHipster project.
 
  This file is part of the JHipster project, see https://www.jhipster.tech/
  for more information.
@@ -31,7 +31,6 @@ _%>
     Optional<<%= instanceType %>> result = <%= entityInstance %>Service.partialUpdate(<%= instanceName %>);
   <%_ } _%>
 <%_ } else { %>
-<%_ /* Saathratri change: composite key findById constructs EntityClassId from DTO fields; single key uses get<nameCapitalized>() (upstream uses primaryKey.propertySupplierName) */ _%>
   <%_ if (primaryKeySaathratri.composite) { _%>
   <%- returnPrefix %> <%= entityInstance %>Repository.findById(new <%= entityClass %>Id(<%= getCompositePrimaryKeyInstanceVariablesFromDTOId(entityInstance, primaryKeySaathratri) %>))
   <%_ } else { _%>
@@ -41,7 +40,6 @@ _%>
     .map(existing<%= entityClass %> -> {
   <%_ if (dtoMapstruct) { _%>
        <%= mapper %>.partialUpdate(existing<%= entityClass %>, <%= instanceName %>);
-<%_ /* Saathratri change: explicit if/get/set pattern kept instead of upstream updateIfPresent(existing::propertyConsumerName, instance.propertySupplierName()) because propertyConsumerName/propertySupplierName migration is deferred */ _%>
   <%_ } else { _%>
     <%_ for (const field of fields.filter(field => !field.id && !field.transient)) { _%>
     if (<%= instanceName %>.get<%= field.fieldInJavaBeanMethod %>() != null) {
