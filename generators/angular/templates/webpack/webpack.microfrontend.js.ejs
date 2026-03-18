@@ -33,10 +33,19 @@ const shareDependencies = ({ skipList = [] } = {}) =>
 
 <%# Saathratri change: kept 'zone.js' in skipList — upstream removed it in 9.0.0, but Saathratri microfrontends still need zone.js excluded to avoid duplicate zone patches. #%>
 let sharedDependencies = shareDependencies({ skipList: ['@angular/localize', 'zone.js'] });
+const ngBootstrapShared = sharedDependencies['@ng-bootstrap/ng-bootstrap'];
 sharedDependencies = {
   ...sharedDependencies,
   '@angular/common/http': sharedDependencies['@angular/common'],
   'rxjs/operators': sharedDependencies.rxjs,
+<%# Saathratri change: share ng-bootstrap secondary entry points to prevent NG0912 component ID collisions in microfrontends. #%>
+  '@ng-bootstrap/ng-bootstrap/alert': ngBootstrapShared,
+  '@ng-bootstrap/ng-bootstrap/collapse': ngBootstrapShared,
+  '@ng-bootstrap/ng-bootstrap/datepicker': ngBootstrapShared,
+  '@ng-bootstrap/ng-bootstrap/dropdown': ngBootstrapShared,
+  '@ng-bootstrap/ng-bootstrap/modal': ngBootstrapShared,
+  '@ng-bootstrap/ng-bootstrap/progressbar': ngBootstrapShared,
+  '@ng-bootstrap/ng-bootstrap/typeahead': ngBootstrapShared,
 };
 
 // eslint-disable-next-line no-unused-vars
