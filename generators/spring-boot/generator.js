@@ -42,7 +42,18 @@ export default class extends BaseApplicationGenerator {
 
   get [BaseApplicationGenerator.PREPARING]() {
     return this.asPreparingTaskGroup({
-      async preparingTemplateTask() {},
+      async preparingTemplateTask({ application }) {
+        if (application.databaseTypeCassandra) {
+          /* Saathratri change: clear dockerServices to prevent Spring Boot Docker Compose integration.
+             This stops the base generator from adding the spring-boot-docker-compose Maven dependency
+             and the docker.compose section in application.yml. Cassandra containers are managed manually
+             via deploy scripts, not via Spring Boot Docker Compose lifecycle. The cassandra-docker
+             generator handles Cassandra Docker Compose files independently. */
+          if (application.dockerServices) {
+            application.dockerServices.length = 0;
+          }
+        }
+      },
     });
   }
 
@@ -109,7 +120,16 @@ export default class extends BaseApplicationGenerator {
 
   get [BaseApplicationGenerator.POST_WRITING]() {
     return this.asPostWritingTaskGroup({
-      async postWritingTemplateTask() {},
+      async postWritingTemplateTask({ application }) {
+        if (application.databaseTypeCassandra) {
+          /* Saathratri change: fallback — ensure docker compose is disabled in application.yml
+             in case dockerServices was re-populated after PREPARING. */
+          const appYmlPath = `${application.srcMainResources}config/application.yml`;
+          this.editFile(appYmlPath, content =>
+            content.replace('      enabled: true\n      lifecycle-management: start-only', '      enabled: false\n      lifecycle-management: start-only')
+          );
+        }
+      },
     });
   }
 

@@ -101,26 +101,31 @@ export default class extends BaseApplicationGenerator {
     return this.asWritingTaskGroup({
       async writingTemplateTask( { application } ) {
 
-        if (application.applicationTypeMicroservice) {
+        if (application.databaseTypeCassandra) {
+          let nativeTransportCqlPort = 9042; // Default port for gateway/monolith
 
-          cassandraSpringBootUtils.getApplicationPortData(this.destinationPath(), this.appname);
+          if (application.applicationTypeMicroservice) {
+            cassandraSpringBootUtils.getApplicationPortData(this.destinationPath(), this.appname);
 
-          // Increment the last used port and set it in the port data
-          const portData = cassandraSpringBootUtils.incrementAndSetLastUsedPort(this.destinationPath(), this.appname);
+            // Increment the last used port and set it in the port data
+            const portData = cassandraSpringBootUtils.incrementAndSetLastUsedPort(this.destinationPath(), this.appname);
 
-          // Usage of the ports in your configuration files
-          this.log(`The server ports are: ${JSON.stringify(portData[this.appname])}`);
+            // Usage of the ports in your configuration files
+            this.log(`The server ports are: ${JSON.stringify(portData[this.appname])}`);
+
+            nativeTransportCqlPort = portData[this.appname].nativeTransportCqlPort;
+          }
 
           await this.writeFiles({
             sections: {
               files: [{ templates: [
                   'src/main/resources/config/application-dev.yml'
-                ] 
+                ]
               }],
             },
             context: {
               ...application,
-              nativeTransportCqlPortSaathratri: portData[this.appname].nativeTransportCqlPort,
+              nativeTransportCqlPortSaathratri: nativeTransportCqlPort,
             }
           });
         }
