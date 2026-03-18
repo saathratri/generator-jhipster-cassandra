@@ -73,6 +73,10 @@ export default class extends BaseApplicationGenerator {
     return this.asPreparingEachEntityTaskGroup({
       async preparingEachEntityTemplateTask( { entity } ) {
         cassandraSpringBootUtils.setSaathratriPrimaryKeyAttributesOnEntityAndFields(entity);
+        // Override entityTableName to use lodash snakeCase which correctly
+        // inserts underscores before trailing digits (e.g. SaathratriEntity2 → saathratri_entity_2).
+        // JHipster's default hibernateSnakeCase skips the last character transition.
+        entity.entityTableName = snakeCase(entity.entityInstance);
       },
     });
   }
