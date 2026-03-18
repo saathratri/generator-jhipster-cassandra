@@ -93,9 +93,8 @@ spring:
       enabled: <%- authenticationTypeOauth2 || messageBrokerAny || serviceDiscoveryAny || cacheProviderRedis %>
       profiles:
         active: dev
-<%_ } _%>
-<%_ /* Saathratri change: disable Spring Boot Docker Compose integration for Cassandra — containers are managed manually via deploy scripts */ _%>
-<%_ if (databaseTypeCassandra) { _%>
+<%_ } else { _%>
+<%_ /* Saathratri change: disable Spring Boot Docker Compose integration — containers are managed manually via deploy scripts */ _%>
   docker:
     compose:
       enabled: false
