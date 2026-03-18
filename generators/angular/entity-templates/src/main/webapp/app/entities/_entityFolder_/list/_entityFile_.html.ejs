@@ -63,12 +63,345 @@
 <%_ if (jpaMetamodelFiltering && paginationPagination) { _%>
     <<%= jhiPrefixDashed %>-filter [filters]="filters"></<%= jhiPrefixDashed %>-filter>
 <%_ } _%>
+<%_ if (databaseTypeCassandra && primaryKeySaathratri.composite) {
+    const partitionKeyFields = fields.filter(f => f.isPartitionedKeySaathratri);
+    const clusteringKeyFields = fields.filter(f => f.isClusteredKeySaathratri);
+_%>
 
+    <!-- Cassandra Search Form -->
+    <div class="card mb-3">
+        <div class="card-header d-flex justify-content-between align-items-center"
+             (click)="toggleSearchForm()"
+             style="cursor: pointer;"
+             data-cy="searchFormToggle">
+            <span>
+                <fa-icon [icon]="isSearchFormCollapsed ? 'chevron-right' : 'chevron-down'" class="me-2"></fa-icon>
+                <fa-icon icon="search" class="me-1"></fa-icon>
+                <span>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.search')</span>
+            </span>
+            @if (hasActiveSearch()) {
+                <span class="badge bg-primary">__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.searchActive')</span>
+            }
+        </div>
+        @if (!isSearchFormCollapsed) {
+            <div class="card-body">
+                <form name="searchForm" (ngSubmit)="performSearch()" #searchForm="ngForm">
+                    <!-- Partition Key Fields (Required) -->
+                    <div class="mb-3">
+                        <h6 class="text-muted mb-2">
+                            <fa-icon icon="key" class="me-1"></fa-icon>
+                            <span>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.partitionKeys')</span>
+                            <span class="text-danger">*</span>
+                        </h6>
+                        <div class="row">
+<%_ for (const field of partitionKeyFields) { _%>
+    <%_ if (field.fieldTypeTimedSaathratri) { _%>
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label" for="search_<%= field.fieldName %>">__jhiTranslateTag__('<%- field.fieldTranslationKey %>')</label>
+                                <div class="date-time-search-container">
+                                    <mat-form-field appearance="outline" class="search-date-field">
+                                        <mat-label>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.selectDate')</mat-label>
+                                        <input matInput
+                                               [matDatepicker]="search<%= field.fieldNameCapitalized %>DatePicker"
+                                               [(ngModel)]="searchCriteria.<%= field.fieldName %>Date"
+                                               name="search_<%= field.fieldName %>_date"
+                                               (dateChange)="onSearchDateChange('<%= field.fieldName %>', true)"
+                                               data-cy="search<%= field.fieldNameCapitalized %>Date">
+                                        <mat-datepicker-toggle matSuffix [for]="search<%= field.fieldNameCapitalized %>DatePicker"></mat-datepicker-toggle>
+                                        <mat-datepicker #search<%= field.fieldNameCapitalized %>DatePicker></mat-datepicker>
+                                    </mat-form-field>
+                                    <mat-form-field appearance="outline" class="search-time-field">
+                                        <mat-label>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.hour')</mat-label>
+                                        <input matInput type="number"
+                                               [(ngModel)]="searchCriteria.<%= field.fieldName %>Hour"
+                                               name="search_<%= field.fieldName %>_hour"
+                                               min="1" max="12"
+                                               placeholder="HH"
+                                               (change)="onSearchDateChange('<%= field.fieldName %>', true)"
+                                               data-cy="search<%= field.fieldNameCapitalized %>Hour">
+                                    </mat-form-field>
+                                    <mat-form-field appearance="outline" class="search-time-field">
+                                        <mat-label>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.minute')</mat-label>
+                                        <input matInput type="number"
+                                               [(ngModel)]="searchCriteria.<%= field.fieldName %>Minute"
+                                               name="search_<%= field.fieldName %>_minute"
+                                               min="0" max="59"
+                                               placeholder="MM"
+                                               (change)="onSearchDateChange('<%= field.fieldName %>', true)"
+                                               data-cy="search<%= field.fieldNameCapitalized %>Minute">
+                                    </mat-form-field>
+                                    <mat-form-field appearance="outline" class="search-ampm-field">
+                                        <mat-label>AM/PM</mat-label>
+                                        <mat-select [(ngModel)]="searchCriteria.<%= field.fieldName %>AmPm"
+                                                    name="search_<%= field.fieldName %>_ampm"
+                                                    (selectionChange)="onSearchDateChange('<%= field.fieldName %>', true)"
+                                                    data-cy="search<%= field.fieldNameCapitalized %>AmPm">
+                                            <mat-option value="AM">AM</mat-option>
+                                            <mat-option value="PM">PM</mat-option>
+                                        </mat-select>
+                                    </mat-form-field>
+                                </div>
+                            </div>
+    <%_ } else if (field.fieldTypeLocalDateSaathratri) { _%>
+                            <div class="col-md-4 mb-2">
+                                <label class="form-label" for="search_<%= field.fieldName %>">__jhiTranslateTag__('<%- field.fieldTranslationKey %>')</label>
+                                <mat-form-field appearance="outline" class="full-width">
+                                    <mat-label>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.selectDate')</mat-label>
+                                    <input matInput
+                                           [matDatepicker]="search<%= field.fieldNameCapitalized %>Picker"
+                                           [(ngModel)]="searchCriteria.<%= field.fieldName %>Date"
+                                           name="search_<%= field.fieldName %>"
+                                           (dateChange)="onSearchDateChange('<%= field.fieldName %>')"
+                                           required
+                                           data-cy="search<%= field.fieldNameCapitalized %>">
+                                    <mat-datepicker-toggle matSuffix [for]="search<%= field.fieldNameCapitalized %>Picker"></mat-datepicker-toggle>
+                                    <mat-datepicker #search<%= field.fieldNameCapitalized %>Picker></mat-datepicker>
+                                </mat-form-field>
+                            </div>
+    <%_ } else if (field.fieldType === 'Boolean') { _%>
+                            <div class="col-md-4 mb-2">
+                                <label class="form-label" for="search_<%= field.fieldName %>">__jhiTranslateTag__('<%- field.fieldTranslationKey %>')</label>
+                                <select class="form-control"
+                                        id="search_<%= field.fieldName %>"
+                                        name="search_<%= field.fieldName %>"
+                                        [(ngModel)]="searchCriteria.<%= field.fieldName %>"
+                                        required
+                                        data-cy="search<%= field.fieldNameCapitalized %>">
+                                    <option [ngValue]="null">-- Select --</option>
+                                    <option [ngValue]="true">Yes</option>
+                                    <option [ngValue]="false">No</option>
+                                </select>
+                            </div>
+    <%_ } else if (field.fieldTypeNumeric) { _%>
+                            <div class="col-md-4 mb-2">
+                                <label class="form-label" for="search_<%= field.fieldName %>">__jhiTranslateTag__('<%- field.fieldTranslationKey %>')</label>
+                                <input type="number"
+                                       class="form-control"
+                                       id="search_<%= field.fieldName %>"
+                                       name="search_<%= field.fieldName %>"
+                                       [(ngModel)]="searchCriteria.<%= field.fieldName %>"
+                                       required
+                                       data-cy="search<%= field.fieldNameCapitalized %>">
+                            </div>
+    <%_ } else { _%>
+                            <div class="col-md-4 mb-2">
+                                <label class="form-label" for="search_<%= field.fieldName %>">__jhiTranslateTag__('<%- field.fieldTranslationKey %>')</label>
+                                <input type="text"
+                                       class="form-control"
+                                       id="search_<%= field.fieldName %>"
+                                       name="search_<%= field.fieldName %>"
+                                       [(ngModel)]="searchCriteria.<%= field.fieldName %>"
+                                       required
+                                       data-cy="search<%= field.fieldNameCapitalized %>">
+                            </div>
+    <%_ } _%>
+<%_ } _%>
+                        </div>
+                    </div>
+
+<%_ if (clusteringKeyFields.length > 0) { _%>
+                    <!-- Clustering Key Fields (Optional) -->
+                    <div class="mb-3">
+                        <h6 class="text-muted mb-2">
+                            <fa-icon icon="sort" class="me-1"></fa-icon>
+                            <span>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.clusteringKeys')</span>
+                            <span class="text-muted small">(<span>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.optional')</span>)</span>
+                        </h6>
+                        <div class="row">
+    <%_ for (const field of clusteringKeyFields) { _%>
+        <%_ if (field.fieldTypeTimedSaathratri) { _%>
+                            <div class="col-md-8 mb-2">
+                                <label class="form-label" for="search_<%= field.fieldName %>" [class.text-muted]="isClusteringFieldDisabled('<%= field.fieldName %>')">__jhiTranslateTag__('<%- field.fieldTranslationKey %>')</label>
+                                <div class="date-time-search-container">
+                                    <mat-form-field appearance="outline" class="search-operator-field">
+                                        <mat-label>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.operator')</mat-label>
+                                        <mat-select [(ngModel)]="searchCriteria.<%= field.fieldName %>Operator"
+                                                    name="search_<%= field.fieldName %>_operator"
+                                                    [disabled]="isClusteringFieldDisabled('<%= field.fieldName %>')"
+                                                    (selectionChange)="onOperatorChange('<%= field.fieldName %>')"
+                                                    data-cy="search<%= field.fieldNameCapitalized %>Operator">
+                                            <mat-option value="eq">=</mat-option>
+                                            <mat-option value="lt">&lt;</mat-option>
+                                            <mat-option value="lte">&lt;=</mat-option>
+                                            <mat-option value="gt">&gt;</mat-option>
+                                            <mat-option value="gte">&gt;=</mat-option>
+                                        </mat-select>
+                                    </mat-form-field>
+                                    <mat-form-field appearance="outline" class="search-date-field">
+                                        <mat-label>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.selectDate')</mat-label>
+                                        <input matInput
+                                               [matDatepicker]="search<%= field.fieldNameCapitalized %>DatePicker"
+                                               [(ngModel)]="searchCriteria.<%= field.fieldName %>Date"
+                                               name="search_<%= field.fieldName %>_date"
+                                               [disabled]="isClusteringFieldDisabled('<%= field.fieldName %>')"
+                                               (dateChange)="onSearchDateChange('<%= field.fieldName %>', true)"
+                                               data-cy="search<%= field.fieldNameCapitalized %>Date">
+                                        <mat-datepicker-toggle matSuffix [for]="search<%= field.fieldNameCapitalized %>DatePicker" [disabled]="isClusteringFieldDisabled('<%= field.fieldName %>')"></mat-datepicker-toggle>
+                                        <mat-datepicker #search<%= field.fieldNameCapitalized %>DatePicker></mat-datepicker>
+                                    </mat-form-field>
+                                    <mat-form-field appearance="outline" class="search-time-field">
+                                        <mat-label>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.hour')</mat-label>
+                                        <input matInput type="number"
+                                               [(ngModel)]="searchCriteria.<%= field.fieldName %>Hour"
+                                               name="search_<%= field.fieldName %>_hour"
+                                               min="1" max="12"
+                                               placeholder="HH"
+                                               [disabled]="isClusteringFieldDisabled('<%= field.fieldName %>')"
+                                               (change)="onSearchDateChange('<%= field.fieldName %>', true)"
+                                               data-cy="search<%= field.fieldNameCapitalized %>Hour">
+                                    </mat-form-field>
+                                    <mat-form-field appearance="outline" class="search-time-field">
+                                        <mat-label>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.minute')</mat-label>
+                                        <input matInput type="number"
+                                               [(ngModel)]="searchCriteria.<%= field.fieldName %>Minute"
+                                               name="search_<%= field.fieldName %>_minute"
+                                               min="0" max="59"
+                                               placeholder="MM"
+                                               [disabled]="isClusteringFieldDisabled('<%= field.fieldName %>')"
+                                               (change)="onSearchDateChange('<%= field.fieldName %>', true)"
+                                               data-cy="search<%= field.fieldNameCapitalized %>Minute">
+                                    </mat-form-field>
+                                    <mat-form-field appearance="outline" class="search-ampm-field">
+                                        <mat-label>AM/PM</mat-label>
+                                        <mat-select [(ngModel)]="searchCriteria.<%= field.fieldName %>AmPm"
+                                                    name="search_<%= field.fieldName %>_ampm"
+                                                    [disabled]="isClusteringFieldDisabled('<%= field.fieldName %>')"
+                                                    (selectionChange)="onSearchDateChange('<%= field.fieldName %>', true)"
+                                                    data-cy="search<%= field.fieldNameCapitalized %>AmPm">
+                                            <mat-option value="AM">AM</mat-option>
+                                            <mat-option value="PM">PM</mat-option>
+                                        </mat-select>
+                                    </mat-form-field>
+                                </div>
+                            </div>
+        <%_ } else if (field.fieldTypeLocalDateSaathratri) { _%>
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label" for="search_<%= field.fieldName %>" [class.text-muted]="isClusteringFieldDisabled('<%= field.fieldName %>')">__jhiTranslateTag__('<%- field.fieldTranslationKey %>')</label>
+                                <div class="d-flex gap-2">
+                                    <mat-form-field appearance="outline" class="search-operator-field">
+                                        <mat-label>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.operator')</mat-label>
+                                        <mat-select [(ngModel)]="searchCriteria.<%= field.fieldName %>Operator"
+                                                    name="search_<%= field.fieldName %>_operator"
+                                                    [disabled]="isClusteringFieldDisabled('<%= field.fieldName %>')"
+                                                    (selectionChange)="onOperatorChange('<%= field.fieldName %>')"
+                                                    data-cy="search<%= field.fieldNameCapitalized %>Operator">
+                                            <mat-option value="eq">=</mat-option>
+                                            <mat-option value="lt">&lt;</mat-option>
+                                            <mat-option value="lte">&lt;=</mat-option>
+                                            <mat-option value="gt">&gt;</mat-option>
+                                            <mat-option value="gte">&gt;=</mat-option>
+                                        </mat-select>
+                                    </mat-form-field>
+                                    <mat-form-field appearance="outline" class="flex-grow-1">
+                                        <mat-label>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.selectDate')</mat-label>
+                                        <input matInput
+                                               [matDatepicker]="search<%= field.fieldNameCapitalized %>Picker"
+                                               [(ngModel)]="searchCriteria.<%= field.fieldName %>Date"
+                                               name="search_<%= field.fieldName %>"
+                                               [disabled]="isClusteringFieldDisabled('<%= field.fieldName %>')"
+                                               (dateChange)="onSearchDateChange('<%= field.fieldName %>')"
+                                               data-cy="search<%= field.fieldNameCapitalized %>">
+                                        <mat-datepicker-toggle matSuffix [for]="search<%= field.fieldNameCapitalized %>Picker" [disabled]="isClusteringFieldDisabled('<%= field.fieldName %>')"></mat-datepicker-toggle>
+                                        <mat-datepicker #search<%= field.fieldNameCapitalized %>Picker></mat-datepicker>
+                                    </mat-form-field>
+                                </div>
+                            </div>
+        <%_ } else if (field.fieldType === 'Boolean') { _%>
+                            <div class="col-md-4 mb-2">
+                                <label class="form-label" for="search_<%= field.fieldName %>" [class.text-muted]="isClusteringFieldDisabled('<%= field.fieldName %>')">__jhiTranslateTag__('<%- field.fieldTranslationKey %>')</label>
+                                <select class="form-control"
+                                        id="search_<%= field.fieldName %>"
+                                        name="search_<%= field.fieldName %>"
+                                        [(ngModel)]="searchCriteria.<%= field.fieldName %>"
+                                        [disabled]="isClusteringFieldDisabled('<%= field.fieldName %>')"
+                                        data-cy="search<%= field.fieldNameCapitalized %>">
+                                    <option [ngValue]="null">-- Select --</option>
+                                    <option [ngValue]="true">Yes</option>
+                                    <option [ngValue]="false">No</option>
+                                </select>
+                            </div>
+        <%_ } else if (field.fieldTypeNumeric || field.fieldType === 'Long') { _%>
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label" for="search_<%= field.fieldName %>" [class.text-muted]="isClusteringFieldDisabled('<%= field.fieldName %>')">__jhiTranslateTag__('<%- field.fieldTranslationKey %>')</label>
+                                <div class="d-flex gap-2">
+                                    <mat-form-field appearance="outline" class="search-operator-field">
+                                        <mat-label>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.operator')</mat-label>
+                                        <mat-select [(ngModel)]="searchCriteria.<%= field.fieldName %>Operator"
+                                                    name="search_<%= field.fieldName %>_operator"
+                                                    [disabled]="isClusteringFieldDisabled('<%= field.fieldName %>')"
+                                                    (selectionChange)="onOperatorChange('<%= field.fieldName %>')"
+                                                    data-cy="search<%= field.fieldNameCapitalized %>Operator">
+                                            <mat-option value="eq">=</mat-option>
+                                            <mat-option value="lt">&lt;</mat-option>
+                                            <mat-option value="lte">&lt;=</mat-option>
+                                            <mat-option value="gt">&gt;</mat-option>
+                                            <mat-option value="gte">&gt;=</mat-option>
+                                        </mat-select>
+                                    </mat-form-field>
+                                    <input type="number"
+                                           class="form-control flex-grow-1"
+                                           id="search_<%= field.fieldName %>"
+                                           name="search_<%= field.fieldName %>"
+                                           [(ngModel)]="searchCriteria.<%= field.fieldName %>"
+                                           [disabled]="isClusteringFieldDisabled('<%= field.fieldName %>')"
+                                           data-cy="search<%= field.fieldNameCapitalized %>">
+                                </div>
+                            </div>
+        <%_ } else { _%>
+                            <div class="col-md-4 mb-2">
+                                <label class="form-label" for="search_<%= field.fieldName %>" [class.text-muted]="isClusteringFieldDisabled('<%= field.fieldName %>')">__jhiTranslateTag__('<%- field.fieldTranslationKey %>')</label>
+                                <input type="text"
+                                       class="form-control"
+                                       id="search_<%= field.fieldName %>"
+                                       name="search_<%= field.fieldName %>"
+                                       [(ngModel)]="searchCriteria.<%= field.fieldName %>"
+                                       [disabled]="isClusteringFieldDisabled('<%= field.fieldName %>')"
+                                       data-cy="search<%= field.fieldNameCapitalized %>">
+                            </div>
+        <%_ } _%>
+    <%_ } _%>
+                        </div>
+                    </div>
+<%_ } _%>
+
+                    <!-- Search Actions -->
+                    <div class="d-flex gap-2">
+                        <button type="submit"
+                                class="btn btn-primary"
+                                [disabled]="!isSearchFormValid()"
+                                data-cy="searchButton">
+                            <fa-icon icon="search"></fa-icon>
+                            <span>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.searchButton')</span>
+                        </button>
+                        <button type="button"
+                                class="btn btn-secondary"
+                                (click)="clearSearch()"
+                                data-cy="clearSearchButton">
+                            <fa-icon icon="times"></fa-icon>
+                            <span>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.clearSearch')</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        }
+    </div>
+<%_ } _%>
+
+<%_ if (databaseTypeCassandra && primaryKeySaathratri.composite) { _%>
+@if (<%= entityInstancePlural %>().length === 0 && !isLoading()) {
+    <div class="alert alert-warning" id="no-result">
+        <span>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.notFound')</span>
+    </div>
+}
+<%_ } else { _%>
 @if (<%= entityInstancePlural %>().length === 0) {
     <div class="alert alert-warning" id="no-result">
         <span>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.notFound')</span>
     </div>
-} @else {
+}
+<%_ } _%>
+
+@if (<%= entityInstancePlural %>().length > 0) {
     <div class="table-responsive table-entities" id="entities">
         <table class="table table-striped" aria-describedby="page-heading">
             <thead>
@@ -262,6 +595,22 @@ _%>
             }
             </tbody>
         </table>
+<%_ if (databaseTypeCassandra && paginationNo) { _%>
+        <div class="d-flex justify-content-center mt-3 mb-3">
+            @if (isLoadingMore) {
+                <button class="btn btn-primary" disabled>
+                    <fa-icon icon="sync" [animation]="'spin'"></fa-icon>
+                    <span>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.loadingMore')</span>
+                </button>
+            }
+            @if (!hasNextPage && <%= entityInstancePlural %>().length > 0 && !isLoadingMore) {
+                <div class="text-muted">
+                    <fa-icon icon="check-circle" class="me-2"></fa-icon>
+                    <span>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.endOfList')</span>
+                </div>
+            }
+        </div>
+<%_ } _%>
     </div>
 }
 <%_ if (paginationPagination) { _%>
