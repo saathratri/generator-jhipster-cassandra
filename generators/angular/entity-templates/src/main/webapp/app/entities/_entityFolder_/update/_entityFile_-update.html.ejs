@@ -116,15 +116,16 @@ _%>
                             (dirtyStateChange)="updateDirtyState($event)"
                             [isNew]="isNew">
                         </app-date-time>
-                        <button *ngIf="isNew" type="button" class="btn btn-primary" (click)="generateDateTime('<%= primaryKeySaathratri.name %>.<%= fieldName %>')">Generate</button>
+                        @if (isNew) {
+                        <button type="button" class="btn btn-primary" (click)="generateDateTime('<%= primaryKeySaathratri.name %>.<%= fieldName %>')">Generate</button>
                         <button
-                            *ngIf="isNew"
                             type="button"
                             class="btn btn-danger"
                             (click)="resetDateTime('<%= primaryKeySaathratri.name %>.<%= fieldName %>')"
-                            [disabled]="!isDateTimeDirty['<%= primaryKeySaathratri.name %>.<%= fieldName %>']"> 
-                            Reset 
+                            [disabled]="!isDateTimeDirty['<%= primaryKeySaathratri.name %>.<%= fieldName %>']">
+                            Reset
                         </button>
+                        }
         <%_ } else if (field.blobContentTypeText) { _%>
                         <textarea class="form-control" name="<%= fieldName %>" id="field_<%= fieldName %>" data-cy="<%= fieldName %>"
                                 formControlName="<%= fieldName %>"<% if (readonly) { %> [readonly]="true"<% } %>></textarea>
@@ -134,22 +135,25 @@ _%>
         <%_ } else if (field.fieldTypeUuidSaathratri) { _%>
             <input type="<%= fieldInputType %>" class="form-control" name="<%= fieldName %>" id="field_<%= fieldName %>" data-cy="<%= fieldName %>"
                 formControlName="<%= fieldName %>"/>
-            <button *ngIf="isNew" type="button" class="btn btn-primary" (click)="generateUUID('<%= primaryKeySaathratri.name %>.<%= fieldName %>')">Generate</button>
-            <button *ngIf="isNew" type="button" class="btn btn-danger" (click)="reset('<%= primaryKeySaathratri.name %>.<%= fieldName %>')" [disabled]="isResetDisabled['<%= primaryKeySaathratri.name %>.<%= fieldName %>']">
+            @if (isNew) {
+            <button type="button" class="btn btn-primary" (click)="generateUUID('<%= primaryKeySaathratri.name %>.<%= fieldName %>')">Generate</button>
+            <button type="button" class="btn btn-danger" (click)="reset('<%= primaryKeySaathratri.name %>.<%= fieldName %>')" [disabled]="isResetDisabled['<%= primaryKeySaathratri.name %>.<%= fieldName %>']">
                 Reset
             </button>
+            }
         <%_ } else if (field.fieldTypeTimeUuidSaathratri) { _%>
             <input type="<%= fieldInputType %>" class="form-control" name="<%= fieldName %>" id="field_<%= fieldName %>" data-cy="<%= fieldName %>"
                 formControlName="<%= fieldName %>"/>
-            <button *ngIf="isNew" type="button" class="btn btn-primary" (click)="generateTimeUUID('<%= primaryKeySaathratri.name %>.<%= fieldName %>')">Generate</button>
+            @if (isNew) {
+            <button type="button" class="btn btn-primary" (click)="generateTimeUUID('<%= primaryKeySaathratri.name %>.<%= fieldName %>')">Generate</button>
             <button
-                *ngIf="isNew"
                 type="button"
                 class="btn btn-danger"
                 (click)="reset('<%= primaryKeySaathratri.name %>.<%= fieldName %>')"
-                [disabled]="isResetDisabled['<%= primaryKeySaathratri.name %>.<%= fieldName %>']"> 
-                Reset 
+                [disabled]="isResetDisabled['<%= primaryKeySaathratri.name %>.<%= fieldName %>']">
+                Reset
             </button>
+            }
         <%_ } else { _%>
                         <input type="<%= fieldInputType %>" class="form-control" name="<%= fieldName %>" id="field_<%= fieldName %>" data-cy="<%= fieldName %>"
                             formControlName="<%= fieldName %>"/>
@@ -266,34 +270,38 @@ _%>
                 (dirtyStateChange)="updateDirtyState($event)"
                 [isNew]="isNew">
             </app-date-time>
-            <button *ngIf="isNew" type="button" class="btn btn-primary" (click)="generateDateTime('<%= fieldName %>')">Generate</button>
+            @if (isNew) {
+            <button type="button" class="btn btn-primary" (click)="generateDateTime('<%= fieldName %>')">Generate</button>
             <button
-                *ngIf="isNew"
                 type="button"
                 class="btn btn-danger"
                 (click)="resetDateTime('<%= fieldName %>')"
-                [disabled]="!isDateTimeDirty['<%= fieldName %>']"> 
-                Reset 
+                [disabled]="!isDateTimeDirty['<%= fieldName %>']">
+                Reset
             </button>
+            }
     <%_ } else if (field.fieldTypeTimeUuidSaathratri) { _%>
             <input type="<%= fieldInputType %>" class="form-control" name="<%= fieldName %>" id="field_<%= fieldName %>" data-cy="<%= fieldName %>"
                 formControlName="<%= fieldName %>"/>
-            <button *ngIf="isNew" type="button" class="btn btn-primary" (click)="generateTimeUUID('<%= fieldName %>')">Generate</button>
+            @if (isNew) {
+            <button type="button" class="btn btn-primary" (click)="generateTimeUUID('<%= fieldName %>')">Generate</button>
             <button
-                *ngIf="isNew"
                 type="button"
                 class="btn btn-danger"
                 (click)="reset('<%= fieldName %>')"
-                [disabled]="isResetDisabled['<%= fieldName %>']"> 
-                Reset 
+                [disabled]="isResetDisabled['<%= fieldName %>']">
+                Reset
             </button>
+            }
     <%_ } else if (field.fieldTypeUuidSaathratri) { _%>
             <input type="<%= fieldInputType %>" class="form-control" name="<%= fieldName %>" id="field_<%= fieldName %>" data-cy="<%= fieldName %>"
                 formControlName="<%= fieldName %>"/>
-            <button *ngIf="isNew" type="button" class="btn btn-primary" (click)="generateUUID('<%= fieldName %>')">Generate</button>
-            <button *ngIf="isNew" type="button" class="btn btn-danger" (click)="reset('<%= fieldName %>')" [disabled]="isResetDisabled['<%= fieldName %>']">
+            @if (isNew) {
+            <button type="button" class="btn btn-primary" (click)="generateUUID('<%= fieldName %>')">Generate</button>
+            <button type="button" class="btn btn-danger" (click)="reset('<%= fieldName %>')" [disabled]="isResetDisabled['<%= fieldName %>']">
                 Reset
             </button>
+            }
     <%_ } else { _%>
         <input type="<%= fieldInputType %>" class="form-control" name="<%= fieldName %>" id="field_<%= fieldName %>" data-cy="<%= fieldName %>"
         formControlName="<%= fieldName %>"/>
