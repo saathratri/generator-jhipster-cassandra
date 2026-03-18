@@ -34,7 +34,7 @@ import { Component, computed, NgZone, inject, OnInit, signal, WritableSignal } f
 import { HttpHeaders } from '@angular/common/http';
 <%_ } _%>
 import { ActivatedRoute, Data, ParamMap, Router, RouterModule } from '@angular/router';
-import { combineLatest<%_ if (!readOnly) { _%>, filter<%_ } _%>, Observable, Subscription, tap } from 'rxjs';
+import { combineLatest<%_ if (!readOnly) { _%>, filter<%_ } _%>, finalize, Observable, Subscription, tap } from 'rxjs';
 <%_ if (!readOnly) { _%>
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 <%_ } _%>
@@ -412,13 +412,13 @@ export class <%= componentName %> implements OnInit {
       if (this.currentSearch && this.currentSearch !== '') {
         return this.<%= entityInstance %>Service.search(queryObject)
           .pipe(
-            tap(() => this.isLoading = false)
+            finalize(() => this.isLoading = false)
           );
       } else {
 <%_ } _%>
         return this.<%= entityInstance %>Service.query(queryObject)
           .pipe(
-            tap(() => this.isLoading = false)
+            finalize(() => this.isLoading = false)
           );
 <%_ if (searchEngineAny) { _%>
       }
