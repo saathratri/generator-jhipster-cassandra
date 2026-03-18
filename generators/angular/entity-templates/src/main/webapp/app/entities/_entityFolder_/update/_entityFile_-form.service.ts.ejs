@@ -281,13 +281,13 @@ _%>
 <%_ if(primaryKeySaathratri.composite) { _%>
   <%= primaryKeySaathratri.name %>: {
 <%_ for (const field of primaryKeySaathratri.ids) { _%>
-      <%= field.fieldName %>: { value: <%= entityInstance %>RawValue.<%= primaryKeySaathratri.name %>.<%= field.fieldName %><%_ if(field.fieldTypeLocalDateSaathratri) { _%>?.toDate()<%_ } _%>, disabled: true },
+      <%= field.fieldName %>: { value: <%= entityInstance %>RawValue.<%= primaryKeySaathratri.name %>.<%= field.fieldName %>, disabled: true },
 <%_ } _%>
   },
 <%_ for (field of fields.filter( field => !field.isCompositePrimaryKeyField )) {
       if(field.fieldTypeTimedSaathratri || field.fieldTypeLocalDateSaathratri) {
 _%>
-      <%= field.fieldName %>: <%= entityInstance %>RawValue.<%= field.fieldName %><%_ if(field.fieldTypeLocalDateSaathratri) { _%>?.toDate()<%_ } _%>,
+      <%= field.fieldName %>: <%= entityInstance %>RawValue.<%= field.fieldName %>,
 <%_ 
       }
     } 
@@ -298,7 +298,7 @@ _%>
 <%_ } _%>
 <%_ for (const field of fields.filter(field => !field.id)) { _%>
       <%_ if(field.fieldTypeTimedSaathratri || field.fieldTypeLocalDateSaathratri) { _%>
-        <%= field.fieldName %>: <%= entityInstance %>RawValue.<%= field.fieldName %><%_ if(field.fieldTypeLocalDateSaathratri) { _%>?.toDate()<%_ } _%>,
+        <%= field.fieldName %>: <%= entityInstance %>RawValue.<%= field.fieldName %>,
       <%_ } _%>
 <%_ } _%>
 <%_ } _%>
