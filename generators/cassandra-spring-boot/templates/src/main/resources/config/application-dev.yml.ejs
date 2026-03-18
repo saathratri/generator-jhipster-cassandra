@@ -1,5 +1,5 @@
 <%#
- Copyright 2013-2024 the original author or authors from the JHipster project.
+ Copyright 2013-2026 the original author or authors from the JHipster project.
 
  This file is part of the JHipster project, see https://www.jhipster.tech/
  for more information.
@@ -28,7 +28,7 @@
 # ===================================================================
 # Standard Spring Boot properties.
 # Full reference is available at:
-# http://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html
+# https://docs.spring.io/spring-boot/appendix/application-properties/index.html
 # ===================================================================
 
 logging:
@@ -87,14 +87,20 @@ spring:
       additional-exclude: static/**<% if (devDatabaseTypeH2Any) { %>,.h2.server.properties<% } %>
     livereload:
       enabled: false # we use Webpack dev server + BrowserSync for livereload
-<%_ if (devDatabaseTypeH2Any && 'dockerServices' in locals && dockerServices && dockerServices.length > 1) { _%>
+<%_ if (devDatabaseTypeH2Any && 'dockerServices' in locals && dockerServices?.length) { _%>
   docker:
     compose:
       enabled: <%- authenticationTypeOauth2 || messageBrokerAny || serviceDiscoveryAny || cacheProviderRedis %>
       profiles:
         active: dev
 <%_ } _%>
-  jackson:
+<%_ /* Saathratri change: disable Spring Boot Docker Compose integration for Cassandra — containers are managed manually via deploy scripts */ _%>
+<%_ if (databaseTypeCassandra) { _%>
+  docker:
+    compose:
+      enabled: false
+<%_ } _%>
+  jackson<%= springBoot4 ? '2' : '' %>:
     serialization:
       indent-output: true
 <%_ if (databaseTypeNeo4j) { _%>
@@ -102,10 +108,6 @@ spring:
     pool:
       metrics-enabled: true
     uri: bolt://localhost:7687
-    # Uncomment to use an authenticated connection
-    # authentication:
-    #   username: neo4j
-    #   password: secret
 <%_ } _%>
 <%_ if (serviceDiscoveryConsul) { _%>
   cloud:
@@ -139,8 +141,6 @@ spring:
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
     url: <%- devJdbcUrl %>
-    username: <%- devDatabaseUsername %>
-    password: <%- devDatabasePassword %>
     hikari:
       poolName: Hikari
       auto-commit: false
@@ -162,12 +162,13 @@ spring:
       enabled: true
   <%_ } _%>
 <%_ } _%>
-<%_ if (databaseTypeMongodb) { _%>
+<%_ if (databaseTypeMongodb && !springBoot4) { _%>
   data:
     mongodb:
-      uri: mongodb://localhost:27017/<%= baseName %><% if (reactive) { %>?waitQueueMultiple=1000<% } %>
+      uri: mongodb://localhost:27017/<%= baseName %>
 <%_ } _%>
 <%_ if (databaseTypeCassandra) { _%>
+<%_ /* Saathratri change: custom Cassandra port and timeout configuration for multi-instance Docker support */ _%>
   cassandra:
     contact-points: localhost
     compression: LZ4
@@ -185,8 +186,6 @@ spring:
 <%_ if (databaseTypeCouchbase) { _%>
   couchbase:
     connection-string: couchbase://localhost
-    username: Administrator
-    password: password
 <%_ } _%>
 <%_ if (databaseMigrationLiquibase) { _%>
   liquibase:
@@ -202,37 +201,19 @@ spring:
   mail:
     host: localhost
     port: 25
-    username:
-    password:
 <%_ } _%>
   messages:
     cache-duration: PT1S # 1 second, see the ISO 8601 standard
+<%_ if (databaseTypeMongodb && springBoot4) { _%>
+  mongodb:
+    uri: mongodb://localhost:27017/<%= baseName %>
+<%_ } _%>
 <%_ if (databaseTypeSql && reactive) { _%>
   r2dbc:
     url: <%- devR2dbcUrl %>
-    username: <%- devDatabaseUsername %>
-    password: <%- devDatabasePassword %>
 <%_ } _%>
   thymeleaf:
     cache: false
-<%_ /* if (authenticationTypeOauth2) { */ _%>
-  security:
-    oauth2:
-      client:
-        provider:
-          oidc:
-            issuer-uri: http://localhost:9080/realms/jhipster
-        registration:
-          oidc:
-  <%_ if (applicationTypeMicroservice) { _%>
-            client-id: internal
-            client-secret: internal
-  <%_ } else { _%>
-            client-id: web_app
-            client-secret: web_app
-  <%_ } _%>
-            scope: openid, profile, email, offline_access # last one for refresh tokens
-<%_ /* } */ _%>
 
 server:
   port: <%= serverPort %>
@@ -282,7 +263,7 @@ jhipster:
   <%_ } _%>
   <%_ if (cacheProviderInfinispan) { _%>
     infinispan:
-      config-file: default-configs/default-jgroups-tcp.xml
+      config-file: <%- springBoot4 ? 'org/infinispan/configuration/' : 'default-configs/' %>default-jgroups-tcp.xml
       statsEnabled: true
       # local app cache
       local:
@@ -313,10 +294,6 @@ jhipster:
       # cluster: true
   <%_ } _%>
 <%_ } _%>
-<%_ if (serviceDiscoveryEureka) { _%>
-  registry:
-    password: admin
-<%_ } _%>
 <%_ if (!applicationTypeMicroservice) { _%>
   # CORS is only enabled by default with the "dev" profile
   cors:
@@ -324,7 +301,7 @@ jhipster:
   <%_ if (microfrontend) { _%>
     # Ports <%= devServerPort + 1 %>-<%= devServerPort + 9 %> are allowed for microfrontend development
   <%_ } _%>
-    allowed-origins: "http://localhost:8100,https://localhost:8100,http://localhost:9000,https://localhost:9000<%_ if (!skipClient) { _%>,http://localhost:<%= devServerPort %>,https://localhost:<%= devServerPort %><%_ if (microfrontend) { for (let port = 1; port < 10; port++) { _%>,http://localhost:<%= devServerPort + port %>,https://localhost:<%= devServerPort + port %><%_ } _%><%_ } } _%>"
+    allowed-origins: "http://localhost:8100,https://localhost:8100<%_ if (devServerPortProxy) { _%>,http://localhost:<%= devServerPortProxy %>,https://localhost:<%= devServerPortProxy %><%_ } _%><%_ if (!skipClient) { _%>,http://localhost:<%= devServerPort %>,https://localhost:<%= devServerPort %><%_ if (microfrontend) { for (let port = 1; port < 10; port++) { _%>,http://localhost:<%= devServerPort + port %>,https://localhost:<%= devServerPort + port %><%_ } _%><%_ } } _%>"
     # Enable CORS when running in GitHub Codespaces
     allowed-origin-patterns: 'https://*.githubpreview.dev'
     allowed-methods: "*"
@@ -346,23 +323,14 @@ jhipster:
   #   exposed-headers: "Authorization,Link,X-Total-Count"
   #   allow-credentials: true
   #   max-age: 1800
-  # saathratri-needle-add-cors-policy #
 <%_ } _%>
 <%_ if (authenticationTypeJwt) { _%>
   security:
     authentication:
       jwt:
-        # This token must be encoded using Base64 and be at least 256 bits long (you can type `openssl rand -base64 64` on your command line to generate a 512 bits one)
-        base64-secret: <%= jwtSecretKey %>
         # Token is valid 24 hours
         token-validity-in-seconds: 86400
         token-validity-in-seconds-for-remember-me: 2592000
-<%_ } _%>
-<%_ if (authenticationTypeSession && !reactive) { _%>
-  security:
-    remember-me:
-      # security key (this key should be unique for your application, and kept secret)
-      key: <%= rememberMeKey %>
 <%_ } _%>
 <%_ if (generateUserManagement) { _%>
   mail: # specific JHipster mail property, for standard properties see MailProperties
@@ -375,14 +343,6 @@ jhipster:
       host: localhost
       port: 5000
       ring-buffer-size: 512
-
-<%_ /* if (authenticationTypeOauth2) { */ _%>
-  security:
-    oauth2:
-      audience:
-        - account
-        - api://default
-<%_ /* } */ _%>
 # ===================================================================
 # Application specific properties
 # Add your own application properties here, see the ApplicationProperties class

@@ -75,6 +75,17 @@ import org.springframework.data.domain.Pageable;
   <%_ if (reactive) { _%>
 import org.springframework.data.domain.PageImpl;
   <%_ } _%>
+<%_ } _%>
+<%_ if (primaryKeySaathratri.composite) { _%>
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.cassandra.core.query.CassandraPageRequest;
+import org.springframework.http.HttpHeaders;
+import java.nio.ByteBuffer;
+import java.util.Base64;
+<%_ } _%>
+<%_ if (!paginationNo) { _%>
 import org.springframework.http.HttpHeaders;
   <%_ if (reactive) { _%>
 import org.springframework.http.server.reactive.ServerHttpRequest;

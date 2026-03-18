@@ -39,7 +39,13 @@ import { combineLatest<%_ if (!readOnly) { _%>, filter<%_ } _%>, Observable, Sub
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 <%_ } _%>
 
-import SharedModule from 'app/shared/shared.module';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { AlertError } from 'app/shared/alert/alert-error';
+import { Alert } from 'app/shared/alert/alert';
+<%_ if (enableTranslation) { _%>
+import { TranslateDirective } from 'app/shared/language';
+import { TranslateModule } from '@ngx-translate/core';
+<%_ } _%>
 import { sortStateSignal, SortDirective, SortByDirective, type SortState, SortService } from 'app/shared/sort';
 import { DurationPipe, FormatMediumDatetimePipe, FormatMediumDatePipe, ConvertFromDayjsToDateLongPipe } from 'app/shared/date';
 <%_ if (paginationPagination) { _%>
@@ -75,7 +81,7 @@ import {
 } from 'app/config/navigation.constants';
 import { EntityArrayResponseType, <%= entityAngularName %>Service } from '../service/<%= entityFileName %>.service';
 <%_ if (!readOnly) { _%>
-import { <%= entityAngularName %>DeleteDialogComponent } from '../delete/<%= entityFileName %>-delete-dialog.component';
+import { <%= entityAngularName %>DeleteDialogComponent } from '../delete/<%= entityFileName %>-delete-dialog';
 <%_ } _%>
 <%_ if (anyFieldIsBlobDerived) { _%>
 import { DataUtils } from 'app/core/util/data-util.service';
@@ -91,15 +97,20 @@ import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
 <%_ } _%>
 
 @Component({
-    standalone: true,
     selector: '<%= jhiPrefixDashed %>-<%= entityFileName %>',
-    templateUrl: './<%= entityFileName %>.component.html',
+    templateUrl: './<%= entityFileName %>.html',
     imports: [
       RouterModule,
 <%_ if (searchEngine) { _%>
       FormsModule,
 <%_ } _%>
-      SharedModule,
+      FontAwesomeModule,
+      AlertError,
+      Alert,
+<%_ if (enableTranslation) { _%>
+      TranslateDirective,
+      TranslateModule,
+<%_ } _%>
       SortDirective,
       SortByDirective,
       DurationPipe,
