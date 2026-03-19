@@ -29,7 +29,9 @@
 
   const componentName = entityAngularName + 'Component';
 
-  // Saathratri: Determine if this is a Cassandra composite key entity (uses Observable-based search)
+  // Saathratri: Determine if this is a Cassandra entity with no pagination (uses Observable-based loading)
+  const cassandraNoPagination = databaseTypeCassandra && paginationNo;
+  // Saathratri: Determine if this is a Cassandra composite key entity (uses search filters)
   const cassandraComposite = databaseTypeCassandra && primaryKeySaathratri.composite;
 
   // Saathratri: Get composite key field names for sorting
@@ -45,7 +47,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { HttpHeaders<%_ if (cassandraComposite) { _%>, HttpResponse<%_ } _%> } from '@angular/common/http';
 <%_ } _%>
 import { ActivatedRoute, Data, ParamMap, Router, RouterLink } from '@angular/router';
-import { combineLatest<%_ if (!readOnly) { _%>, filter<%_ } _%><%_ if (cassandraComposite) { _%>, map, Observable, finalize<%_ } _%>, Subscription, tap } from 'rxjs';
+import { combineLatest<%_ if (!readOnly) { _%>, filter<%_ } _%><%_ if (cassandraComposite) { _%>, map<%_ } _%><%_ if (cassandraNoPagination) { _%>, Observable, finalize<%_ } _%>, Subscription, tap } from 'rxjs';
 <%_ if (!readOnly) { _%>
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 <%_ } _%>
@@ -96,7 +98,7 @@ import {
 <%_ } _%>
   DEFAULT_SORT_DATA
 } from 'app/config/navigation.constants';
-import { <%= cassandraComposite ? 'EntityArrayResponseType, EntityResponseType, ' : '' %><%= entityAngularName %>Service } from '../service/<%= entityFileName %>.service';
+import { <%= cassandraNoPagination ? 'EntityArrayResponseType, ' : '' %><%= cassandraComposite ? 'EntityResponseType, ' : '' %><%= entityAngularName %>Service } from '../service/<%= entityFileName %>.service';
 <%_ if (!readOnly) { _%>
 import { <%= entityAngularName %>DeleteDialogComponent } from '../delete/<%= entityFileName %>-delete-dialog';
 <%_ } _%>
@@ -285,8 +287,8 @@ _%>
 
     public readonly router = inject(Router);
     protected readonly <%= entityInstance %>Service = inject(<%= entityAngularName %>Service);
-<%_ if (cassandraComposite) { _%>
-    // Cassandra composite key entities use Observable-based loading with search support
+<%_ if (cassandraNoPagination) { _%>
+    // Cassandra entities use Observable-based loading
     readonly isLoading = signal(false);
 <%_ } else { _%>
     // eslint-disable-next-line @typescript-eslint/member-ordering
@@ -309,7 +311,7 @@ _%>
     protected ngZone = inject(NgZone);
 
     constructor() {
-<%_ if (!cassandraComposite) { _%>
+<%_ if (!cassandraNoPagination) { _%>
 <%_ if (!paginationNo) { _%>
       effect(() => {
         const headers = this.<%= entityInstance %>Service.<%= entityInstancePlural %>Resource.headers();
@@ -353,7 +355,7 @@ _%>
 <%_ if (paginationInfiniteScroll) { _%>
         tap(() => this.reset()),
 <%_ } _%>
-<%_ if (cassandraComposite) { _%>
+<%_ if (cassandraNoPagination) { _%>
         tap(() => {
           if (this.<%= entityInstancePlural %>().length === 0) {
             this.load();
@@ -434,7 +436,7 @@ _%>
 
 <%_ } _%>
     load(): void {
-<%_ if (cassandraComposite) { _%>
+<%_ if (cassandraNoPagination) { _%>
       this.queryBackend().subscribe({
         next: (res: EntityArrayResponseType) => {
           this.onResponseSuccess(res);
@@ -469,7 +471,7 @@ _%>
       }
     }
 
-    @HostListener('window:scroll', ['$event'])
+    @HostListener('window:scroll')
     onWindowScroll(): void {
       const scrollPosition = window.scrollY + window.innerHeight;
       const pageHeight = document.documentElement.scrollHeight;
@@ -702,7 +704,7 @@ _%>
 <%_ } _%>
     }
 
-<%_ if (cassandraComposite) { _%>
+<%_ if (cassandraNoPagination) { _%>
     protected onResponseSuccess(response: EntityArrayResponseType, append = false): void {
 <%_ if (databaseTypeCassandra && paginationNo) { _%>
       this.extractPaginationHeaders(response.headers);
@@ -778,7 +780,7 @@ _%>
 <%_ } _%>
     }
 
-<%_ } else if (!cassandraComposite) { _%>
+<%_ } else if (!cassandraNoPagination) { _%>
     protected fillComponentAttributesFromResponseBody(data: I<%= entityAngularName %>[]<% if (paginationInfiniteScroll) { %>, currentValue: I<%= entityAngularName %>[]<% } %>): I<%= entityAngularName %>[] {
 <%_ if (paginationInfiniteScroll) { _%>
       const <%= entityInstancePlural %>New = [...currentValue];
@@ -798,13 +800,13 @@ _%>
     }
 <%_ } _%>
 
-<%_ if (cassandraComposite) { _%>
+<%_ if (cassandraNoPagination) { _%>
     protected fillComponentAttributesFromResponseBody(data: I<%= entityAngularName %>[] | null): I<%= entityAngularName %>[] {
       return data ?? [];
     }
 <%_ } _%>
 
-<%_ if (!paginationNo && !cassandraComposite) { _%>
+<%_ if (!paginationNo && !cassandraNoPagination) { _%>
     protected fillComponentAttributesFromResponseHeader(headers: HttpHeaders): void {
   <%_ if (paginationPagination) { _%>
       this.totalItems.set(Number(headers.get(TOTAL_COUNT_RESPONSE_HEADER)));
