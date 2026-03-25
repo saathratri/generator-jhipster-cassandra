@@ -479,15 +479,11 @@ _%>
 <%_ for (const vf of fields.filter(f => f.fieldTypeVectorSaathratri)) { _%>
             <div class="mb-3">
                 <label class="form-label"><%= vf.sourceFieldNameCapitalizedSaathratri %> Embedding</label>
-                <div class="form-control bg-light" readonly>
-                    <small class="text-muted">
-                    @if (<%= entityInstance %>?.<%= vf.fieldName %> && <%= entityInstance %>!.<%= vf.fieldName %>!.length > 0) {
-                        [{{ <%= entityInstance %>!.<%= vf.fieldName %>![0] | number:'1.6-6' }}, {{ <%= entityInstance %>!.<%= vf.fieldName %>![1] | number:'1.6-6' }}, {{ <%= entityInstance %>!.<%= vf.fieldName %>![2] | number:'1.6-6' }}, ...]
-                    } @else {
-                        <em>Not generated yet</em>
-                    }
-                    </small>
-                </div>
+                @if (<%= entityInstance %>?.<%= vf.fieldName %> && <%= entityInstance %>!.<%= vf.fieldName %>!.length > 0) {
+                    <textarea class="form-control font-monospace" readonly rows="4" style="font-size: 0.75rem;">{{ <%= entityInstance %>!.<%= vf.fieldName %>! }}</textarea>
+                } @else {
+                    <div class="form-control bg-light"><small class="text-muted"><em>Not generated yet</em></small></div>
+                }
             </div>
 <%_ } _%>
 
