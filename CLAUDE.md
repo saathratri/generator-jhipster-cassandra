@@ -9,6 +9,7 @@ This is a **JHipster Side-by-Side (SBS) blueprint** that extends JHipster to pro
 - **MAP** data type support with multiple value types (TEXT, BOOLEAN, DECIMAL, BIGINT)
 - **TimeUUID** support for time-based ordering
 - **Custom Angular UI components** for Cassandra-specific data types
+- **AI-powered semantic vector search** using Cassandra 5.0+ SAI with ANN queries and OpenAI embeddings
 
 **Version:** 1.0.13
 **Author:** Amar Premsaran Patel
@@ -24,6 +25,7 @@ Standard JHipster supports Cassandra as a database option, but with limited capa
 3. **Temporal Data**: Proper handling of UTC dates/times and TimeUUID
 4. **Query Generation**: Automatic creation of finder methods for various key combinations
 5. **Rich UI**: Custom Angular components for editing complex data types
+6. **AI Semantic Search**: Vector embedding fields with ANN queries for semantic similarity search across entity data
 
 ## Installation
 
@@ -1117,7 +1119,15 @@ MIT License - See LICENSE file for details
 
 ## Version History
 
-**1.0.13** (Current)
+**1.0.15** (Current)
+- AI-powered semantic vector search with checkbox field selection
+- Vector embedding fields via `@customAnnotation("VECTOR")` annotation
+- Cassandra 5.0+ SAI (Storage Attached Index) with ANN query support
+- EmbeddingService and EmbeddingConfiguration for OpenAI integration
+- Angular AI search bar with multi-field checkbox selection on list pages
+- Spring AI OpenAI dependency auto-injection in pom.xml
+
+**1.0.13**
 - Support for JHipster 9.0.0
 - Composite primary key support
 - SET and MAP data types
@@ -1126,6 +1136,64 @@ MIT License - See LICENSE file for details
 - Automatic query method generation
 - Docker port management for microservices
 - Comprehensive test generation
+
+## AI Semantic Search Feature
+
+### Overview
+
+The blueprint supports AI-powered semantic search using vector embeddings stored in Cassandra 5.0+. When an entity has fields annotated with `@customAnnotation("VECTOR")`, the blueprint automatically generates:
+
+- **Backend**: `EmbeddingService` (Spring AI + OpenAI), `EmbeddingConfiguration`, repository ANN query methods, service interface/implementation with field filtering, REST endpoint (`GET /api/<entity>/ai-search`)
+- **Frontend**: AI search bar with text input, checkbox selection for choosing which vector fields to search, loading indicator, and clear button
+
+### JDL Vector Field Annotation
+
+```jdl
+@customAnnotation("VECTOR") @customAnnotation("1536") @customAnnotation("") @customAnnotation("") fieldNameEmbedding Blob
+```
+
+- annotation[0]: `"VECTOR"` — marks the field as a vector embedding
+- annotation[1]: `"1536"` — vector dimension (1536 for OpenAI text-embedding-3-small)
+- annotation[2]: unused (`""`)
+- annotation[3]: unused (`""`)
+
+The field name must end with `Embedding`. The source field is derived by stripping the suffix (e.g., `nameEmbedding` → `name`).
+
+### Example Entity
+
+```jdl
+entity Tag {
+  @Id @customAnnotation("PrimaryKeyType.PARTITIONED") @customAnnotation("CassandraType.Name.UUID") @customAnnotation("") @customAnnotation("") id UUID
+  @customAnnotation("") @customAnnotation("CassandraType.Name.TEXT") @customAnnotation("") @customAnnotation("") name String required
+  @customAnnotation("") @customAnnotation("CassandraType.Name.TEXT") @customAnnotation("") @customAnnotation("") description String
+  @customAnnotation("VECTOR") @customAnnotation("1536") @customAnnotation("") @customAnnotation("") nameEmbedding Blob
+  @customAnnotation("VECTOR") @customAnnotation("1536") @customAnnotation("") @customAnnotation("") descriptionEmbedding Blob
+}
+```
+
+### Generated Code
+
+**Repository** — ANN query methods:
+```java
+@Query("SELECT * FROM tag ORDER BY name_embedding ANN OF ?0 LIMIT ?1")
+List<Tag> findSimilarByNameEmbedding(CqlVector<Float> queryVector, int limit);
+```
+
+**Service** — AI search with field selection:
+```java
+List<TagDTO> aiSearch(String query, int limit, List<String> fields);
+```
+
+**REST Endpoint**:
+```
+GET /api/tags/ai-search?query=search+text&limit=20&fields=nameEmbedding,descriptionEmbedding
+```
+
+**Angular** — Checkboxes for field selection when multiple vector fields exist.
+
+### Setup
+
+Set the `OPENAI_API_KEY` environment variable or `openai.api-key` property. Requires Cassandra 5.0+ for SAI vector index support.
 
 ## Acknowledgments
 

@@ -24,7 +24,7 @@ public class EmbeddingConfiguration {
 
     private static final Logger LOG = LoggerFactory.getLogger(EmbeddingConfiguration.class);
 
-    @Value("${spring.ai.openai.api-key:}")
+    @Value("${spring.ai.openai.api-key:${OPENAI_API_KEY:}}")
     private String openaiApiKey;
 
     @Bean

@@ -24,6 +24,14 @@ The `generator-jhipster-cassandra` blueprint provides powerful schema modeling t
     - `CassandraType.Name.MAP`
       - Supports various key-value types: `TEXT`, `BOOLEAN`, `DECIMAL`, and `BIGINT`.
 
+- **AI-Powered Semantic Vector Search**
+  - Define vector embedding fields using `@customAnnotation("VECTOR")` with configurable dimensions.
+  - Automatic AI search bar on entity list pages with semantic similarity search.
+  - Checkbox selection to search across one or more vector fields when an entity has multiple embeddings.
+  - Uses Cassandra 5.0+ SAI (Storage Attached Indexes) with ANN (Approximate Nearest Neighbor) queries.
+  - Powered by Spring AI with OpenAI embeddings (text-embedding-3-small model, 1536 dimensions).
+  - Auto-generates `EmbeddingService`, `EmbeddingConfiguration`, repository ANN query methods, and REST endpoints.
+
 - **Custom Annotations**
   - Annotations like `@customAnnotation("UTC_DATE")` or `@customAnnotation("TIMEUUID")` support consistent metadata across entity fields.
 
@@ -73,6 +81,7 @@ The following improvements have been made since the last open-source tagged rele
 - Model a `Post` entity using a composite primary key (`createdDate`, `addedDateTime`, `postId`) and additional attributes like `title` and `content`.
 - Use `SET` to tag entities with multiple string values.
 - Use `MAP` to represent dynamic metadata or key-value configurations (e.g., `addOnDetailsBoolean`, `addOnDetailsDecimal`).
+- Define a `Tag` entity with AI-powered semantic search across `name` and `description` fields using vector embeddings.
 
 ---
 
@@ -181,7 +190,50 @@ Below are various examples of defining JDL entities using the @customAnnotation 
       @Id @customAnnotation("PrimaryKeyType.PARTITIONED") @customAnnotation("CassandraType.Name.UUID") @customAnnotation("") organizationId UUID
       @customAnnotation("CassandraType.Name.SET") @customAnnotation("CassandraType.Name.TEXT") @customAnnotation("") tags String
     }
+
+    // AI Semantic Search Example with Vector Embeddings:
+    // The Tag entity demonstrates AI-powered semantic search with multiple vector fields.
+    // Each VECTOR field stores an embedding generated from a source text field.
+    // The field name convention is: <sourceFieldName>Embedding (e.g., nameEmbedding derives from name).
+    entity Tag {
+      @Id @customAnnotation("PrimaryKeyType.PARTITIONED") @customAnnotation("CassandraType.Name.UUID") @customAnnotation("") @customAnnotation("") id UUID
+      @customAnnotation("") @customAnnotation("CassandraType.Name.TEXT") @customAnnotation("") @customAnnotation("") name String required
+      @customAnnotation("") @customAnnotation("CassandraType.Name.TEXT") @customAnnotation("") @customAnnotation("") description String
+      @customAnnotation("VECTOR") @customAnnotation("1536") @customAnnotation("") @customAnnotation("") nameEmbedding Blob
+      @customAnnotation("VECTOR") @customAnnotation("1536") @customAnnotation("") @customAnnotation("") descriptionEmbedding Blob
+    }
 ```
+
+**Vector Field Annotation Format:**
+- First annotation: `"VECTOR"` — marks the field as a vector embedding column
+- Second annotation: `"1536"` — the vector dimension (1536 for OpenAI text-embedding-3-small)
+- Third/fourth annotations: unused (leave as `""`)
+
+The field name must end with `Embedding` (e.g., `nameEmbedding`). The source field is derived by stripping the `Embedding` suffix (e.g., `name`).
+
+When an entity has vector fields, the blueprint automatically generates:
+- A `GET /api/<entity>/ai-search?query=...&limit=...&fields=...` REST endpoint
+- Cassandra ANN (Approximate Nearest Neighbor) query methods in the repository
+- An AI search bar on the Angular list page with checkbox selection for choosing which vector fields to search
+- `EmbeddingService` and `EmbeddingConfiguration` for OpenAI integration
+
+---
+
+### AI Search Setup
+
+To enable AI-powered semantic search, set your OpenAI API key:
+
+```bash
+export OPENAI_API_KEY=sk-your-api-key-here
+```
+
+Or add to `application-dev.yml`:
+```yaml
+openai:
+  api-key: sk-your-api-key-here
+```
+
+**Requirements:** Cassandra 5.0+ (for SAI vector index support).
 
 ---
 

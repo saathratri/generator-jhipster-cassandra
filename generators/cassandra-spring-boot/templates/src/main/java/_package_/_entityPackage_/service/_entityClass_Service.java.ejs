@@ -44,7 +44,7 @@ import org.springframework.data.domain.Page;
   <%_ } _%>
 import org.springframework.data.domain.Pageable;
 <%_ } _%>
-<%_ if (primaryKeySaathratri.composite) { _%>
+<%_ if (databaseTypeCassandra) { _%>
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 <%_ } _%>
@@ -153,6 +153,16 @@ public interface <%= entityClass %>Service {
 <%_ } _%>
      */
     <%- reactive ? 'Mono<Void>' : 'void' %> delete(<%- primaryKeySaathratri.composite ? `${persistClass}Id id` : `${primaryKey.type} ${primaryKey.name}` %>);
+<%_ if (databaseTypeCassandra && !reactive) { _%>
+
+    /**
+     * Get all the <%= entityInstancePlural %> with Cassandra cursor-based pagination.
+     *
+     * @param pageable the pagination information.
+     * @return the slice of entities.
+     */
+    Slice<<%= instanceType %>> findAllSlice(org.springframework.data.domain.Pageable pageable);
+<%_ } _%>
 <%_ if (searchEngineAny) { _%>
 
     /**

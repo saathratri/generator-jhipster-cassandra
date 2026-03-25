@@ -353,7 +353,7 @@ _%>
       const { fieldName, fieldTypeTimed } = field;
 _%>
   <%_ if (fieldTypeTimed || field.fieldTypeTimedSaathratri) { _%>
-      <%= fieldName %>: dayjs(raw<%= entityAngularName %>.<%= primaryKeySaathratri.name %>.<%= fieldName %>, DATE_TIME_FORMAT),
+      <%= fieldName %>: typeof raw<%= entityAngularName %>.<%= primaryKeySaathratri.name %>.<%= fieldName %> === 'number' ? dayjs(raw<%= entityAngularName %>.<%= primaryKeySaathratri.name %>.<%= fieldName %>) : dayjs(raw<%= entityAngularName %>.<%= primaryKeySaathratri.name %>.<%= fieldName %>, DATE_TIME_FORMAT),
   <%_ } _%>
 <%_ } _%>
     },
@@ -365,12 +365,12 @@ _%>
       ? Object.fromEntries(
           Object.entries(raw<%= entityAngularName %>.<%= fieldName %>).map(([key, value]) => [
             key,
-            dayjs(value, DATE_TIME_FORMAT),
+            typeof value === 'number' ? dayjs(value) : dayjs(value, DATE_TIME_FORMAT),
           ])
         )
       : {},
   <%_ } else if (fieldTypeTimed || field.fieldTypeTimedSaathratri) { _%>
-      <%= fieldName %>: dayjs(raw<%= entityAngularName %>.<%= fieldName %>, DATE_TIME_FORMAT),
+      <%= fieldName %>: typeof raw<%= entityAngularName %>.<%= fieldName %> === 'number' ? dayjs(raw<%= entityAngularName %>.<%= fieldName %>) : dayjs(raw<%= entityAngularName %>.<%= fieldName %>, DATE_TIME_FORMAT),
   <%_ } _%>
 <%_ } _%>
 <%_ } else { _%>
@@ -382,12 +382,12 @@ _%>
       ? Object.fromEntries(
           Object.entries(raw<%= entityAngularName %>.<%= fieldName %>).map(([key, value]) => [
             key,
-            dayjs(value, DATE_TIME_FORMAT),
+            typeof value === 'number' ? dayjs(value) : dayjs(value, DATE_TIME_FORMAT),
           ])
         )
       : {},
   <%_ } else if (fieldTypeTimed || field.fieldTypeTimedSaathratri) { _%>
-      <%= fieldName %>: dayjs(raw<%= entityAngularName %>.<%= fieldName %>, DATE_TIME_FORMAT),
+      <%= fieldName %>: typeof raw<%= entityAngularName %>.<%= fieldName %> === 'number' ? dayjs(raw<%= entityAngularName %>.<%= fieldName %>) : dayjs(raw<%= entityAngularName %>.<%= fieldName %>, DATE_TIME_FORMAT),
   <%_ } _%>
 <%_ } _%>
 <%_ } _%>

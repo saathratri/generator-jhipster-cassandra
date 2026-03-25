@@ -70,7 +70,7 @@ import org.springframework.data.domain.Page;
   <%_ } _%>
 import org.springframework.data.domain.Pageable;
 <%_ } _%>
-<%_ if (primaryKeySaathratri.composite) { _%>
+<%_ if (databaseTypeCassandra) { _%>
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 <%_ } _%>
@@ -295,6 +295,20 @@ public class <%= serviceClassName %><% if (serviceImpl) { %> implements <%= enti
         LOG.debug("Request to delete <%= entityClass %> : {}", <%_ if(primaryKeySaathratri.composite) { _%><%= primaryKeySaathratri.name %><%_ } else { _%><%= primaryKey.name %><%_ } _%>);
 <%- include('../../_partials_entity_/delete_template', {viaService: false, fromResource: false}); -%>
     }
+<%_ if (databaseTypeCassandra && !reactive) { _%>
+
+<%_ if (serviceImpl) { _%>
+    @Override
+<%_ } _%>
+    public Slice<<%= instanceType %>> findAllSlice(org.springframework.data.domain.Pageable pageable) {
+        LOG.debug("Request to get a slice of <%= entityClassPlural %>");
+  <%_ if (dtoMapstruct) { _%>
+        return <%= entityInstance %>Repository.findAll(pageable).map(<%= entityInstance %>Mapper::toDto);
+  <%_ } else { _%>
+        return <%= entityInstance %>Repository.findAll(pageable);
+  <%_ } _%>
+    }
+<%_ } _%>
 <%_ if (searchEngineAny) { _%>
 
   <%_ if (!serviceImpl) { _%>
