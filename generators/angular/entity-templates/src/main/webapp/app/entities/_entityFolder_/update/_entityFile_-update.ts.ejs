@@ -17,6 +17,9 @@
  limitations under the License.
 -%>
 import { Component, inject, OnInit<% if (anyFieldHasImageContentType) { %>, ElementRef<% } %> } from '@angular/core';
+<%_ if (fields.some(f => f.fieldTypeVectorSaathratri)) { _%>
+import { DecimalPipe } from '@angular/common';
+<%_ } _%>
 import { FormGroup } from '@angular/forms';
 import { HttpResponse } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -107,6 +110,9 @@ import { v1 as uuidv1 } from 'uuid'; // Import TimeUUID (UUID v1)
 <%_ } _%>
 <%_ if (anyFieldIsMapDayjsSaathratri) { _%>
       MapDayjsComponent,
+<%_ } _%>
+<%_ if (fields.some(f => f.fieldTypeVectorSaathratri)) { _%>
+      DecimalPipe,
 <%_ } _%>
     ],
 })

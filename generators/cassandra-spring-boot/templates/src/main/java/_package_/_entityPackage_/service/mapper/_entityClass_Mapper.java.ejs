@@ -24,6 +24,11 @@ _%>
 
 import java.util.Set;
 import java.util.TreeSet;
+<%_ if (fields.some(f => f.fieldTypeVectorSaathratri)) { _%>
+import java.util.List;
+import java.util.ArrayList;
+import com.datastax.oss.driver.api.core.data.CqlVector;
+<%_ } _%>
 
 import <%= entityAbsoluteClass %>;
 import <%= entityAbsolutePackage %>.service.dto.<%= dtoClass %>;
@@ -90,6 +95,17 @@ public interface <%= entityClass %>Mapper extends EntityMapper<<%= dtoClass %>, 
     default String map(Set<String> value) {
       if (value == null || value.isEmpty()) { return null; }
       return value.iterator().next();
+    }
+<%_ } _%>
+<%_ if (fields.some(f => f.fieldTypeVectorSaathratri)) { _%>
+
+    default List<Float> mapCqlVectorToList(CqlVector<Float> vector) {
+        if (vector == null) { return null; }
+        List<Float> list = new ArrayList<>();
+        for (Float f : vector) {
+            list.add(f);
+        }
+        return list;
     }
 <%_ } _%>
 }

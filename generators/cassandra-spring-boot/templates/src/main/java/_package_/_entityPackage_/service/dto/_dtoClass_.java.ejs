@@ -109,6 +109,9 @@ public class <%- dtoClass %> implements Serializable {
     _%>
   <%_ } _%>
 <%_ } _%>
+<%_ for (const vf of restProperties.filter(p => p.fieldTypeVectorSaathratri)) { _%>
+    private java.util.List<Float> <%- vf.propertyName %>;
+<%_ } _%>
 <%_ for(const field of fields) { _%>
     <%_ if(field.fieldTypeBlobContent === 'image') { _%>
             private String <%= field.fieldName %>ContentType;
@@ -218,6 +221,16 @@ public <%- dtoClass %> () {
   <%_ } _%>
   <%_ } _%>
     <%_ } _%>
+<%_ } _%>
+<%_ for (const vf of restProperties.filter(p => p.fieldTypeVectorSaathratri)) { _%>
+
+    public java.util.List<Float> get<%- this._.upperFirst(vf.propertyName) %>() {
+        return <%- vf.propertyName %>;
+    }
+
+    public void set<%- this._.upperFirst(vf.propertyName) %>(java.util.List<Float> <%- vf.propertyName %>) {
+        this.<%- vf.propertyName %> = <%- vf.propertyName %>;
+    }
 <%_ } _%>
 
     @Override

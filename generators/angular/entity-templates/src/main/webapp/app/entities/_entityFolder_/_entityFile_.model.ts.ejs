@@ -40,6 +40,9 @@ export interface I<%= entityAngularName %> {
 <%_ variablesWithTypesNonPrimaryKey.forEach(variablesWithType => { _%>
     <%- variablesWithType %>;
 <%_ }); _%>
+<%_ for (const field of fields.filter(f => f.fieldTypeVectorSaathratri)) { _%>
+    <%= field.fieldName %>?: number[] | null;
+<%_ } _%>
 }
 export interface I<%= entityAngularName %>Id {
 <%_ variablesWithTypesPrimaryKey.forEach(variablesWithType => { _%>
@@ -61,6 +64,9 @@ _%>
   <%_ if (field.fieldTypeBinary && !field.blobContentTypeText) { _%>
   <%= fieldName %>ContentType<% if (!id /* && !fieldValidationRequired */) { %>?<% } %>: string<% if (!id /* && !fieldValidationRequired */) { %> | null<% } %>,
   <%_ } _%>
+<%_ } _%>
+<%_ for (const field of fields.filter(f => f.fieldTypeVectorSaathratri)) { _%>
+  <%= field.fieldName %>?: number[] | null,
 <%_ } _%>
 }
 <%_ if (!readOnly && primaryKey) { _%>
