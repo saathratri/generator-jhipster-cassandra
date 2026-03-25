@@ -18,7 +18,7 @@
 -%>
 import { Component, inject, OnInit<% if (anyFieldHasImageContentType) { %>, ElementRef<% } %> } from '@angular/core';
 <%_ if (fields.some(f => f.fieldTypeVectorSaathratri)) { _%>
-import { DecimalPipe } from '@angular/common';
+import { JsonPipe } from '@angular/common';
 <%_ } _%>
 import { FormGroup } from '@angular/forms';
 import { HttpResponse } from '@angular/common/http';
@@ -112,7 +112,7 @@ import { v1 as uuidv1 } from 'uuid'; // Import TimeUUID (UUID v1)
       MapDayjsComponent,
 <%_ } _%>
 <%_ if (fields.some(f => f.fieldTypeVectorSaathratri)) { _%>
-      DecimalPipe,
+      JsonPipe,
 <%_ } _%>
     ],
 })

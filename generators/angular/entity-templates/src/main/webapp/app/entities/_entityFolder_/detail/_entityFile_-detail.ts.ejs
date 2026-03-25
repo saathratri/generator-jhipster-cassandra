@@ -18,7 +18,7 @@
 -%>
 import { Component, <% if (anyFieldIsBlobDerived) { %>inject, <% } %>input } from '@angular/core';
 <%_ if (fields.some(f => f.fieldTypeVectorSaathratri)) { _%>
-import { DecimalPipe } from '@angular/common';
+import { SlicePipe } from '@angular/common';
 <%_ } _%>
 import { RouterModule } from '@angular/router';
 
@@ -52,7 +52,7 @@ import { DataUtils } from 'app/core/util/data-util.service';
       FormatMediumDatePipe,
       ConvertFromDayjsToDateLongPipe,
 <%_ if (fields.some(f => f.fieldTypeVectorSaathratri)) { _%>
-      DecimalPipe,
+      SlicePipe,
 <%_ } _%>
     ],
 })
