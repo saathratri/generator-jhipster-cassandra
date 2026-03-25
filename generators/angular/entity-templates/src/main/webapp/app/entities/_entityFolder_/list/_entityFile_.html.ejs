@@ -591,7 +591,7 @@ _%>
                     <td>
                         <small class="text-muted">
                         @if (<%= entityInstance %>.<%= vf.fieldName %> && <%= entityInstance %>.<%= vf.fieldName %>.length > 0) {
-                            [{{ (<%= entityInstance %>.<%= vf.fieldName %>!.length > 4) ? (<%= entityInstance %>.<%= vf.fieldName %> | slice:0:4) + ', ...' : <%= entityInstance %>.<%= vf.fieldName %> }}]
+                            [{{ <%= entityInstance %>.<%= vf.fieldName %>[0] | number:'1.0-5' }}, {{ <%= entityInstance %>.<%= vf.fieldName %>[1] | number:'1.0-5' }}, {{ <%= entityInstance %>.<%= vf.fieldName %>[2] | number:'1.0-5' }}, ...]
                         } @else {
                             <em>Not generated</em>
                         }

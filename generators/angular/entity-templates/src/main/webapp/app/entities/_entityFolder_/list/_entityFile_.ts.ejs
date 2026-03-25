@@ -122,9 +122,9 @@ import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
     const hasMapFields = fields.some(field => field.fieldTypeMapSaathratri);
 _%>
 <%_ if (hasMapFields || hasVectorFieldsForAiSearch) { _%>
-import { KeyValuePipe<%_ if (hasVectorFieldsForAiSearch) { _%>, SlicePipe<%_ } _%> } from '@angular/common';
+import { KeyValuePipe<%_ if (hasVectorFieldsForAiSearch) { _%>, DecimalPipe<%_ } _%> } from '@angular/common';
 <%_ } else if (hasVectorFieldsForAiSearch) { _%>
-import { SlicePipe } from '@angular/common';
+import { DecimalPipe } from '@angular/common';
 <%_ } _%>
 
 @Component({
@@ -164,7 +164,7 @@ import { SlicePipe } from '@angular/common';
       KeyValuePipe,
 <%_ } _%>
 <%_ if (hasVectorFieldsForAiSearch) { _%>
-      SlicePipe,
+      DecimalPipe,
 <%_ } _%>
     ],
 })
