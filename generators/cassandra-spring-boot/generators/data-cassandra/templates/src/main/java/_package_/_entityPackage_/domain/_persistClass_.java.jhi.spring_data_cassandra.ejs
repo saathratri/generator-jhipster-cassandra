@@ -50,7 +50,11 @@ _%>
   <%_ if (!field.isCompositePrimaryKeyField) { _%>
 
       <%_
-        if(field.fieldTypeSetSaathratri) {
+        if(field.fieldTypeVectorSaathratri) {
+      _%>
+          @Column("<%- field.fieldNameAsDatabaseColumn %>")
+      <%_
+        } else if(field.fieldTypeSetSaathratri) {
       _%>
           @Column("<%- field.fieldNameAsDatabaseColumn %>")
           @CassandraType(type = <%= field.options.customAnnotation[0] %>, typeArguments = <%= field.options.customAnnotation[1] %>)

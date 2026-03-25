@@ -38,6 +38,10 @@
   const compositeKeyFieldNames = primaryKeySaathratri.composite
     ? fields.filter(f => f.isCompositePrimaryKeyField).map(f => `'${f.fieldName}'`).join(', ')
     : '';
+
+  // Saathratri: Detect vector fields for AI search
+  const vectorFieldsForAiSearch = fields.filter(f => f.fieldTypeVectorSaathratri === true);
+  const hasVectorFieldsForAiSearch = vectorFieldsForAiSearch.length > 0;
 _%>
 import { Component, computed, effect, inject, NgZone, OnInit, signal, WritableSignal, untracked<%_ if (databaseTypeCassandra && paginationNo) { _%>, HostListener<%_ } _%> } from '@angular/core';
 <%_ if (jpaMetamodelFiltering && paginationPagination) { _%>
@@ -70,7 +74,7 @@ import { MaterialModule } from 'app/shared/material.module';
 <%_ if (paginationPagination) { _%>
 import { ItemCountComponent } from 'app/shared/pagination';
 <%_ } _%>
-<%_ if (searchEngine || cassandraComposite) { _%>
+<%_ if (searchEngine || cassandraComposite || hasVectorFieldsForAiSearch) { _%>
 import { FormsModule } from '@angular/forms';
 <%_ } _%>
 <%_ if (primaryKeySaathratri.composite) { _%>
@@ -126,7 +130,7 @@ import { KeyValuePipe } from '@angular/common';
     templateUrl: './<%= entityFileName %>.html',
     imports: [
       RouterLink,
-<%_ if (searchEngine || cassandraComposite) { _%>
+<%_ if (searchEngine || cassandraComposite || hasVectorFieldsForAiSearch) { _%>
       FormsModule,
 <%_ } _%>
       FontAwesomeModule,
@@ -194,6 +198,16 @@ export class <%= componentName %> implements OnInit {
     hasNextPage = false;
     totalItems: number | null = null;
 <%_ } _%>
+<%_ /* Saathratri modification - AI search properties */ _%>
+<%_ if (hasVectorFieldsForAiSearch) { _%>
+
+    // AI Search properties
+    aiSearchQuery = '';
+    aiSearchLoading = signal(false);
+    isAiSearchActive = signal(false);
+    aiSearchSelectedFields: { [key: string]: boolean } = { <%- vectorFieldsForAiSearch.map(vf => `'${vf.fieldName}': true`).join(', ') %> };
+<%_ } _%>
+<%_ /* End Saathratri modification */ _%>
 <%_ if (cassandraComposite) {
     const partitionKeyFields = fields.filter(f => f.isPartitionedKeySaathratri);
     const clusteringKeyFields = fields.filter(f => f.isClusteredKeySaathratri);
@@ -665,6 +679,45 @@ _%>
     }
 
 <%_ } // end cassandraComposite search methods _%>
+<%_ /* Saathratri modification - AI search methods */ _%>
+<%_ if (hasVectorFieldsForAiSearch) { _%>
+
+    toggleAiSearchField(fieldName: string): void {
+        this.aiSearchSelectedFields[fieldName] = !this.aiSearchSelectedFields[fieldName];
+    }
+
+    private getSelectedAiSearchFields(): string[] {
+        const allFields = [<%- vectorFieldsForAiSearch.map(vf => `'${vf.fieldName}'`).join(', ') %>];
+        const selected = allFields.filter(f => this.aiSearchSelectedFields[f]);
+        return selected.length > 0 ? selected : allFields;
+    }
+
+    performAiSearch(query: string): void {
+        if (!query || !query.trim()) {
+            this.clearAiSearch();
+            return;
+        }
+        this.aiSearchLoading.set(true);
+        const fields = this.getSelectedAiSearchFields();
+        this.<%= entityInstance %>Service.aiSearch(query.trim(), 20, fields).subscribe({
+            next: results => {
+                this.<%= entityInstancePlural %>.set(results);
+                this.isAiSearchActive.set(true);
+                this.aiSearchLoading.set(false);
+            },
+            error: () => {
+                this.aiSearchLoading.set(false);
+            },
+        });
+    }
+
+    clearAiSearch(): void {
+        this.aiSearchQuery = '';
+        this.isAiSearchActive.set(false);
+        this.load();
+    }
+<%_ } _%>
+<%_ /* End Saathratri modification */ _%>
     navigateToWithComponentValues(event: SortState): void {
       this.handleNavigation(<% if (paginationPagination) { %>this.page(), <% } %>event<% if (jpaMetamodelFiltering && paginationPagination) { %>, this.filters.filterOptions<% } %><% if (searchEngineAny) { %>, this.currentSearch()<% } %>);
     }

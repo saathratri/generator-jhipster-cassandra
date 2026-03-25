@@ -139,11 +139,13 @@ export const angularSaathratriUtils = {
         if(!primaryKey || !fields || !variablesWithTypes) {
             return [];
         }
-        
+
         const variableDeclarations = [];
         const primaryKeyFieldNames = primaryKey.ids.map(pk => pk.fieldName);
-        
+
         fields.forEach(field => {
+            // Skip vector embedding fields from Angular model
+            if (field.fieldTypeVectorSaathratri) return;
             if (!primaryKeyFieldNames.includes(field.fieldName)) {
                 if(field.options) {
                     if(field.fieldTypeMapDayjsSaathratri) {

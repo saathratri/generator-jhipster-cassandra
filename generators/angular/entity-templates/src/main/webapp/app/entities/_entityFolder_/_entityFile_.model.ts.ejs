@@ -53,7 +53,7 @@ export type New<%= entityAngularName %> = Omit<I<%= entityAngularName %>, '<%= p
     // Single-value Primary Key
 _%>
 export interface I<%= entityAngularName %> {
-<%_ for (const field of fields) {
+<%_ for (const field of fields.filter(f => !f.fieldTypeVectorSaathratri)) {
       const { fieldName, fieldValidationRequired, id } = field;
       const tsType = `${field.fieldIsEnum ? 'keyof typeof ' : ''}${field.tsType}`;
 _%>

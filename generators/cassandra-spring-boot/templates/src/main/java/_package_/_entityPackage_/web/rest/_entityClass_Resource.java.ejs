@@ -766,6 +766,50 @@ public class <%= entityClass %>Resource {
 %>
 <%- methodsOutput %>
 <% } %>
+<%_ /* Saathratri modification - AI text search endpoint */ _%>
+<%_
+const vectorFieldsForResource = fields.filter(field => field.fieldTypeVectorSaathratri === true);
+const hasVectorFieldsForResource = vectorFieldsForResource.length > 0;
+_%>
+<%_ if (hasVectorFieldsForResource && !reactive) { _%>
+
+    // ==================== AI Text Search Endpoint ====================
+
+    /**
+     * {@code GET  /<%= entityApiUrl %>/ai-search} : search for <%= entityInstancePlural %> using AI-powered semantic similarity.
+     *
+     * @param query the text query to search for.
+     * @param limit maximum number of results to return (default: 10).
+     * @param fields optional comma-separated list of vector field names to search in.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of matching entities in body.
+     */
+    @GetMapping("/ai-search")
+  <%_ if (entitySpringReadPreAuthorize) { _%>
+    @PreAuthorize("<%- entitySpringReadPreAuthorize %>")
+  <%_ } _%>
+    public ResponseEntity<List<<%= instanceType %>>> aiSearch(
+            @RequestParam("query") String query,
+            @RequestParam(value = "limit", defaultValue = "10") int limit,
+            @RequestParam(value = "fields", required = false) String fields) {
+        LOG.debug("REST request to AI search <%= entityClassPlural %> for query: {}, limit: {}, fields: {}", query, limit, fields);
+        List<String> fieldList = null;
+        if (fields != null && !fields.isBlank()) {
+            fieldList = java.util.Arrays.stream(fields.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .collect(java.util.stream.Collectors.toList());
+        }
+    <%_ if (viaService) { _%>
+        List<<%= instanceType %>> result = <%= entityInstance %>Service.aiSearch(query, limit, fieldList);
+    <%_ } else { _%>
+        LOG.warn("AI search requires service layer, returning empty results");
+        List<<%= instanceType %>> result = List.of();
+    <%_ } _%>
+        return ResponseEntity.ok().body(result);
+    }
+<%_ } _%>
+<%_ /* End Saathratri modification */ _%>
+
   private String getUrlEncodedParameterValue(String parameterValue) {
     String encodedValue = null;
     try {

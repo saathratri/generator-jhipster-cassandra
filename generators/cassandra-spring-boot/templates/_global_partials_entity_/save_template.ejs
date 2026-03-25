@@ -26,6 +26,30 @@
         <%- mapsIdAssoc.otherEntity.primaryKey.type %> <%- mapsIdAssoc.otherEntityName %>Id = <%- persistInstance %>.get<%- mapsIdAssoc.relationshipNameCapitalized %>().get<%- mapsIdAssoc.otherEntity.primaryKey.nameCapitalized %>();
         <%- mapsIdAssoc.otherEntity.entityInstance %>Repository.findById(<%- mapsIdAssoc.otherEntityName %>Id).ifPresent(<%- persistInstance %>::<%_ if (!fluentMethods) { _%>set<%- mapsIdAssoc.relationshipNameCapitalized %> <%_ } else { _%><%- mapsIdAssoc.relationshipName %><%_ } _%>);
 <%_ } _%>
+<%_ /* Saathratri: Generate vector embeddings before saving */ _%>
+<%_
+const vectorFieldsForSave = typeof fields !== 'undefined' ? fields.filter(f => f.fieldTypeVectorSaathratri === true) : [];
+if (vectorFieldsForSave.length > 0 && !reactive && typeof generateEmbeddings !== 'undefined' && generateEmbeddings) { _%>
+        // Generate vector embeddings for AI search
+        if (embeddingService.isAvailable()) {
+  <%_ for (const vf of vectorFieldsForSave) { _%>
+            {
+                String sourceValue = <%- persistInstance %>.get<%= vf.sourceFieldNameCapitalizedSaathratri %>();
+                if (sourceValue != null && !sourceValue.isBlank()) {
+                    float[] embeddingArray = embeddingService.generateEmbedding(sourceValue);
+                    if (embeddingArray != null) {
+                        java.util.List<Float> floatList = new java.util.ArrayList<>(embeddingArray.length);
+                        for (float f : embeddingArray) {
+                            floatList.add(f);
+                        }
+                        <%- persistInstance %>.set<%= vf.fieldNameCapitalized %>(CqlVector.newInstance(floatList));
+                    }
+                }
+            }
+  <%_ } _%>
+        }
+<%_ } _%>
+<%_ /* End Saathratri modification */ _%>
         <%- returnDirectly && !searchEngineElasticsearch && !dtoMapstruct ? 'return' : `${persistInstance} =` %> <%- entityInstance %>Repository.save(<%- persistInstance %>);
 <%_ if (searchEngineElasticsearch) { _%>
         <%- entityInstance %>SearchRepository.index(<%- persistInstance %>);

@@ -524,4 +524,22 @@ _%>
     });
   }
 <%_ } _%>
+<%_ /* Saathratri modification - AI search method */ _%>
+<%_
+const vectorFieldsForAngularService = fields.filter(f => f.fieldTypeVectorSaathratri === true);
+const hasVectorFieldsForAngularService = vectorFieldsForAngularService.length > 0;
+_%>
+<%_ if (hasVectorFieldsForAngularService) { _%>
+
+    aiSearch(query: string, limit: number, fields?: string[]): Observable<I<%= entityAngularName %>[]> {
+        let params: { [key: string]: string | string[] } = { query, limit: String(limit) };
+        if (fields && fields.length > 0) {
+            params['fields'] = fields.join(',');
+        }
+        return this.http.get<<%- entityRestName %>[]>(`${this.resourceUrl}/ai-search`, {
+            params,
+        })<% if (requiresRestTypeConversion) { %>.pipe(map(res => res.map(item => this.convertValueFromServer(item))))<% } %>;
+    }
+<%_ } _%>
+<%_ /* End Saathratri modification */ _%>
 }

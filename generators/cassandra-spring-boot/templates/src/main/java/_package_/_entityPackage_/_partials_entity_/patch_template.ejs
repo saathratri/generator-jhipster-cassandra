@@ -52,6 +52,30 @@ _%>
       <%_ } _%>
     <%_ } %>
   <% } %>
+<%_ /* Saathratri: Regenerate vector embeddings on partial update */ _%>
+<%_
+const vectorFieldsForPatch = typeof fields !== 'undefined' ? fields.filter(f => f.fieldTypeVectorSaathratri === true) : [];
+if (vectorFieldsForPatch.length > 0 && !reactive && isService) { _%>
+    // Regenerate vector embeddings for AI search
+    if (embeddingService.isAvailable()) {
+  <%_ for (const vf of vectorFieldsForPatch) { _%>
+        {
+            String sourceValue = existing<%= entityClass %>.get<%= vf.sourceFieldNameCapitalizedSaathratri %>();
+            if (sourceValue != null && !sourceValue.isBlank()) {
+                float[] embeddingArray = embeddingService.generateEmbedding(sourceValue);
+                if (embeddingArray != null) {
+                    java.util.List<Float> floatList = new java.util.ArrayList<>(embeddingArray.length);
+                    for (float f : embeddingArray) {
+                        floatList.add(f);
+                    }
+                    existing<%= entityClass %>.set<%= vf.fieldNameCapitalized %>(CqlVector.newInstance(floatList));
+                }
+            }
+        }
+  <%_ } _%>
+    }
+<%_ } _%>
+<%_ /* End Saathratri modification */ _%>
     return existing<%= entityClass %>;
     })
   <%_ } %>

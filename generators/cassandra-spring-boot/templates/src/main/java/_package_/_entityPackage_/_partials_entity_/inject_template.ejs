@@ -47,6 +47,11 @@
       beans.push({class: `${mapsIdEntity}Repository`, instance: mapsIdRepoInstance});
     }
   }
+  // Saathratri: inject EmbeddingService for AI vector search
+  const hasVectorFieldsForInject = typeof fields !== 'undefined' && fields.some(f => f.fieldTypeVectorSaathratri === true);
+  if (hasVectorFieldsForInject && !isController) {
+    beans.push({class: 'EmbeddingService', instance: 'embeddingService'});
+  }
   if (saveUserSnapshot && (viaService || constructorName.endsWith('Resource'))) {
     beans.push({class: 'UserRepository', instance: 'userRepository'});
   }

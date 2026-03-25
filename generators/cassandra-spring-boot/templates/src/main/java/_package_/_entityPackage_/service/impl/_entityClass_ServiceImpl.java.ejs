@@ -51,6 +51,16 @@ import <%= entityAbsolutePackage %>.repository.search.<%= entityClass %>SearchRe
 import <%= entityAbsolutePackage %>.service.dto.<%= dtoClass %>;
 import <%= entityAbsolutePackage %>.service.mapper.<%= entityClass %>Mapper;
 <%_ } _%>
+<%_ /* Saathratri modification - import EmbeddingService for AI search */ _%>
+<%_
+const vectorFieldsForImport = fields.filter(field => field.fieldTypeVectorSaathratri === true);
+const hasVectorFieldsForImport = vectorFieldsForImport.length > 0;
+_%>
+<%_ if (hasVectorFieldsForImport && !reactive) { _%>
+import <%= packageName %>.service.embedding.EmbeddingService;
+import com.datastax.oss.driver.api.core.data.CqlVector;
+<%_ } _%>
+<%_ /* End Saathratri modification */ _%>
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -118,7 +128,7 @@ public class <%= serviceClassName %><% if (serviceImpl) { %> implements <%= enti
 <%_ } _%>
     public <% if (reactive) { %>Mono<<% } %><%= instanceType %><% if (reactive) { %>><% } %> save(<%= instanceType %> <%= instanceName %>) {
         LOG.debug("Request to save <%= entityClass %> : {}", <%= instanceName %>);
-<%- include('/_global_partials_entity_/save_template', {saveNewEntityOperation: true, returnDirectly: true}); -%>
+<%- include('/_global_partials_entity_/save_template', {saveNewEntityOperation: true, returnDirectly: true, generateEmbeddings: true}); -%>
     }
 <%_ if (updatableEntity) { _%>
 
@@ -135,7 +145,7 @@ public class <%= serviceClassName %><% if (serviceImpl) { %> implements <%= enti
   <%_ } _%>
     public <% if (reactive) { %>Mono<<% } %><%= instanceType %><% if (reactive) { %>><% } %> update(<%= instanceType %> <%= instanceName %>) {
         LOG.debug("Request to update <%= entityClass %> : {}", <%= instanceName %>);
-<%- include('/_global_partials_entity_/save_template', {saveNewEntityOperation: false, returnDirectly: true}); -%>
+<%- include('/_global_partials_entity_/save_template', {saveNewEntityOperation: false, returnDirectly: true, generateEmbeddings: true}); -%>
     }
 
   <%_ if (!serviceImpl) { _%>
@@ -314,7 +324,79 @@ public class <%= serviceClassName %><% if (serviceImpl) { %> implements <%= enti
   <%_ } } _%>
     }
 <%_ } _%>
-<% if (primaryKeySaathratri.composite) { 
+<%_ /* Saathratri modification - AI text search and vector similarity search methods */ _%>
+<%_
+const vectorFields = fields.filter(field => field.fieldTypeVectorSaathratri === true);
+const hasVectorFields = vectorFields.length > 0;
+_%>
+<%_ if (hasVectorFields && !reactive) { _%>
+
+    // ==================== AI Text Search ====================
+
+    @Override
+    public List<<%= instanceType %>> aiSearch(String query, int limit, List<String> fields) {
+        LOG.debug("Request to AI search <%= entityClassPlural %> for query: {}, limit: {}, fields: {}", query, limit, fields);
+
+        if (query == null || query.isBlank()) {
+            return List.of();
+        }
+
+        if (!embeddingService.isAvailable()) {
+            LOG.warn("Embedding service not available for AI search, returning empty results");
+            return List.of();
+        }
+
+        float[] embeddingArray = embeddingService.generateEmbedding(query);
+        if (embeddingArray == null) {
+            LOG.warn("Failed to generate embedding for AI search query, returning empty results");
+            return List.of();
+        }
+
+        // Convert float[] to CqlVector<Float>
+        java.util.List<Float> floatList = new java.util.ArrayList<>(embeddingArray.length);
+        for (float f : embeddingArray) {
+            floatList.add(f);
+        }
+        CqlVector<Float> queryVector = CqlVector.newInstance(floatList);
+
+        boolean searchAll = (fields == null || fields.isEmpty());
+        java.util.Map<String, <%= instanceType %>> resultMap = new java.util.LinkedHashMap<>();
+
+  <%_ for (const vectorField of vectorFields) { _%>
+        // Search by <%= vectorField.fieldName %>
+        if (searchAll || fields.contains("<%= vectorField.fieldName %>")) {
+            <%= entityInstance %>Repository.findSimilarBy<%= vectorField.fieldNameCapitalized %>(queryVector, limit)
+                .stream()
+    <%_ if (dtoMapstruct) { _%>
+                .map(<%= entityToDtoReference %>)
+    <%_ } _%>
+                .forEach(item -> resultMap.putIfAbsent(String.valueOf(item.get<%= primaryKeySaathratri.composite ? primaryKeySaathratri.nameCapitalized : primaryKey.nameCapitalized %>()), item));
+        }
+
+  <%_ } _%>
+        return new java.util.ArrayList<>(resultMap.values());
+    }
+
+    // ==================== Vector Similarity Search Methods ====================
+  <%_ for (const vectorField of vectorFields) { _%>
+
+    @Override
+    public List<<%= instanceType %>> findSimilarBy<%= vectorField.fieldNameCapitalized %>(CqlVector<Float> embedding, int limit) {
+        LOG.debug("Request to find <%= entityClassPlural %> similar by <%= vectorField.fieldName %>, limit: {}", limit);
+    <%_ if (dtoMapstruct) { _%>
+        return <%= entityInstance %>Repository.findSimilarBy<%= vectorField.fieldNameCapitalized %>(embedding, limit)
+            .stream()
+            .map(<%= entityToDtoReference %>)
+            .collect(java.util.stream.Collectors.toList());
+    <%_ } else { _%>
+        return <%= entityInstance %>Repository.findSimilarBy<%= vectorField.fieldNameCapitalized %>(embedding, limit);
+    <%_ } _%>
+    }
+  <%_ } _%>
+<%_ } _%>
+<%_ /* End Saathratri modification */ _%>
+
+<% if (primaryKeySaathratri.composite) {
   let methodsArray = generatePrimaryKeyMethods(entityClass, entityInstance, entityInstanceSnakeCase, primaryKeySaathratri, "ServiceImpl");
   // Output all method names at once, joined by newlines for readability
   let methodsOutput = methodsArray.join('\n');

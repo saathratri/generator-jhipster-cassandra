@@ -168,6 +168,34 @@ public interface <%= entityClass %>Service {
     <% if (!paginationNo) { %><%= pageOrFlux %><<%= instanceType %><% } else { %><%= listOrFlux %><<%= instanceType %><% } %>> search(String query<% if (!paginationNo) { %>, Pageable pageable<% } %>);
 <%_ } _%>
 
+<%_ /* Saathratri modification - AI search method declaration */ _%>
+<%_
+const vectorFieldsForServiceIntf = fields.filter(field => field.fieldTypeVectorSaathratri === true);
+const hasVectorFieldsForServiceIntf = vectorFieldsForServiceIntf.length > 0;
+_%>
+<%_ if (hasVectorFieldsForServiceIntf && !reactive) { _%>
+
+    // ==================== AI Text Search ====================
+
+    /**
+     * Search for <%= entityInstancePlural %> using AI-powered semantic similarity.
+     *
+     * @param query the text query to search for
+     * @param limit maximum number of results to return
+     * @param fields optional list of vector field names to search in (null or empty searches all)
+     * @return list of semantically similar <%= entityInstancePlural %>
+     */
+    List<<%= instanceType %>> aiSearch(String query, int limit, List<String> fields);
+
+  <%_ for (const vectorField of vectorFieldsForServiceIntf) { _%>
+    /**
+     * Find <%= entityInstancePlural %> similar to the given embedding vector using <%= vectorField.fieldName %>.
+     */
+    List<<%= instanceType %>> findSimilarBy<%= vectorField.fieldNameCapitalized %>(com.datastax.oss.driver.api.core.data.CqlVector<Float> embedding, int limit);
+  <%_ } _%>
+<%_ } _%>
+<%_ /* End Saathratri modification */ _%>
+
 <% if (primaryKeySaathratri.composite) {
   let methodsArray = generatePrimaryKeyMethods(entityClass, entityInstance, entityInstanceSnakeCase, primaryKeySaathratri, "Service");
   // Output all method names at once, joined by newlines for readability

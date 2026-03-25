@@ -25,7 +25,7 @@
     formDefaultProperties.push(primaryKeySaathratri.name);
 } else { 
     formDefaultProperties = [
-      ...fields.filter(field => field.fieldTypeTimed || field.fieldTypeTimedSaathratri || field.fieldTypeBoolean || field.id).map(field => field.fieldName),
+      ...fields.filter(field => !field.fieldTypeVectorSaathratri && (field.fieldTypeTimed || field.fieldTypeTimedSaathratri || field.fieldTypeBoolean || field.id)).map(field => field.fieldName),
   ];
 }
   const containDefaultProperties = formDefaultProperties.length > 0;
@@ -97,7 +97,7 @@ _%>
   <%_ } _%>
 <%_ } _%>
 <%_ } else { _%>
-<%_ for (field of fields) {
+<%_ for (field of fields.filter(f => !f.fieldTypeVectorSaathratri)) {
       const { fieldName, fieldType, fieldTypeBlobContent, fieldValidationRequired, tsType, fieldIsEnum } = field;
 _%>
   <%= fieldName %>: FormControl<<%= entityFormName %>['<%= fieldName %>']>;
@@ -208,7 +208,7 @@ _%>
 <%_ } _%>
 <%_ } _%>
 <%_ } else { _%>
-<%_ for (const field of fields) {
+<%_ for (const field of fields.filter(f => !f.fieldTypeVectorSaathratri)) {
       const { fieldName, fieldType, fieldTypeBlobContent, fieldValidateRules, fieldTypeTemporal, fieldValidationRequired, fieldValidationMinLength, fieldValidationMaxLength, fieldValidationMin, fieldValidationMax, fieldValidationPattern } = field;
       const usesValidators = fieldValidationRequired || fieldValidationMinLength || fieldValidationMaxLength || fieldValidationMin || fieldValidationMax || fieldValidationPattern || field.id;
 _%>
@@ -328,7 +328,7 @@ _%>
       <%_ } _%>
     <%_ } _%>
   <%_ } else { _%>
-  <%_ for (field of fields) {
+  <%_ for (field of fields.filter(f => !f.fieldTypeVectorSaathratri)) {
         const { fieldName, fieldTypeBoolean, fieldTypeTimed, fieldTypeLocalDate, fieldTypeSetSaathratri, fieldTypeMapSaathratri } = field;
   _%>
     <%_ if (field.id) { _%>
@@ -374,7 +374,7 @@ _%>
   <%_ } _%>
 <%_ } _%>
 <%_ } else { _%>
-<%_ for (field of fields) {
+<%_ for (field of fields.filter(f => !f.fieldTypeVectorSaathratri)) {
       const { fieldName, fieldTypeTimed } = field;
 _%>
   <%_ if (field.fieldTypeMapDayjsSaathratri) { _%>
@@ -425,7 +425,7 @@ _%>
   <%_ } _%>
 <%_ } _%>
 <%_ } else { _%>
-  <%_ for (field of fields) {
+  <%_ for (field of fields.filter(f => !f.fieldTypeVectorSaathratri)) {
       const { fieldName, fieldTypeTimed } = field;
 _%>
   <%_ if(field.fieldTypeMapDayjsSaathratri) { _%>

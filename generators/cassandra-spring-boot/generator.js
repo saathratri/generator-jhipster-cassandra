@@ -83,7 +83,45 @@ export default class extends BaseApplicationGenerator {
 
   get [BaseApplicationGenerator.PREPARING_EACH_ENTITY_FIELD]() {
     return this.asPreparingEachEntityFieldTaskGroup({
-      async preparingEachEntityFieldTemplateTask() {},
+      async preparingEachEntityFieldTemplateTask({ entity, field, application }) {
+        // Detect vector fields annotated with @customAnnotation("VECTOR")
+        const annotation = field.options?.customAnnotation?.[0];
+        if (annotation === 'VECTOR') {
+          const vectorDimension = field.options?.customAnnotation?.[1] || '1536';
+          const sourceFieldName = field.fieldName.replace(/Embedding$/, '');
+          const sourceFieldNameCapitalized = sourceFieldName.charAt(0).toUpperCase() + sourceFieldName.slice(1);
+
+          field.fieldTypeVectorSaathratri = true;
+          field.vectorDimensionSaathratri = vectorDimension;
+          field.sourceFieldNameSaathratri = sourceFieldName;
+          field.sourceFieldNameCapitalizedSaathratri = sourceFieldNameCapitalized;
+
+          // Set proper Java type for vector fields
+          field.javaFieldType = 'CqlVector<Float>';
+
+          // Hide vector fields from Angular UI (they are internal embeddings)
+          field.hidden = true;
+
+          // Override blob flags since vector fields are not blobs
+          field.fieldTypeBytes = false;
+          field.fieldWithContentType = false;
+          field.fieldTypeBinary = false;
+          field.blobContentTypeText = false;
+          field.blobContentTypeAny = false;
+          field.blobContentTypeImage = false;
+          field.fieldTypeBlobContent = undefined;
+          field.fieldTypeBlob = false;
+
+          // Track vector fields at application level
+          application.hasVectorFieldsSaathratri = true;
+          if (!application.vectorEntitiesSaathratri) {
+            application.vectorEntitiesSaathratri = [];
+          }
+          if (!application.vectorEntitiesSaathratri.includes(entity.entityClass)) {
+            application.vectorEntitiesSaathratri.push(entity.entityClass);
+          }
+        }
+      },
     });
   }
 
@@ -131,6 +169,22 @@ export default class extends BaseApplicationGenerator {
               ...application,
               nativeTransportCqlPortSaathratri: nativeTransportCqlPort,
             }
+          });
+        }
+
+        // Write AI/embedding service templates when vector fields are present
+        if (application.hasVectorFieldsSaathratri) {
+          await this.writeFiles({
+            sections: {
+              files: [{
+                ...javaMainPackageTemplatesBlock(),
+                templates: [
+                  'service/embedding/EmbeddingService.java',
+                  'config/EmbeddingConfiguration.java',
+                ]
+              }],
+            },
+            context: application
           });
         }
       },
@@ -197,7 +251,75 @@ export default class extends BaseApplicationGenerator {
 
   get [BaseApplicationGenerator.POST_WRITING]() {
     return this.asPostWritingTaskGroup({
-      async postWritingTemplateTask() {},
+      async postWritingTemplateTask({ application }) {
+        if (!application.hasVectorFieldsSaathratri) return;
+
+        // Add Spring AI BOM and OpenAI dependency to pom.xml
+        if (application.buildToolMaven) {
+          const pomXmlPath = 'pom.xml';
+          this.editFile(pomXmlPath, content => {
+            // Add Spring AI OpenAI starter to the main <dependencies> section
+            // Match the top-level </dependencies> (4-space indent) to avoid hitting dependencyManagement or profile ones
+            if (!content.includes('spring-ai-openai')) {
+              content = content.replace(
+                /^(    )<\/dependencies>/m,
+                `$1    <dependency>
+$1        <groupId>org.springframework.ai</groupId>
+$1        <artifactId>spring-ai-openai</artifactId>
+$1    </dependency>
+$1</dependencies>`
+              );
+            }
+
+            // Add Spring AI BOM inside <dependencyManagement><dependencies>
+            if (!content.includes('spring-ai-bom')) {
+              content = content.replace(
+                /(<\/dependencies>\s*<\/dependencyManagement>)/,
+                `    <dependency>
+                <groupId>org.springframework.ai</groupId>
+                <artifactId>spring-ai-bom</artifactId>
+                <version>2.0.0-M3</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        $1`
+              );
+            }
+
+            // Add Spring Milestones repository if not present (needed for milestone releases)
+            if (!content.includes('spring-milestones')) {
+              if (content.includes('</repositories>')) {
+                content = content.replace(
+                  '</repositories>',
+                  `    <repository>
+            <id>spring-milestones</id>
+            <name>Spring Milestones</name>
+            <url>https://repo.spring.io/milestone</url>
+        </repository>
+    </repositories>`
+                );
+              } else {
+                // No <repositories> section exists, add one before <profiles> or </project>
+                const insertBefore = content.includes('<profiles>') ? '<profiles>' : '</project>';
+                content = content.replace(
+                  insertBefore,
+                  `<repositories>
+        <repository>
+            <id>spring-milestones</id>
+            <name>Spring Milestones</name>
+            <url>https://repo.spring.io/milestone</url>
+        </repository>
+    </repositories>
+
+    ${insertBefore}`
+                );
+              }
+            }
+
+            return content;
+          });
+        }
+      },
     });
   }
 

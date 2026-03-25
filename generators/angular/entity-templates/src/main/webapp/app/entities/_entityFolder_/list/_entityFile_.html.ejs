@@ -387,6 +387,58 @@ _%>
     </div>
 <%_ } _%>
 
+<%_ /* Saathratri modification - AI vector search bar for entities with vector fields */ _%>
+<%_
+const vectorFieldsForAiSearch = fields.filter(field => field.fieldTypeVectorSaathratri === true);
+const hasVectorFieldsForAiSearch = vectorFieldsForAiSearch.length > 0;
+_%>
+<%_ if (hasVectorFieldsForAiSearch) { _%>
+
+    <form name="aiSearchForm" class="row row-cols-sm-auto align-items-center">
+        <div class="col-sm-12">
+            <div class="input-group w-100 mt-3">
+                <label class="visually-hidden" for="aiSearchQuery">AI Search</label>
+                <input type="text" class="form-control" [(ngModel)]="aiSearchQuery" id="aiSearchQuery" name="aiSearchQuery" placeholder="AI Search (semantic)..."
+                       (keyup.enter)="performAiSearch(aiSearchQuery)">
+
+                <button class="btn btn-warning" (click)="performAiSearch(aiSearchQuery)" [disabled]="aiSearchLoading()">
+                    @if (aiSearchLoading()) {
+                        <fa-icon icon="sync" animation="spin"></fa-icon>
+                    } @else {
+                        <fa-icon icon="search"></fa-icon>
+                    }
+                    <span class="d-none d-md-inline">AI Search</span>
+                </button>
+
+            @if (isAiSearchActive()) {
+                <button class="btn btn-danger" (click)="clearAiSearch()">
+                    <fa-icon icon="trash-alt"></fa-icon>
+                </button>
+            }
+            </div>
+            <%_ if (vectorFieldsForAiSearch.length > 1) { _%>
+            <div class="mt-2 d-flex flex-wrap gap-3">
+                <small class="text-muted me-1">Search in:</small>
+              <%_ for (const vf of vectorFieldsForAiSearch) { _%>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="aiField_<%= vf.fieldName %>"
+                           [checked]="aiSearchSelectedFields['<%= vf.fieldName %>']"
+                           (change)="toggleAiSearchField('<%= vf.fieldName %>')">
+                    <label class="form-check-label" for="aiField_<%= vf.fieldName %>"><%= vf.sourceFieldNameSaathratri %></label>
+                </div>
+              <%_ } _%>
+            </div>
+            <%_ } _%>
+        </div>
+    </form>
+    @if (isAiSearchActive()) {
+        <div class="alert alert-info mt-2 mb-0">
+            <fa-icon icon="search"></fa-icon> Showing AI-powered semantic search results. <a href="javascript:void(0)" (click)="clearAiSearch()">Clear search</a>
+        </div>
+    }
+<%_ } _%>
+<%_ /* End Saathratri modification */ _%>
+
 <%_ if (databaseTypeCassandra && primaryKeySaathratri.composite) { _%>
 @if (<%= entityInstancePlural %>().length === 0 && !isLoading()) {
     <div class="alert alert-warning" id="no-result">

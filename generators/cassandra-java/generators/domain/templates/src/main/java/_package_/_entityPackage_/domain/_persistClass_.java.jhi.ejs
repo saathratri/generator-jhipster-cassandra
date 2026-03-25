@@ -65,6 +65,9 @@ import java.util.Map;
    _%>
 <%_ } _%>
 import java.io.Serializable;
+<%_ if (fields.some(f => f.fieldTypeVectorSaathratri)) { _%>
+import com.datastax.oss.driver.api.core.data.CqlVector;
+<%_ } _%>
 <%_ if (anyFieldIsBigDecimal) { _%>
 import java.math.BigDecimal;
 <%_ } if (anyFieldIsInstant) { _%>
@@ -134,7 +137,11 @@ _%>
   <%_ } _%>
 <&- fragments.field<%- field.fieldNameCapitalized %>AnnotationSection() -&>
   <%_
-    if(field.fieldTypeSetSaathratri) {
+    if(field.fieldTypeVectorSaathratri) {
+  _%>
+    private CqlVector<Float> <%= field.fieldName %>;
+  <%_
+    } else if(field.fieldTypeSetSaathratri) {
   _%>
   private Set<<%= field.javaFieldType %>> <%= field.fieldName %>;
   <%_
@@ -190,7 +197,20 @@ _%>
 <&- fragments.field<%- field.fieldNameCapitalized %>CustomMethodsSection() -&>
 <&_ if (!fragments.field<%- field.fieldNameCapitalized %>CustomMethodsSection()) { -&>
   <%_
-    if(field.fieldTypeSetSaathratri) {
+    if(field.fieldTypeVectorSaathratri) {
+  _%>
+    public CqlVector<Float> get<%= field.fieldInJavaBeanMethod %>() {
+        return this.<%= field.fieldName %>;
+    }
+  <%_ if (fluentMethods) { _%>
+
+    public <%= persistClass %> <%= field.fieldName %>(CqlVector<Float> <%= field.fieldName %>) {
+        this.set<%= field.fieldInJavaBeanMethod %>(<%= field.fieldName %>);
+        return this;
+    }
+  <%_ } _%>
+  <%_
+    } else if(field.fieldTypeSetSaathratri) {
   _%>
   public Set<<%= field.javaFieldType %>> get<%= field.fieldInJavaBeanMethod %>() {
         return this.<%= field.fieldName %>;
@@ -237,7 +257,13 @@ _%>
   <&- fragments.field<%- field.fieldNameCapitalized %>CustomSetSection() -&>
   <&_ if (!fragments.field<%- field.fieldNameCapitalized %>CustomSetSection()) { -&>
   <%_
-    if(field.fieldTypeSetSaathratri) {
+    if(field.fieldTypeVectorSaathratri) {
+  _%>
+    public void set<%= field.fieldInJavaBeanMethod %>(CqlVector<Float> <%= field.fieldName %>) {
+        this.<%= field.fieldName %> = <%= field.fieldName %>;
+    }
+  <%_
+    } else if(field.fieldTypeSetSaathratri) {
   _%>
     public void set<%= field.fieldInJavaBeanMethod %>(Set<<%= field.javaFieldType %>> <%= field.fieldName %>) {
       this.<%= field.fieldName %> = <%= field.fieldName %>;

@@ -20,7 +20,9 @@
 CREATE TABLE IF NOT EXISTS <%= entityInstanceSnakeCase %> (
 <%_ for (const field of fields) {
   const fieldNameUnderscored = field.fieldNameUnderscored; _%>
-  <%_ if (field.fieldTypeSetSaathratri) { _%>
+  <%_ if (field.fieldTypeVectorSaathratri) { _%>
+    <%= fieldNameUnderscored %> VECTOR<FLOAT, <%= field.vectorDimensionSaathratri %>>,
+  <%_ } else if (field.fieldTypeSetSaathratri) { _%>
     <%= fieldNameUnderscored %> set<text>,
   <%_ } else if (field.fieldTypeMapSaathratri) { _%>
     <%_ if (field.fieldTypeMapBooleanSaathratri) { _%>
@@ -79,3 +81,10 @@ CREATE TABLE IF NOT EXISTS <%= entityInstanceSnakeCase %> (
   primary key (<%= primaryKeyNameSnakeCase %>)
 );
 <%_ } _%>
+<%_ /* Create SAI vector indexes for vector fields (requires Cassandra 5.0+) */ _%>
+<%_ for (const field of fields) {
+  if (field.fieldTypeVectorSaathratri) { _%>
+
+CREATE CUSTOM INDEX IF NOT EXISTS <%= entityInstanceSnakeCase %>_<%= field.fieldNameUnderscored %>_idx ON <%= entityInstanceSnakeCase %> (<%= field.fieldNameUnderscored %>) USING 'StorageAttachedIndex';
+<%_ }
+} _%>

@@ -48,18 +48,35 @@ public interface <%= entityClass %>Mapper extends EntityMapper<<%= dtoClass %>, 
   <%_ } _%>
 
   <%_ var renMapAnotDto = false;  /*Render Mapping Annotation during DTO to Entity conversion?*/ _%>
-  <%_ if(primaryKeySaathratri.ids.length > 1) { _%>
+<%_ const vectorFieldsForMapper = fields.filter(f => f.fieldTypeVectorSaathratri === true); _%>
+  <%_ if(primaryKeySaathratri.ids.length > 1 || vectorFieldsForMapper.length > 0) { _%>
     <%_ renMapAnotDto = true; _%>
+    <%_ if (primaryKeySaathratri.ids.length > 1) { _%>
     <%_ for (const field of primaryKeySaathratri.ids) { _%>
       @Mapping(target = "<%= primaryKeySaathratri.name %>.<%= field.fieldName %>", source = "<%= primaryKeySaathratri.name %>.<%= field.fieldName %>")
     <%_ } _%>
+    <%_ } _%>
+    <%_ for (const vf of vectorFieldsForMapper) { _%>
+      @Mapping(target = "<%= vf.fieldName %>", ignore = true)
+    <%_ } _%>
     <%= persistClass %> toEntity(<%= dtoClass %> <%= dtoInstance %>);
 
+    <%_ if (vectorFieldsForMapper.length > 0) { _%>
+    <%_ for (const vf of vectorFieldsForMapper) { _%>
+      @Mapping(target = "<%= vf.fieldName %>", ignore = true)
+    <%_ } _%>
+    void partialUpdate(@MappingTarget <%= persistClass %> entity, <%= dtoClass %> dto);
+    <%_ } _%>
+
+    <%_ if (primaryKeySaathratri.ids.length > 1) { _%>
     <%_ for (const field of primaryKeySaathratri.ids) { _%>
       @Mapping(target = "<%= primaryKeySaathratri.name %>.<%= field.fieldName %>", source = "<%= primaryKeySaathratri.name %>.<%= field.fieldName %>")
-      <%_ } _%>
+    <%_ } _%>
+    <%_ } _%>
+    <%_ if (primaryKeySaathratri.ids.length > 1) { _%>
     <%= dtoClass %> toDto(<%= persistClass %> <%= entityInstance %>);
-      <%_ } _%>
+    <%_ } _%>
+  <%_ } _%>
 
     default Set<String> map(String value) {
       Set<String> theSet = new TreeSet<String>();

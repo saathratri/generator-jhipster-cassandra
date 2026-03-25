@@ -23,7 +23,7 @@ import static <%= packageName %>.web.rest.TestUtil.createUpdateProxyForBean;
 <%_
 // Saathratri Modification: Composite Primary Key
 //const fieldsToTest = fields.filter(field => !field.id && !field.autoGenerate && !field.transient);
-const fieldsToTest = fields.filter(field => !field.transient);
+const fieldsToTest = fields.filter(field => !field.transient && !field.fieldTypeVectorSaathratri);
 let mapsIdEntity;
 let mapsIdEntityInstance;
 let mapsIdRepoInstance;
