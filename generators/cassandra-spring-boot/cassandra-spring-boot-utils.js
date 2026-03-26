@@ -344,6 +344,16 @@ export const cassandraSpringBootUtils = {
             }
         }
 
+        if (entity?.anyFieldHasAnyContentType !== true) {
+            if(this.isBlobFieldContentType(field, 'any')) {
+                entity.anyFieldHasAnyContentType = true;
+                entity.anyFieldHasFileBasedContentType = true;
+                entity.anyFieldIsBlobDerived = true;
+            } else {
+                entity.anyFieldHasAnyContentType = false;
+            }
+        }
+
         if (entity?.anyFieldIsTimeUUIDSaathratri !== true) {
             if(this.isTimeUuidField(field)) {
                 entity.anyFieldIsTimeUUIDSaathratri = true;
@@ -469,6 +479,13 @@ export const cassandraSpringBootUtils = {
             field.fieldTypeBinarySaathratri = true;
             field.blobContentTypeTextSaathratri = true;
             field.javaValueSample1 = `"${field.fieldName}1"`;
+        } else if(this.isBlobFieldContentType(field, 'any')) {
+            field.fieldTypeBlobContent = 'any';
+            field.fieldTypeByteBuffer = true;
+            field.fieldWithContentType = true;
+            field.fieldTypeBinarySaathratri = true;
+            field.blobContentTypeTextSaathratri = false;
+            field.blobContentTypeAny = true;
         }
 
         if (field.options?.customAnnotation[3]) {

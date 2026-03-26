@@ -113,7 +113,7 @@ public class <%- dtoClass %> implements Serializable {
     private java.util.List<Float> <%- vf.propertyName %>;
 <%_ } _%>
 <%_ for(const field of fields) { _%>
-    <%_ if(field.fieldTypeBlobContent === 'image') { _%>
+    <%_ if(field.fieldTypeBlobContent === 'image' || field.fieldTypeBlobContent === 'any') { _%>
             private String <%= field.fieldName %>ContentType;
     <%_ } _%>
   <%_ } _%>
@@ -151,7 +151,7 @@ public <%- dtoClass %> () {
   <%_ } _%>
 
 <%_ for(const field of fields) { _%>
-    <%_ if(field.fieldTypeBlobContent === 'image') { _%>
+    <%_ if(field.fieldTypeBlobContent === 'image' || field.fieldTypeBlobContent === 'any') { _%>
             public String get<%= field.fieldInJavaBeanMethod %>ContentType() {
                 return this.<%= field.fieldName %>ContentType;
             }

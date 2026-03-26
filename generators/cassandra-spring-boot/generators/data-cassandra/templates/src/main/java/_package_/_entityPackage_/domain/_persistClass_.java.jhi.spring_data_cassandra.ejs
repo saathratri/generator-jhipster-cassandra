@@ -64,7 +64,7 @@ _%>
           @Column("<%- field.fieldNameAsDatabaseColumn %>")
           @CassandraType(type = <%= field.options.customAnnotation[0] %>, typeArguments = { CassandraType.Name.TEXT, <%= field.options.customAnnotation[1] %> })
       <%_ 
-        } else if(field.fieldTypeBlobContent === 'image') { 
+        } else if(field.fieldTypeBlobContent === 'image' || field.fieldTypeBlobContent === 'any') {
       _%>
           @Column("<%- field.fieldNameAsDatabaseColumn %>_content_type")
           @CassandraType(type = CassandraType.Name.TEXT)
