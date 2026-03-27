@@ -401,6 +401,9 @@ entity AddOnsAvailableByOrganization {
   ![MAP Date-Time Editor](screenshots/Cassandra-Map-Date-Time.png)
 
 - **List Page** — All MAP columns rendered with key-value pairs displayed inline:
+  ![MAP List Page](screenshots/Cassandra-Map-List-Page.png)
+
+- **Detail Page** — All MAP fields with key-value pairs on the view page:
   ![MAP View Page](screenshots/Cassandra-Map-View-Page.png)
 
 ### 4. TimeUUID Support

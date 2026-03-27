@@ -267,6 +267,12 @@ Edit string-to-datetime map entries with a full date and time picker (date, hour
 
 The list page renders all MAP columns with their key-value pairs displayed inline.
 
+![MAP List Page](screenshots/Cassandra-Map-List-Page.png)
+
+### Detail Page — All MAP Types Displayed
+
+The detail/view page renders all MAP fields with their key-value pairs.
+
 ![MAP View Page](screenshots/Cassandra-Map-View-Page.png)
 
 ---
