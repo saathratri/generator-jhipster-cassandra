@@ -11,7 +11,7 @@ This is a **JHipster Side-by-Side (SBS) blueprint** that extends JHipster to pro
 - **Custom Angular UI components** for Cassandra-specific data types
 - **AI-powered semantic vector search** using Cassandra 5.0+ SAI with ANN queries and OpenAI embeddings
 
-**Version:** 1.0.13
+**Version:** 1.0.15
 **Author:** Amar Premsaran Patel
 **License:** MIT
 **JHipster Base Version:** 9.0.0
