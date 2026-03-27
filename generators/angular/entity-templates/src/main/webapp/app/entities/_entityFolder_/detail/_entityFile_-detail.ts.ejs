@@ -17,8 +17,8 @@
  limitations under the License.
 -%>
 import { Component, <% if (anyFieldIsBlobDerived) { %>inject, <% } %>input } from '@angular/core';
-<%_ if (fields.some(f => f.fieldTypeVectorSaathratri)) { _%>
-import { DecimalPipe } from '@angular/common';
+<%_ if (anyFieldIsMapSaathratri || fields.some(f => f.fieldTypeVectorSaathratri)) { _%>
+import { <%_ if (anyFieldIsMapSaathratri) { _%>KeyValuePipe, <%_ } _%><%_ if (fields.some(f => f.fieldTypeVectorSaathratri)) { _%>DecimalPipe, <%_ } _%>} from '@angular/common';
 <%_ } _%>
 import { RouterModule } from '@angular/router';
 
@@ -51,6 +51,9 @@ import { DataUtils } from 'app/core/util/data-util.service';
       FormatMediumDatetimePipe,
       FormatMediumDatePipe,
       ConvertFromDayjsToDateLongPipe,
+<%_ if (anyFieldIsMapSaathratri) { _%>
+      KeyValuePipe,
+<%_ } _%>
 <%_ if (fields.some(f => f.fieldTypeVectorSaathratri)) { _%>
       DecimalPipe,
 <%_ } _%>
