@@ -219,6 +219,58 @@ When an entity has vector fields, the blueprint automatically generates:
 
 ---
 
+## MAP Data Type UI Components
+
+The blueprint generates custom Angular UI components for each Cassandra MAP value type. The following screenshots demonstrate the `AddOnsAvailableByOrganization` entity, which uses all four supported MAP types.
+
+### JDL Definition
+
+```jdl
+entity AddOnsAvailableByOrganization {
+  @Id @customAnnotation("PrimaryKeyType.PARTITIONED") @customAnnotation("CassandraType.Name.UUID") @customAnnotation("") organizationId UUID
+  @customAnnotation("PrimaryKeyType.PARTITIONED") @customAnnotation("CassandraType.Name.TEXT") @customAnnotation("") entityType String
+  @customAnnotation("PrimaryKeyType.PARTITIONED") @customAnnotation("CassandraType.Name.UUID") @customAnnotation("") entityId UUID
+  @customAnnotation("PrimaryKeyType.CLUSTERED") @customAnnotation("CassandraType.Name.UUID") @customAnnotation("") addOnId UUID
+  @customAnnotation("") @customAnnotation("CassandraType.Name.TEXT") @customAnnotation("") addOnType String
+  @customAnnotation("CassandraType.Name.MAP") @customAnnotation("CassandraType.Name.TEXT") @customAnnotation("") addOnDetailsText String
+  @customAnnotation("CassandraType.Name.MAP") @customAnnotation("CassandraType.Name.DECIMAL") @customAnnotation("") addOnDetailsDecimal BigDecimal
+  @customAnnotation("CassandraType.Name.MAP") @customAnnotation("CassandraType.Name.BOOLEAN") @customAnnotation("") addOnDetailsBoolean Boolean
+  @customAnnotation("CassandraType.Name.MAP") @customAnnotation("CassandraType.Name.BIGINT") @customAnnotation("UTC_DATETIME") addOnDetailsBigInt Long
+}
+```
+
+### MAP&lt;TEXT, TEXT&gt; — String Key-Value Pairs
+
+Edit string-to-string map entries with inline key and value fields. Each entry can be added, edited, or removed.
+
+![MAP Text Editor](screenshots/Cassandra-Map-Text.png)
+
+### MAP&lt;TEXT, DECIMAL&gt; — Numeric Values
+
+Edit string-to-decimal map entries for numeric data such as mileage, cost, or quantity.
+
+![MAP Decimal Editor](screenshots/Cassandra-Map-Decimal.png)
+
+### MAP&lt;TEXT, BOOLEAN&gt; — Boolean Toggle Values
+
+Edit string-to-boolean map entries using toggle switches for true/false values.
+
+![MAP Boolean Editor](screenshots/Cassandra-Map-Boolean.png)
+
+### MAP&lt;TEXT, BIGINT&gt; with UTC_DATETIME — Date-Time Values
+
+Edit string-to-datetime map entries with a full date and time picker (date, hours, minutes, AM/PM).
+
+![MAP Date-Time Editor](screenshots/Cassandra-Map-Date-Time.png)
+
+### List Page — All MAP Types Displayed
+
+The list page renders all MAP columns with their key-value pairs displayed inline.
+
+![MAP View Page](screenshots/Cassandra-Map-View-Page.png)
+
+---
+
 ### AI Search Setup
 
 To enable AI-powered semantic search, set your OpenAI API key:

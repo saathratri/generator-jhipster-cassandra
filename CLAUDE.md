@@ -370,6 +370,39 @@ Each MAP editor includes:
 - Dialog-based editing with Angular Material
 - Located in: `src/main/webapp/app/saathratri/map-*/`
 
+**MAP UI Component Screenshots (AddOnsAvailableByOrganization entity):**
+
+The following screenshots show the generated MAP UI components in action using this JDL definition:
+
+```jdl
+entity AddOnsAvailableByOrganization {
+  @Id @customAnnotation("PrimaryKeyType.PARTITIONED") @customAnnotation("CassandraType.Name.UUID") @customAnnotation("") organizationId UUID
+  @customAnnotation("PrimaryKeyType.PARTITIONED") @customAnnotation("CassandraType.Name.TEXT") @customAnnotation("") entityType String
+  @customAnnotation("PrimaryKeyType.PARTITIONED") @customAnnotation("CassandraType.Name.UUID") @customAnnotation("") entityId UUID
+  @customAnnotation("PrimaryKeyType.CLUSTERED") @customAnnotation("CassandraType.Name.UUID") @customAnnotation("") addOnId UUID
+  @customAnnotation("") @customAnnotation("CassandraType.Name.TEXT") @customAnnotation("") addOnType String
+  @customAnnotation("CassandraType.Name.MAP") @customAnnotation("CassandraType.Name.TEXT") @customAnnotation("") addOnDetailsText String
+  @customAnnotation("CassandraType.Name.MAP") @customAnnotation("CassandraType.Name.DECIMAL") @customAnnotation("") addOnDetailsDecimal BigDecimal
+  @customAnnotation("CassandraType.Name.MAP") @customAnnotation("CassandraType.Name.BOOLEAN") @customAnnotation("") addOnDetailsBoolean Boolean
+  @customAnnotation("CassandraType.Name.MAP") @customAnnotation("CassandraType.Name.BIGINT") @customAnnotation("UTC_DATETIME") addOnDetailsBigInt Long
+}
+```
+
+- **MAP&lt;TEXT, TEXT&gt;** — String key-value pairs with inline key and value fields:
+  ![MAP Text Editor](screenshots/Cassandra-Map-Text.png)
+
+- **MAP&lt;TEXT, DECIMAL&gt;** — Numeric values for data such as mileage, cost, or quantity:
+  ![MAP Decimal Editor](screenshots/Cassandra-Map-Decimal.png)
+
+- **MAP&lt;TEXT, BOOLEAN&gt;** — Boolean toggle values with true/false switches:
+  ![MAP Boolean Editor](screenshots/Cassandra-Map-Boolean.png)
+
+- **MAP&lt;TEXT, BIGINT&gt; with UTC_DATETIME** — Date-time values with full date and time picker:
+  ![MAP Date-Time Editor](screenshots/Cassandra-Map-Date-Time.png)
+
+- **List Page** — All MAP columns rendered with key-value pairs displayed inline:
+  ![MAP View Page](screenshots/Cassandra-Map-View-Page.png)
+
 ### 4. TimeUUID Support
 
 Special handling for TimeUUID clustering keys:

@@ -99,25 +99,31 @@ _%>
           </div>
         }
     <%_ /* End Saathratri modification */ _%>
-    <%_ } else if (field.fieldTypeSetSaathratri) { 
-                    // Composite Primary Key Code
-    _%>   
-          <dl *ngIf="<%= entityInstance %>Ref.<%= fieldName %>">
-            <div *ngFor="let item of toArray(<%= entityInstance %>Ref.<%= fieldName %>)">
-              <dt>{{ item }}</dt>
-            </div>
-          </dl>
-    <%_ } else if (field.fieldTypeMapSaathratri) { 
+    <%_ } else if (field.fieldTypeSetSaathratri) {
                     // Composite Primary Key Code
     _%>
-              <dl *ngIf="<%= entityInstance %>Ref.<%= fieldName %>">
-                <div *ngFor="let item of <%= entityInstance %>Ref.<%= fieldName %> | keyvalue">
-                  <dt>{{ item.key }}</dt>
-                  <dd>
-                    <td>{{ item.value <%_ if(field.fieldTypeMapDayjsSaathratri) { _%> | formatMediumDatetime<%_ } _%>}}</td>
-                  </dd>
-                </div>
-              </dl>
+        @if (<%= entityInstance %>Ref.<%= fieldName %>) {
+          <dl>
+            @for (item of toArray(<%= entityInstance %>Ref.<%= fieldName %>); track $index) {
+              <div>
+                <dt>{{ item }}</dt>
+              </div>
+            }
+          </dl>
+        }
+    <%_ } else if (field.fieldTypeMapSaathratri) {
+                    // Composite Primary Key Code
+    _%>
+        @if (<%= entityInstance %>Ref.<%= fieldName %>) {
+          <dl>
+            @for (item of <%= entityInstance %>Ref.<%= fieldName %> | keyvalue; track item.key) {
+              <div>
+                <dt>{{ item.key }}</dt>
+                <dd>{{ item.value <%_ if(field.fieldTypeMapDayjsSaathratri) { _%> | formatMediumDatetime<%_ } _%>}}</dd>
+              </div>
+            }
+          </dl>
+        }
     <%_ } else if (primaryKeySaathratri.composite && !field.isCompositePrimaryKeyField && field.fieldTypeTimedSaathratri) { 
                     // Composite Primary Key Code
     _%>
