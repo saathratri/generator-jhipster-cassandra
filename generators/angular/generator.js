@@ -239,7 +239,35 @@ export default class extends BaseApplicationGenerator {
 
   get [BaseApplicationGenerator.POST_WRITING]() {
     return this.asPostWritingTaskGroup({
-      async postWritingTemplateTask() {},
+      async postWritingTemplateTask({ application }) {
+        // When this generator is renamed (e.g., cassandra-angular in the orchestrator),
+        // SBS template override for package.json doesn't work because the name no longer
+        // matches 'angular'. Patch package.json programmatically to add Material deps.
+        const packageJsonPath = 'package.json';
+        this.editFile(packageJsonPath, content => {
+          if (!content.includes('@angular/material')) {
+            const angularVersion = application.nodeDependencies?.['@angular/common'] || '21.0.0';
+            content = content.replace(
+              '"@angular/platform-browser"',
+              `"@angular/material": "${angularVersion}",\n    "@angular/cdk": "${angularVersion}",\n    "@angular/platform-browser"`
+            );
+          }
+          return content;
+        });
+
+        // Patch shared/date/index.ts to export Cassandra-specific pipes
+        const srcMainWebapp = application.srcMainWebapp ?? 'src/main/webapp/';
+        const dateIndexPath = `${srcMainWebapp}app/shared/date/index.ts`;
+        this.editFile(dateIndexPath, content => {
+          if (!content.includes('ConvertFromDayjsToDateLongPipe')) {
+            content += "\nexport { ConvertFromDayjsToDateLongPipe } from './convert-from-dayjs-to-date-long.pipe';\n";
+          }
+          if (!content.includes('FormatUtcDatePipe')) {
+            content += "export { default as FormatUtcDatePipe } from './format-utc-date.pipe';\n";
+          }
+          return content;
+        });
+      },
     });
   }
 
