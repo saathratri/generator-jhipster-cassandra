@@ -23,9 +23,14 @@ export default class extends BaseApplicationGenerator {
     });
   }
 
-  get [BaseApplicationGenerator.COMPOSING]() {
+ get [BaseApplicationGenerator.COMPOSING]() {
     return this.asComposingTaskGroup({
-      async composingTemplateTask() {},
+      async composeTask() {
+        if (['angularX', 'angular'].includes(this.jhipsterConfigWithDefaults.clientFramework)) {
+         // Delegate the client sub-generator to the angular blueprint.
+         await this.composeWithJHipster('jhipster-cassandra:cassandra-client');
+        }
+      },
     });
   }
 
