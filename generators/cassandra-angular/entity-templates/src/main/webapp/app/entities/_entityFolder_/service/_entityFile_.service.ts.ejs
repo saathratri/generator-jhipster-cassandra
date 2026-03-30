@@ -90,7 +90,7 @@ type RestOf<T extends I<%= entityAngularName %><% if (!readOnly) { %> | New<%= e
     <%_ /* Non-composite: if the primary key TIMEUUID was omitted, add it back as string */ _%>
     <%_ const pkIds = primaryKeySaathratri.ids || []; _%>
     <%_ for (const pkField of pkIds.filter(f => f.fieldTypeLocalDateSaathratri || f.fieldTypeTimedSaathratri || f.fieldTypeTimeUuidSaathratri)) { _%>
-      <%= pkField.fieldName %>?: string | null;
+      <%= pkField.fieldName %>: string;
     <%_ } _%>
   <%_ } _%>
   <%_ for (const field of fields.filter(field => !field.isCompositePrimaryKeyField)) { _%>
