@@ -88,10 +88,9 @@ type RestOf<T extends I<%= entityAngularName %><% if (!readOnly) { %> | New<%= e
     };
   <%_ } else { _%>
     <%_ /* Non-composite: if the primary key TIMEUUID was omitted, add it back as string */ _%>
-    <%_ const omittedFields = fields.filter(field => field.fieldTypeLocalDateSaathratri || field.fieldTypeTimedSaathratri || field.fieldTypeSetSaathratri || field.fieldTypeTemporal); _%>
-    <%_ const omittedPkField = omittedFields.find(field => field.fieldName === primaryKeySaathratri.name); _%>
-    <%_ if (omittedPkField) { _%>
-      <%= omittedPkField.fieldName %>?: string | null;
+    <%_ const pkIds = primaryKeySaathratri.ids || []; _%>
+    <%_ for (const pkField of pkIds.filter(f => f.fieldTypeLocalDateSaathratri || f.fieldTypeTimedSaathratri)) { _%>
+      <%= pkField.fieldName %>?: string | null;
     <%_ } _%>
   <%_ } _%>
   <%_ for (const field of fields.filter(field => !field.isCompositePrimaryKeyField)) { _%>
