@@ -250,6 +250,17 @@ export default class extends BaseApplicationGenerator {
           return content;
         });
 
+        // Add uuid and @types/uuid to devDependencies
+        this.editFile(packageJsonPath, content => {
+          if (!content.includes('"uuid"')) {
+            content = content.replace(
+              '"vitest-sonar-reporter": null',
+              '"vitest-sonar-reporter": null,\n    "@types/uuid": "10.0.0",\n    "uuid": "11.1.0",\n    "material-icons": "1.13.14"'
+            );
+          }
+          return content;
+        });
+
         // Patch shared/date/index.ts to export Cassandra-specific pipes
         const srcMainWebapp = application.srcMainWebapp ?? 'src/main/webapp/';
         const dateIndexPath = `${srcMainWebapp}app/shared/date/index.ts`;
