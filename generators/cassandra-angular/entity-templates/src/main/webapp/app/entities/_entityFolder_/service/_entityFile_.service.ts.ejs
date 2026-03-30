@@ -89,8 +89,7 @@ type RestOf<T extends I<%= entityAngularName %><% if (!readOnly) { %> | New<%= e
   <%_ } else { _%>
     <%_ /* Non-composite: if the primary key TIMEUUID was omitted, add it back as string */ _%>
     <%_ const pkIds = primaryKeySaathratri.ids || []; _%>
-    /* DEBUG: pkIds.length=<%= pkIds.length %>, names=<%= pkIds.map(f=>f.fieldName).join(',') %>, timed=<%= pkIds.map(f=>!!f.fieldTypeTimedSaathratri).join(',') %>, keys=<%= pkIds.length > 0 ? Object.keys(pkIds[0]).filter(k=>k.includes('Saathratri')||k.includes('Timed')||k.includes('Date')||k.includes('id')||k.includes('field')).join(',') : 'empty' %> */
-    <%_ for (const pkField of pkIds.filter(f => f.fieldTypeLocalDateSaathratri || f.fieldTypeTimedSaathratri)) { _%>
+    <%_ for (const pkField of pkIds.filter(f => f.fieldTypeLocalDateSaathratri || f.fieldTypeTimedSaathratri || f.fieldTypeTimeUuidSaathratri)) { _%>
       <%= pkField.fieldName %>?: string | null;
     <%_ } _%>
   <%_ } _%>
