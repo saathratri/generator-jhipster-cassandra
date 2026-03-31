@@ -273,6 +273,104 @@ export default class extends BaseApplicationGenerator {
           }
           return content;
         });
+
+        // Patch navbar.ts - add EntityNavbarItems import, property, and alphabetical sorting
+        if (!application.skipClient) {
+          const clientSrcDir = application.clientSrcDir || 'src/main/webapp/';
+          const navbarTsFile = `${clientSrcDir}app/layouts/navbar/navbar.ts`;
+          const navbarHtmlFile = `${clientSrcDir}app/layouts/navbar/navbar.html`;
+          const isMicrofrontendGateway = application.microfrontend && application.applicationTypeGateway;
+
+          this.editFile(navbarTsFile, content => {
+            if (!isMicrofrontendGateway) {
+              // Add EntityNavbarItems import
+              if (!content.includes('EntityNavbarItems')) {
+                content = content.replace(
+                  "import NavbarItem from './navbar-item.model';",
+                  "import { EntityNavbarItems } from 'app/entities/entity-navbar-items';\nimport NavbarItem from './navbar-item.model';",
+                );
+              }
+              // Add entitiesNavbarItems property
+              if (!content.includes('entitiesNavbarItems')) {
+                content = content.replace(
+                  'readonly account = inject(AccountService).account;',
+                  'readonly account = inject(AccountService).account;\n  entitiesNavbarItems: NavbarItem[] = [];',
+                );
+              }
+              // Add sorting in ngOnInit
+              if (!content.includes('EntityNavbarItems].sort')) {
+                content = content.replace(
+                  '    this.profileService.getProfileInfo().subscribe(profileInfo => {',
+                  '    // Saathratri modification - sort entity navbar items alphabetically\n' +
+                    '    this.entitiesNavbarItems = [...EntityNavbarItems].sort((a, b) => a.name.localeCompare(b.name));\n' +
+                    '    this.profileService.getProfileInfo().subscribe(profileInfo => {',
+                );
+              }
+            }
+
+            // For gateways with microfrontends: add sorting helper
+            if (isMicrofrontendGateway) {
+              if (!content.includes('sortNavbarItemsAlphabetically') && content.includes('loadMicrofrontendsEntities')) {
+                content = content.replace(
+                  '  loadMicrofrontendsEntities(): void {',
+                  '  private sortNavbarItemsAlphabetically(items: NavbarItem[]): NavbarItem[] {\n' +
+                    '    return [...items].sort((a, b) => a.name.localeCompare(b.name));\n' +
+                    '  }\n\n' +
+                    '  loadMicrofrontendsEntities(): void {',
+                );
+              }
+              if (content.includes('sortNavbarItemsAlphabetically')) {
+                content = content.replace(/\.set\(items\)/g, '.set(this.sortNavbarItemsAlphabetically(items))');
+              }
+            }
+
+            return content;
+          });
+
+          // Patch navbar.html - restructure entity menu into per-microfrontend grouped dropdowns
+          if (isMicrofrontendGateway && application.microfrontends) {
+            this.editFile(navbarHtmlFile, content => {
+              const sortedMicrofrontends = [...application.microfrontends].sort((a, b) => a.baseName.localeCompare(b.baseName));
+              const jhiPrefix = application.jhiPrefix || 'jhi';
+              const enableTranslation = application.enableTranslation;
+              let microfrontendMenus = '';
+              for (const remote of sortedMicrofrontends) {
+                const translationAttr = enableTranslation
+                  ? `\n                  [${jhiPrefix}Translate]="entityNavbarItem.translationKey"`
+                  : '';
+                microfrontendMenus += `
+      @if (account() !== null && ${remote.lowercaseBaseName}EntityNavbarItems().length > 0) {
+        <li ngbDropdown class="nav-item dropdown pointer" display="dynamic" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+          <a class="nav-link dropdown-toggle" ngbDropdownToggle href="javascript:void(0);" id="${remote.lowercaseBaseName}-menu" data-cy="${remote.lowercaseBaseName}Menu">
+            <span><fa-icon icon="th-list" /><span>${remote.baseName}</span></span>
+          </a>
+          <ul class="dropdown-menu" ngbDropdownMenu aria-labelledby="${remote.lowercaseBaseName}-menu">
+            @for (entityNavbarItem of ${remote.lowercaseBaseName}EntityNavbarItems(); track $index) {
+              <li>
+                <a class="dropdown-item" [routerLink]="entityNavbarItem.route" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="collapseNavbar()">
+                  <fa-icon icon="asterisk" [fixedWidth]="true" />${translationAttr ? `\n                  <span${translationAttr}>{{entityNavbarItem.name}}</span>` : '\n                  <span>{{entityNavbarItem.name}}</span>'}
+                </a>
+              </li>
+            }
+          </ul>
+        </li>
+      }`;
+              }
+
+              const entityDropdownRegex = /\s*@if \(account\(\) !== null\) \{\s*<li[\s\S]*?data-cy="entity"[\s\S]*?<\/ul>\s*<\/li>\s*\}/;
+              if (entityDropdownRegex.test(content)) {
+                content = content.replace(
+                  entityDropdownRegex,
+                  '\n      <!-- jhipster-needle-add-element-to-menu - JHipster will add new menu items here -->' +
+                    microfrontendMenus +
+                    '\n      <!-- jhipster-needle-add-entity-to-menu - JHipster will add entities to the menu here -->',
+                );
+              }
+
+              return content;
+            });
+          }
+        }
       },
     });
   }
