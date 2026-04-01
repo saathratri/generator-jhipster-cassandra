@@ -261,8 +261,58 @@ export default class extends BaseApplicationGenerator {
           return content;
         });
 
-        // Patch shared/date/index.ts to export Cassandra-specific pipes
+        // Patch global.scss to import Angular Material theme and Material Icons.
+        // SBS template override doesn't work for composed generators (cassandra-angular
+        // is composed, not a direct SBS of 'angular'), so patch programmatically.
         const srcMainWebapp = application.srcMainWebapp ?? 'src/main/webapp/';
+        const globalScssPath = `${srcMainWebapp}content/scss/global.scss`;
+        this.editFile(globalScssPath, content => {
+          if (!content.includes('@angular/material/prebuilt-themes')) {
+            content = content.replace(
+              "@import 'bootstrap/scss/variables';",
+              "@import 'bootstrap/scss/variables';\n@import '@angular/material/prebuilt-themes/indigo-pink.css';\n@import 'material-icons/iconfont/material-icons.scss';",
+            );
+          }
+          if (!content.includes('Infinite Scroll Styles')) {
+            content = content.replace(
+              '/* jhipster-needle-scss-add-main JHipster will add new css style */',
+              `/* ==========================================================================
+Infinite Scroll Styles
+========================================================================== */
+.table-entities::-webkit-scrollbar { width: 8px; }
+.table-entities::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+.table-entities::-webkit-scrollbar-thumb { background: #888; border-radius: 4px; }
+.table-entities::-webkit-scrollbar-thumb:hover { background: #555; }
+.table-entities { scrollbar-width: thin; scrollbar-color: #888 #f1f1f1; }
+/* jhipster-needle-scss-add-main JHipster will add new css style */`,
+            );
+          }
+          return content;
+        });
+
+        // Patch font-awesome-icons.ts to add Cassandra-specific icons
+        const fontAwesomeIconsPath = `${srcMainWebapp}app/config/font-awesome-icons.ts`;
+        this.editFile(fontAwesomeIconsPath, content => {
+          const extraIcons = [
+            'faCheckCircle', 'faChevronDown', 'faChevronRight', 'faCloud',
+            'faCogs', 'faDatabase', 'faEye', 'faFlag', 'faHeart', 'faHome', 'faKey',
+          ];
+          for (const icon of extraIcons) {
+            if (!content.includes(icon)) {
+              content = content.replace(
+                "  // jhipster-needle-add-icon-import\n} from '@fortawesome/free-solid-svg-icons';",
+                `  ${icon},\n  // jhipster-needle-add-icon-import\n} from '@fortawesome/free-solid-svg-icons';`,
+              );
+              content = content.replace(
+                /  \/\/ jhipster-needle-add-icon-import\n\];/,
+                `  ${icon},\n  // jhipster-needle-add-icon-import\n];`,
+              );
+            }
+          }
+          return content;
+        });
+
+        // Patch shared/date/index.ts to export Cassandra-specific pipes
         const dateIndexPath = `${srcMainWebapp}app/shared/date/index.ts`;
         this.editFile(dateIndexPath, content => {
           if (!content.includes('ConvertFromDayjsToDateLongPipe')) {
