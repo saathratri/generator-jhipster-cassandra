@@ -46,7 +46,7 @@ jhipster --blueprints cassandra
 - **Java:** 21+
 - **Node.js:** 20+
 - **Docker Desktop:** For running Cassandra instances
-- **JHipster:** 8.6.0+
+- **JHipster:** 9.0.0
 
 ## Cassandra Composite Key Concepts
 

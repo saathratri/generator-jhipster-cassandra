@@ -302,7 +302,7 @@ openai:
 - Java 21+
 - Node.js 20+
 - Docker Desktop
-- JHipster 8.6.0+
+- JHipster 9.0.0
 
 ### Installation
 
