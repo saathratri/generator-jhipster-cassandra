@@ -1,6 +1,6 @@
 # generator-jhipster-cassandra
 
-> A JHipster blueprint for Cassandra with advanced support for composite primary keys, sets, and maps.
+> A JHipster blueprint for Cassandra with advanced support for composite primary keys, sets, and maps. Compatible with JHipster v9.0.0.
 
 ## Introduction
 
