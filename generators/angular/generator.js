@@ -26,8 +26,8 @@ export default class extends BaseApplicationGenerator {
   get [BaseApplicationGenerator.COMPOSING]() {
     return this.asComposingTaskGroup({
       async composeTask() {
-        if (['cassandra'].includes(this.jhipsterConfigWithDefaults.databaseType)) {
-          // Delegate to the cassandra-java generator.
+        if (['cassandra'].includes(this.jhipsterConfigWithDefaults.databaseType)
+            || 'gateway' === this.jhipsterConfigWithDefaults.applicationType) {
           await this.composeWithJHipster('jhipster-cassandra:cassandra-angular');
         }
       },

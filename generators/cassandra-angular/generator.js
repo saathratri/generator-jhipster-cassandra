@@ -91,6 +91,11 @@ export default class extends BaseApplicationGenerator {
   get [BaseApplicationGenerator.WRITING]() {
     return this.asWritingTaskGroup({
       async writingTemplateTask({ application }) {
+        // Skip writing Cassandra-specific shared components for the gateway.
+        // The gateway only needs POST_WRITING patches (navbar, package.json, scss).
+        // Remote microfrontends bring their own component bundles.
+        if (application.applicationTypeGateway) return;
+
         // Override templates (package.json, navbar, app.config, global.scss, etc.)
         // are handled automatically by the SBS template path mechanism.
         // Only write NEW files that don't exist in the base angular generator.
@@ -313,16 +318,19 @@ Infinite Scroll Styles
         });
 
         // Patch shared/date/index.ts to export Cassandra-specific pipes
-        const dateIndexPath = `${srcMainWebapp}app/shared/date/index.ts`;
-        this.editFile(dateIndexPath, content => {
-          if (!content.includes('ConvertFromDayjsToDateLongPipe')) {
-            content += "\nexport { ConvertFromDayjsToDateLongPipe } from './convert-from-dayjs-to-date-long.pipe';\n";
-          }
-          if (!content.includes('FormatUtcDatePipe')) {
-            content += "export { default as FormatUtcDatePipe } from './format-utc-date.pipe';\n";
-          }
-          return content;
-        });
+        // Skip for gateway — the pipe files are only written to Cassandra services
+        if (!application.applicationTypeGateway) {
+          const dateIndexPath = `${srcMainWebapp}app/shared/date/index.ts`;
+          this.editFile(dateIndexPath, content => {
+            if (!content.includes('ConvertFromDayjsToDateLongPipe')) {
+              content += "\nexport { ConvertFromDayjsToDateLongPipe } from './convert-from-dayjs-to-date-long.pipe';\n";
+            }
+            if (!content.includes('FormatUtcDatePipe')) {
+              content += "export { default as FormatUtcDatePipe } from './format-utc-date.pipe';\n";
+            }
+            return content;
+          });
+        }
 
         // Patch navbar.ts - add EntityNavbarItems import, property, and alphabetical sorting
         if (!application.skipClient) {
