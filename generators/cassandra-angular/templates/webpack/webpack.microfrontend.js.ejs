@@ -37,6 +37,7 @@ const ngBootstrapShared = sharedDependencies['@ng-bootstrap/ng-bootstrap'];
 sharedDependencies = {
   ...sharedDependencies,
   '@angular/common/http': sharedDependencies['@angular/common'],
+  '@angular/core/rxjs-interop': sharedDependencies['@angular/core'],
   'rxjs/operators': sharedDependencies.rxjs,
 <%# Saathratri change: share ng-bootstrap secondary entry points to prevent NG0912 component ID collisions in microfrontends. #%>
   '@ng-bootstrap/ng-bootstrap/alert': ngBootstrapShared,

@@ -58,8 +58,8 @@
         <span>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.title')</span>
 
         <div class="d-flex justify-content-end">
-            <button class="btn btn-info me-2" (click)="load()" [disabled]="isLoading()">
-                <fa-icon icon="sync" [animation]="isLoading() ? 'spin' : undefined"></fa-icon>
+            <button class="btn btn-info me-2" (click)="load()" [disabled]="isLoading">
+                <fa-icon icon="sync" [animation]="isLoading ? 'spin' : undefined"></fa-icon>
                 <span>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.refreshListLabel')</span>
             </button>
             <%_ if (!readOnly) { _%>
@@ -477,7 +477,7 @@ _%>
 <%_ /* End Saathratri modification */ _%>
 
 <%_ if (databaseTypeCassandra && primaryKeySaathratri.composite) { _%>
-@if (<%= entityInstancePlural %>().length === 0 && !isLoading()) {
+@if (<%= entityInstancePlural %>().length === 0 && !isLoading) {
     <div class="alert alert-warning" id="no-result">
         <span>__jhiTranslateTag__('<%- i18nKeyPrefix %>.home.notFound')</span>
     </div>

@@ -96,7 +96,32 @@ export default class extends BaseApplicationGenerator {
 
   get [BaseApplicationGenerator.POST_WRITING]() {
     return this.asPostWritingTaskGroup({
-      async postWritingTemplateTask() {},
+      async postWritingTemplateTask({ application }) {
+        // Patch font-awesome-icons.ts to add Cassandra-specific icons.
+        // This runs for both Cassandra services AND the gateway (microfrontend host),
+        // ensuring icons used by Cassandra entity list pages (e.g., check-circle for
+        // "end of list" message) are registered in the gateway's icon library.
+        const srcMainWebapp = application.srcMainWebapp ?? 'src/main/webapp/';
+        const fontAwesomeIconsPath = `${srcMainWebapp}app/config/font-awesome-icons.ts`;
+        this.editFile(fontAwesomeIconsPath, content => {
+          const extraIcons = [
+            'faCheckCircle', 'faChevronDown', 'faChevronRight', 'faKey',
+          ];
+          for (const icon of extraIcons) {
+            if (!content.includes(icon)) {
+              content = content.replace(
+                "  // jhipster-needle-add-icon-import\n} from '@fortawesome/free-solid-svg-icons';",
+                `  ${icon},\n  // jhipster-needle-add-icon-import\n} from '@fortawesome/free-solid-svg-icons';`,
+              );
+              content = content.replace(
+                /  \/\/ jhipster-needle-add-icon-import\n\];/,
+                `  ${icon},\n  // jhipster-needle-add-icon-import\n];`,
+              );
+            }
+          }
+          return content;
+        });
+      },
     });
   }
 

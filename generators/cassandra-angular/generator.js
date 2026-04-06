@@ -266,6 +266,23 @@ export default class extends BaseApplicationGenerator {
           return content;
         });
 
+        // Patch webpack.microfrontend.js to share @angular/core/rxjs-interop as singleton.
+        // Without this, microfrontend signal change detection breaks (e.g., isLoading spinner
+        // never stops) because the host and remote get different Angular core instances.
+        // SBS template override doesn't work for composed generators, so patch programmatically.
+        const webpackMfPath = 'webpack/webpack.microfrontend.js';
+        if (this.existsDestination(webpackMfPath)) {
+          this.editFile(webpackMfPath, content => {
+            if (!content.includes('@angular/core/rxjs-interop')) {
+              content = content.replace(
+                "'@angular/common/http': sharedDependencies['@angular/common'],",
+                "'@angular/common/http': sharedDependencies['@angular/common'],\n  '@angular/core/rxjs-interop': sharedDependencies['@angular/core'],",
+              );
+            }
+            return content;
+          });
+        }
+
         // Patch global.scss to import Angular Material theme and Material Icons.
         // SBS template override doesn't work for composed generators (cassandra-angular
         // is composed, not a direct SBS of 'angular'), so patch programmatically.
@@ -329,6 +346,16 @@ Infinite Scroll Styles
               content += "export { default as FormatUtcDatePipe } from './format-utc-date.pipe';\n";
             }
             return content;
+          });
+        }
+
+        // Replace display="dynamic" (Popper.js) with display="static" (CSS) on ALL
+        // navbar dropdowns. Cassandra microfrontends inject Angular Material/CDK CSS
+        // that breaks Popper.js positioning for every dropdown on the page.
+        if (!application.skipClient) {
+          const navbarHtmlForDisplay = `${srcMainWebapp}app/layouts/navbar/navbar.html`;
+          this.editFile(navbarHtmlForDisplay, content => {
+            return content.replace(/display="dynamic"/g, 'display="static"');
           });
         }
 
@@ -398,7 +425,7 @@ Infinite Scroll Styles
                   : '';
                 microfrontendMenus += `
       @if (account() !== null && ${remote.lowercaseBaseName}EntityNavbarItems().length > 0) {
-        <li ngbDropdown class="nav-item dropdown pointer" display="dynamic" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+        <li ngbDropdown class="nav-item dropdown pointer" display="static" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
           <a class="nav-link dropdown-toggle" ngbDropdownToggle href="javascript:void(0);" id="${remote.lowercaseBaseName}-menu" data-cy="${remote.lowercaseBaseName}Menu">
             <span><fa-icon icon="th-list" /><span>${remote.baseName}</span></span>
           </a>

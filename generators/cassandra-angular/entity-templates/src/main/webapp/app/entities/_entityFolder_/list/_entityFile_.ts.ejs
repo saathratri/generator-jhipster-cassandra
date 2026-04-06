@@ -51,7 +51,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { HttpHeaders<%_ if (cassandraComposite) { _%>, HttpResponse<%_ } _%> } from '@angular/common/http';
 <%_ } _%>
 import { ActivatedRoute, Data, ParamMap, Router, RouterLink } from '@angular/router';
-import { combineLatest<%_ if (!readOnly) { _%>, filter<%_ } _%><%_ if (cassandraComposite) { _%>, map<%_ } _%><%_ if (cassandraNoPagination) { _%>, Observable, finalize<%_ } _%>, Subscription, tap } from 'rxjs';
+import { combineLatest<%_ if (!readOnly) { _%>, filter<%_ } _%><%_ if (cassandraComposite) { _%>, map<%_ } _%><%_ if (cassandraNoPagination) { _%>, Observable<%_ } _%>, Subscription, tap } from 'rxjs';
 <%_ if (!readOnly) { _%>
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 <%_ } _%>
@@ -307,8 +307,9 @@ _%>
     public readonly router = inject(Router);
     protected readonly <%= entityInstance %>Service = inject(<%= entityAngularName %>Service);
 <%_ if (cassandraNoPagination) { _%>
-    // Cassandra entities use Observable-based loading
-    readonly isLoading = signal(false);
+    // Cassandra entities use Observable-based loading (plain boolean, not signal,
+    // because signals don't reliably trigger change detection in Module Federation microfrontends)
+    isLoading = false;
 <%_ } else { _%>
     // eslint-disable-next-line @typescript-eslint/member-ordering
     readonly isLoading = this.<%= entityInstance %>Service.<%= entityInstancePlural %>Resource.isLoading;
@@ -456,10 +457,15 @@ _%>
 <%_ } _%>
     load(): void {
 <%_ if (cassandraNoPagination) { _%>
+      this.isLoading = true;
       this.queryBackend().subscribe({
         next: (res: EntityArrayResponseType) => {
           this.onResponseSuccess(res);
-        }
+          this.isLoading = false;
+        },
+        error: () => {
+          this.isLoading = false;
+        },
       });
 <%_ } else { _%>
       this.queryBackend();
@@ -496,7 +502,7 @@ _%>
       const pageHeight = document.documentElement.scrollHeight;
       const threshold = 200;
 
-      if (scrollPosition >= pageHeight - threshold && this.hasNextPage && !this.isLoadingMore && !this.isLoading()) {
+      if (scrollPosition >= pageHeight - threshold && this.hasNextPage && !this.isLoadingMore && !this.isLoading) {
         this.loadMore();
       }
     }
@@ -917,7 +923,6 @@ _%>
     const ckeyName = primaryKeySaathratri.nameCapitalized;
 _%>
     protected queryBackend(): Observable<EntityArrayResponseType> {
-      this.isLoading.set(true);
       const queryObject: any = {
 <%_ if (databaseTypeCassandra && paginationNo) { _%>
         pagingState: this.pagingState,
@@ -980,20 +985,15 @@ _%>
                                     status: res.status,
                                 });
                             }),
-                            finalize(() => this.isLoading.set(false))
                         );
                 } else if (operator<%= lastField.fieldNameCapitalized %> === 'lt') {
-                    return this.<%= entityInstance %>Service.findAllBy<%= baseMethodName %>LessThanPageable(<%- argsStr %>, queryObject)
-                        .pipe(finalize(() => this.isLoading.set(false)));
+                    return this.<%= entityInstance %>Service.findAllBy<%= baseMethodName %>LessThanPageable(<%- argsStr %>, queryObject);
                 } else if (operator<%= lastField.fieldNameCapitalized %> === 'lte') {
-                    return this.<%= entityInstance %>Service.findAllBy<%= baseMethodName %>LessThanEqualPageable(<%- argsStr %>, queryObject)
-                        .pipe(finalize(() => this.isLoading.set(false)));
+                    return this.<%= entityInstance %>Service.findAllBy<%= baseMethodName %>LessThanEqualPageable(<%- argsStr %>, queryObject);
                 } else if (operator<%= lastField.fieldNameCapitalized %> === 'gt') {
-                    return this.<%= entityInstance %>Service.findAllBy<%= baseMethodName %>GreaterThanPageable(<%- argsStr %>, queryObject)
-                        .pipe(finalize(() => this.isLoading.set(false)));
+                    return this.<%= entityInstance %>Service.findAllBy<%= baseMethodName %>GreaterThanPageable(<%- argsStr %>, queryObject);
                 } else if (operator<%= lastField.fieldNameCapitalized %> === 'gte') {
-                    return this.<%= entityInstance %>Service.findAllBy<%= baseMethodName %>GreaterThanEqualPageable(<%- argsStr %>, queryObject)
-                        .pipe(finalize(() => this.isLoading.set(false)));
+                    return this.<%= entityInstance %>Service.findAllBy<%= baseMethodName %>GreaterThanEqualPageable(<%- argsStr %>, queryObject);
                 }
                 return this.<%= entityInstance %>Service.<%= findByMethodName %>(<%- argsStr %>)
                     .pipe(
@@ -1004,8 +1004,7 @@ _%>
                                 headers: res.headers,
                                 status: res.status,
                             });
-                        }),
-                        finalize(() => this.isLoading.set(false))
+                        })
                     );
 <%_ } else { _%>
                 return this.<%= entityInstance %>Service.<%= findByMethodName %>(<%- argsStr %>)
@@ -1017,8 +1016,7 @@ _%>
                                 headers: res.headers,
                                 status: res.status,
                             });
-                        }),
-                        finalize(() => this.isLoading.set(false))
+                        })
                     );
 <%_ } _%>
             }
@@ -1029,42 +1027,33 @@ _%>
 <%_ if (supportsComparison) { _%>
                 const operator<%= lastField.fieldNameCapitalized %> = this.searchCriteria.<%= lastField.fieldName %>Operator || 'eq';
                 if (operator<%= lastField.fieldNameCapitalized %> === 'lt') {
-                    return this.<%= entityInstance %>Service.findAllBy<%= baseMethodName %>LessThanPageable(<%- argsStr %>, queryObject)
-                        .pipe(finalize(() => this.isLoading.set(false)));
+                    return this.<%= entityInstance %>Service.findAllBy<%= baseMethodName %>LessThanPageable(<%- argsStr %>, queryObject);
                 } else if (operator<%= lastField.fieldNameCapitalized %> === 'lte') {
-                    return this.<%= entityInstance %>Service.findAllBy<%= baseMethodName %>LessThanEqualPageable(<%- argsStr %>, queryObject)
-                        .pipe(finalize(() => this.isLoading.set(false)));
+                    return this.<%= entityInstance %>Service.findAllBy<%= baseMethodName %>LessThanEqualPageable(<%- argsStr %>, queryObject);
                 } else if (operator<%= lastField.fieldNameCapitalized %> === 'gt') {
-                    return this.<%= entityInstance %>Service.findAllBy<%= baseMethodName %>GreaterThanPageable(<%- argsStr %>, queryObject)
-                        .pipe(finalize(() => this.isLoading.set(false)));
+                    return this.<%= entityInstance %>Service.findAllBy<%= baseMethodName %>GreaterThanPageable(<%- argsStr %>, queryObject);
                 } else if (operator<%= lastField.fieldNameCapitalized %> === 'gte') {
-                    return this.<%= entityInstance %>Service.findAllBy<%= baseMethodName %>GreaterThanEqualPageable(<%- argsStr %>, queryObject)
-                        .pipe(finalize(() => this.isLoading.set(false)));
+                    return this.<%= entityInstance %>Service.findAllBy<%= baseMethodName %>GreaterThanEqualPageable(<%- argsStr %>, queryObject);
                 }
-                return this.<%= entityInstance %>Service.<%= methodName %>(<%- argsStr %>, queryObject)
-                    .pipe(finalize(() => this.isLoading.set(false)));
+                return this.<%= entityInstance %>Service.<%= methodName %>(<%- argsStr %>, queryObject);
 <%_ } else { _%>
-                return this.<%= entityInstance %>Service.<%= methodName %>(<%- argsStr %>, queryObject)
-                    .pipe(finalize(() => this.isLoading.set(false)));
+                return this.<%= entityInstance %>Service.<%= methodName %>(<%- argsStr %>, queryObject);
 <%_ } _%>
             }
 <%_     }
     } // end for loop _%>
         }
         // Fallback: no valid criteria
-        return this.<%= entityInstance %>Service.querySlice(queryObject)
-          .pipe(finalize(() => this.isLoading.set(false)));
+        return this.<%= entityInstance %>Service.querySlice(queryObject);
 <%_ } else if (databaseTypeCassandra && paginationNo) { _%>
     protected queryBackend(): Observable<EntityArrayResponseType> {
-      this.isLoading.set(true);
       const queryObject: any = {
         pagingState: this.pagingState,
         size: this.pageSize,
         sort: this.sortService.buildSortParam(this.sortState()),
       };
 
-      return this.<%= entityInstance %>Service.querySlice(queryObject)
-        .pipe(finalize(() => this.isLoading.set(false)));
+      return this.<%= entityInstance %>Service.querySlice(queryObject);
 <%_ } else { _%>
     protected queryBackend(): void {
 <%_ if (paginationPagination) { _%>
