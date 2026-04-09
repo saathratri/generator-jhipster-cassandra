@@ -17,6 +17,13 @@ export default class extends BaseApplicationGenerator {
       async writingTemplateTask({ application }) {
         await this.writeFiles({
           sections: {
+            files: [{ templates: ['template-file-cassandra-client-i18n'] }],
+          },
+          context: application,
+        });
+
+        await this.writeFiles({
+          sections: {
             files: [
               {
                 condition: generator => generator.databaseTypeCassandra,

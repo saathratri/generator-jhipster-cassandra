@@ -91,14 +91,21 @@ export default class extends BaseApplicationGenerator {
   get [BaseApplicationGenerator.WRITING]() {
     return this.asWritingTaskGroup({
       async writingTemplateTask({ application }) {
+        await this.writeFiles({
+          sections: {
+            files: [{ templates: ['template-file-cassandra-angular'] }],
+          },
+          context: application,
+        });
+
         // Skip writing Cassandra-specific shared components for the gateway.
         // The gateway only needs POST_WRITING patches (navbar, package.json, scss).
         // Remote microfrontends bring their own component bundles.
         if (application.applicationTypeGateway) return;
 
-        // Override templates (package.json, navbar, app.config, global.scss, etc.)
-        // are handled automatically by the SBS template path mechanism.
-        // Only write NEW files that don't exist in the base angular generator.
+        // Write Cassandra-specific shared components (Material UI, date/time, SET/MAP editors).
+        // Overrides for package.json, navbar, global.scss, etc. are applied
+        // programmatically in POST_WRITING via editFile() patches.
         await this.writeFiles({
           sections: {
             files: [

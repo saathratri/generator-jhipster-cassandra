@@ -93,15 +93,7 @@ export default class extends BaseApplicationGenerator {
       async writingTemplateTask({ application }) {
         await this.writeFiles({
           sections: {
-            files: [
-              { templates: ['template-file-spring-boot'] },
-              {
-                /* Saathratri change: write application-dev.yml with docker.compose.enabled: false
-                   for all app types (gateway, microservice, monolith). This overrides the base
-                   JHipster template which only disables docker compose for H2 databases. */
-                templates: ['src/main/resources/config/application-dev.yml'],
-              },
-            ],
+            files: [{ templates: ['template-file-spring-boot'] }],
           },
           context: application,
         });

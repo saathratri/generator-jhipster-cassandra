@@ -96,7 +96,14 @@ export default class extends BaseApplicationGenerator {
 
   get [BaseApplicationGenerator.WRITING]() {
     return this.asWritingTaskGroup({
-      async writingTemplateTask() {},
+      async writingTemplateTask({ application }) {
+        await this.writeFiles({
+          sections: {
+            files: [{ templates: ['template-file-docker'] }],
+          },
+          context: application,
+        });
+      },
     });
   }
 

@@ -142,6 +142,12 @@ export default class extends BaseApplicationGenerator {
   get [BaseApplicationGenerator.WRITING]() {
     return this.asWritingTaskGroup({
       async writingTemplateTask( { application } ) {
+        await this.writeFiles({
+          sections: {
+            files: [{ templates: ['template-file-cassandra-spring-boot'] }],
+          },
+          context: application,
+        });
 
         if (application.databaseTypeCassandra) {
           let nativeTransportCqlPort = 9042; // Default port for gateway/monolith
