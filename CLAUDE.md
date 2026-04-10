@@ -11,7 +11,7 @@ This is a **JHipster Side-by-Side (SBS) blueprint** that extends JHipster to pro
 - **Custom Angular UI components** for Cassandra-specific data types
 - **AI-powered semantic vector search** using Cassandra 5.0+ SAI with ANN queries and OpenAI embeddings
 
-**Version:** 1.0.15
+**Version:** 1.0.16
 **Author:** Amar Premsaran Patel
 **License:** MIT
 **JHipster Base Version:** 9.0.0
@@ -1155,7 +1155,16 @@ MIT License - See LICENSE file for details
 
 ## Version History
 
-**1.0.15** (Current)
+**1.0.16** (Current)
+- Clean up templates: remove dead code, add search partials, fix link stubs
+- Fix refresh button spinner animation and missing gateway icons
+- Fix navbar menu grouping and sorting for gateway and cassandra-angular
+- Update JHipster version references from 8.6.0 to 9.0.0
+- Add POST_WRITING patches for global.scss, font-awesome-icons, and package.json
+- Fix non-composite TIMEUUID primary key handling in RestOf type and DTOTest
+- Add uuid, @types/uuid, and material-icons via POST_WRITING package.json patch
+
+**1.0.15**
 - AI-powered semantic vector search with checkbox field selection
 - Vector embedding fields via `@customAnnotation("VECTOR")` annotation
 - Cassandra 5.0+ SAI (Storage Attached Index) with ANN query support

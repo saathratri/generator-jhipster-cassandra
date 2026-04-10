@@ -41,9 +41,9 @@ The `generator-jhipster-cassandra` blueprint provides powerful schema modeling t
 
 ---
 
-## Improvements Since v1.0.13
+## Improvements Since v1.0.15
 
-The following improvements have been made since the last open-source tagged release (v1.0.13):
+The following improvements have been made since the last open-source tagged release (v1.0.15):
 
 ### Cassandra Pagination Overhaul
 - Replaced page-number-based pagination with native **Cassandra Slice pagination** using paging state tokens, which is the correct approach for Cassandra's distributed architecture.
