@@ -316,6 +316,27 @@ Infinite Scroll Styles
 /* jhipster-needle-scss-add-main JHipster will add new css style */`,
             );
           }
+          // Fix .row-md.jh-entity-details grid overflow: upstream leaves dd with
+          // min-width: auto, which sizes to min-content. A long unbreakable value
+          // (API keys, prompt text, etc.) forces the grid past the viewport and
+          // pushes the dt column off-screen, hiding every label. Patch dd so the
+          // 1fr track constrains the cell and long text can wrap.
+          if (!content.includes('overflow-wrap: anywhere')) {
+            content = content.replace(
+              `    dd {
+      border-bottom: 1px solid #eee;
+      padding: 0.5em 0;
+      margin-left: 0;
+    }`,
+              `    dd {
+      border-bottom: 1px solid #eee;
+      padding: 0.5em 0;
+      margin-left: 0;
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }`,
+            );
+          }
           return content;
         });
 
