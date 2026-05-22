@@ -5,11 +5,12 @@ package <%= packageName %>.config;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.openai.client.OpenAIClient;
+import com.openai.client.okhttp.OpenAIOkHttpClient;
 import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.ai.document.MetadataMode;
 import org.springframework.ai.openai.OpenAiEmbeddingModel;
 import org.springframework.ai.openai.OpenAiEmbeddingOptions;
-import org.springframework.ai.openai.api.OpenAiApi;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -37,10 +38,10 @@ public class EmbeddingConfiguration {
         }
 
         LOG.info("Configuring OpenAI embedding model for AI search features.");
-        OpenAiApi openAiApi = OpenAiApi.builder().apiKey(openaiApiKey).build();
+        OpenAIClient openAiClient = OpenAIOkHttpClient.builder().apiKey(openaiApiKey).build();
         OpenAiEmbeddingOptions options = OpenAiEmbeddingOptions.builder()
             .model("text-embedding-3-small")
             .build();
-        return new OpenAiEmbeddingModel(openAiApi, MetadataMode.EMBED, options);
+        return new OpenAiEmbeddingModel(openAiClient, MetadataMode.EMBED, options);
     }
 }
