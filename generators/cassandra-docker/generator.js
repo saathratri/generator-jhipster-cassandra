@@ -119,7 +119,7 @@ export default class extends BaseApplicationGenerator {
                   templates: [
                     {
                       file: "docker/cassandra.yml",
-                      renameTo: (ctx) => `src/main/docker/cassandra.yml`,
+                      renameTo: () => `src/main/docker/cassandra.yml`,
                     },
                   ],
                 },

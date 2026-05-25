@@ -454,7 +454,7 @@ export const springDataCassandraSaathratriUtils = {
     params,
     paramsInst,
   ) {
-    const paginatedParams = params
+    const _paginatedParams = params
       ? `${params}, Pageable pageable`
       : "Pageable pageable";
     const paginatedParamsInst = paramsInst

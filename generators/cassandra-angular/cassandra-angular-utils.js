@@ -226,7 +226,7 @@ export const angularSaathratriUtils = {
   getCompositePrimaryKeyClientVariableWithType(
     variablesWithTypes,
     fieldName,
-    isPrimaryKeyField,
+    _isPrimaryKeyField,
   ) {
     let variableDeclarationStatement = "";
 

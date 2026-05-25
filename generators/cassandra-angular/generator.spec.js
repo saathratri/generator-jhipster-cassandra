@@ -2,10 +2,10 @@ import { beforeAll, describe, expect, it } from "vitest";
 
 import { defaultHelpers as helpers, result } from "generator-jhipster/testing";
 
-const SUB_GENERATOR = "angular";
-const BLUEPRINT_NAMESPACE = `jhipster:${SUB_GENERATOR}`;
+const SUB_GENERATOR = "cassandra-angular";
+const BLUEPRINT_NAMESPACE = `jhipster-cassandra:${SUB_GENERATOR}`;
 
-describe("SubGenerator angular of cassandra JHipster blueprint", () => {
+describe("SubGenerator cassandra-angular of cassandra JHipster blueprint", () => {
   describe("run", () => {
     beforeAll(async function () {
       await helpers
