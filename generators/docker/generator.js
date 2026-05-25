@@ -1,4 +1,4 @@
-import BaseApplicationGenerator from 'generator-jhipster/generators/base-application';
+import BaseApplicationGenerator from "generator-jhipster/generators/base-application";
 
 export default class extends BaseApplicationGenerator {
   constructor(args, opts, features) {
@@ -19,17 +19,19 @@ export default class extends BaseApplicationGenerator {
 
   get [BaseApplicationGenerator.CONFIGURING]() {
     return this.asConfiguringTaskGroup({
-      async configuringTemplateTask() {}
+      async configuringTemplateTask() {},
     });
   }
 
   get [BaseApplicationGenerator.COMPOSING]() {
     return this.asComposingTaskGroup({
       async composingTemplateTask() {
-        if (['cassandra'].includes(this.jhipsterConfigWithDefaults.databaseType)) {
+        if (
+          ["cassandra"].includes(this.jhipsterConfigWithDefaults.databaseType)
+        ) {
           // Delegate the client sub-generator to the angular blueprint.
-          await this.composeWithJHipster('jhipster-cassandra:cassandra-docker');
-         }
+          await this.composeWithJHipster("jhipster-cassandra:cassandra-docker");
+        }
       },
     });
   }
@@ -99,7 +101,7 @@ export default class extends BaseApplicationGenerator {
       async writingTemplateTask({ application }) {
         await this.writeFiles({
           sections: {
-            files: [{ templates: ['template-file-docker'] }],
+            files: [{ templates: ["template-file-docker"] }],
           },
           context: application,
         });

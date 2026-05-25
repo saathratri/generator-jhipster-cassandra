@@ -1,4 +1,4 @@
-import BaseApplicationGenerator from 'generator-jhipster/generators/base-application';
+import BaseApplicationGenerator from "generator-jhipster/generators/base-application";
 
 export default class extends BaseApplicationGenerator {
   constructor(args, opts, features) {
@@ -88,7 +88,7 @@ export default class extends BaseApplicationGenerator {
       async writingTemplateTask({ application }) {
         await this.writeFiles({
           sections: {
-            files: [{ templates: ['template-file-cypress'] }],
+            files: [{ templates: ["template-file-cypress"] }],
           },
           context: application,
         });

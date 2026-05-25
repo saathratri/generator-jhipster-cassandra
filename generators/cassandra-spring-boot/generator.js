@@ -1,15 +1,19 @@
-import BaseApplicationGenerator from 'generator-jhipster/generators/base-application';
-import { javaMainPackageTemplatesBlock, javaTestPackageTemplatesBlock } from 'generator-jhipster/generators/java/support';
-import { javaSaathratriUtils } from '../cassandra-java/generators/domain/cassandra-java-domain-utils.js';
-import { springDataCassandraSaathratriUtils } from './generators/data-cassandra/cassandra-spring-data-cassandra-utils.js';
-import { cassandraSpringBootUtils } from './cassandra-spring-boot-utils.js';
-import { snakeCase } from 'lodash-es';
+import BaseApplicationGenerator from "generator-jhipster/generators/base-application";
+import {
+  javaMainPackageTemplatesBlock,
+  javaTestPackageTemplatesBlock,
+} from "generator-jhipster/generators/java/support";
+import { snakeCase } from "lodash-es";
+
+import { javaSaathratriUtils } from "../cassandra-java/generators/domain/cassandra-java-domain-utils.js";
+
+import { cassandraSpringBootUtils } from "./cassandra-spring-boot-utils.js";
+import { springDataCassandraSaathratriUtils } from "./generators/data-cassandra/cassandra-spring-data-cassandra-utils.js";
 
 export default class extends BaseApplicationGenerator {
   constructor(args, opts, features) {
-    
     /******************************************************************/
-    // Important: The checkBlueprint: true flag is used to check if the 
+    // Important: The checkBlueprint: true flag is used to check if the
     // blueprint is installed and uses it to process the generator.
     // The base generator is called where the properties are defined.
     /******************************************************************/
@@ -37,9 +41,11 @@ export default class extends BaseApplicationGenerator {
   get [BaseApplicationGenerator.COMPOSING]() {
     return this.asComposingTaskGroup({
       async composeTask() {
-        if (['cassandra'].includes(this.jhipsterConfigWithDefaults.databaseType)) {
-         // Delegate to the data-cassandra sub-generator.
-         await this.composeWith('./generators/data-cassandra/index.js');
+        if (
+          ["cassandra"].includes(this.jhipsterConfigWithDefaults.databaseType)
+        ) {
+          // Delegate to the data-cassandra sub-generator.
+          await this.composeWith("./generators/data-cassandra/index.js");
         }
       },
     });
@@ -71,8 +77,10 @@ export default class extends BaseApplicationGenerator {
 
   get [BaseApplicationGenerator.PREPARING_EACH_ENTITY]() {
     return this.asPreparingEachEntityTaskGroup({
-      async preparingEachEntityTemplateTask( { entity } ) {
-        cassandraSpringBootUtils.setSaathratriPrimaryKeyAttributesOnEntityAndFields(entity);
+      async preparingEachEntityTemplateTask({ entity }) {
+        cassandraSpringBootUtils.setSaathratriPrimaryKeyAttributesOnEntityAndFields(
+          entity,
+        );
         // Override entityTableName to use lodash snakeCase which correctly
         // inserts underscores before trailing digits (e.g. SaathratriEntity2 → saathratri_entity_2).
         // JHipster's default hibernateSnakeCase skips the last character transition.
@@ -83,21 +91,28 @@ export default class extends BaseApplicationGenerator {
 
   get [BaseApplicationGenerator.PREPARING_EACH_ENTITY_FIELD]() {
     return this.asPreparingEachEntityFieldTaskGroup({
-      async preparingEachEntityFieldTemplateTask({ entity, field, application }) {
+      async preparingEachEntityFieldTemplateTask({
+        entity,
+        field,
+        application,
+      }) {
         // Detect vector fields annotated with @customAnnotation("VECTOR")
         const annotation = field.options?.customAnnotation?.[0];
-        if (annotation === 'VECTOR') {
-          const vectorDimension = field.options?.customAnnotation?.[1] || '1536';
-          const sourceFieldName = field.fieldName.replace(/Embedding$/, '');
-          const sourceFieldNameCapitalized = sourceFieldName.charAt(0).toUpperCase() + sourceFieldName.slice(1);
+        if (annotation === "VECTOR") {
+          const vectorDimension =
+            field.options?.customAnnotation?.[1] || "1536";
+          const sourceFieldName = field.fieldName.replace(/Embedding$/, "");
+          const sourceFieldNameCapitalized =
+            sourceFieldName.charAt(0).toUpperCase() + sourceFieldName.slice(1);
 
           field.fieldTypeVectorSaathratri = true;
           field.vectorDimensionSaathratri = vectorDimension;
           field.sourceFieldNameSaathratri = sourceFieldName;
-          field.sourceFieldNameCapitalizedSaathratri = sourceFieldNameCapitalized;
+          field.sourceFieldNameCapitalizedSaathratri =
+            sourceFieldNameCapitalized;
 
           // Set proper Java type for vector fields
-          field.javaFieldType = 'CqlVector<Float>';
+          field.javaFieldType = "CqlVector<Float>";
 
           // Hide vector fields from Angular UI (they are internal embeddings)
           field.hidden = true;
@@ -117,7 +132,9 @@ export default class extends BaseApplicationGenerator {
           if (!application.vectorEntitiesSaathratri) {
             application.vectorEntitiesSaathratri = [];
           }
-          if (!application.vectorEntitiesSaathratri.includes(entity.entityClass)) {
+          if (
+            !application.vectorEntitiesSaathratri.includes(entity.entityClass)
+          ) {
             application.vectorEntitiesSaathratri.push(entity.entityClass);
           }
         }
@@ -127,7 +144,7 @@ export default class extends BaseApplicationGenerator {
 
   get [BaseApplicationGenerator.POST_PREPARING_EACH_ENTITY]() {
     return this.asPostPreparingEachEntityTaskGroup({
-      async postPreparingEachEntityTemplateTask( { entity } ) {
+      async postPreparingEachEntityTemplateTask({ entity }) {
         cassandraSpringBootUtils.setSaathratriNonPrimaryKeySampleValues(entity);
       },
     });
@@ -141,10 +158,10 @@ export default class extends BaseApplicationGenerator {
 
   get [BaseApplicationGenerator.WRITING]() {
     return this.asWritingTaskGroup({
-      async writingTemplateTask( { application } ) {
+      async writingTemplateTask({ application }) {
         await this.writeFiles({
           sections: {
-            files: [{ templates: ['template-file-cassandra-spring-boot'] }],
+            files: [{ templates: ["template-file-cassandra-spring-boot"] }],
           },
           context: application,
         });
@@ -153,28 +170,39 @@ export default class extends BaseApplicationGenerator {
           let nativeTransportCqlPort = 9042; // Default port for gateway/monolith
 
           if (application.applicationTypeMicroservice) {
-            cassandraSpringBootUtils.getApplicationPortData(this.destinationPath(), this.appname);
+            cassandraSpringBootUtils.getApplicationPortData(
+              this.destinationPath(),
+              this.appname,
+            );
 
             // Increment the last used port and set it in the port data
-            const portData = cassandraSpringBootUtils.incrementAndSetLastUsedPort(this.destinationPath(), this.appname);
+            const portData =
+              cassandraSpringBootUtils.incrementAndSetLastUsedPort(
+                this.destinationPath(),
+                this.appname,
+              );
 
             // Usage of the ports in your configuration files
-            this.log(`The server ports are: ${JSON.stringify(portData[this.appname])}`);
+            this.log(
+              `The server ports are: ${JSON.stringify(portData[this.appname])}`,
+            );
 
-            nativeTransportCqlPort = portData[this.appname].nativeTransportCqlPort;
+            nativeTransportCqlPort =
+              portData[this.appname].nativeTransportCqlPort;
           }
 
           await this.writeFiles({
             sections: {
-              files: [{ templates: [
-                  'src/main/resources/config/application-dev.yml'
-                ]
-              }],
+              files: [
+                {
+                  templates: ["src/main/resources/config/application-dev.yml"],
+                },
+              ],
             },
             context: {
               ...application,
               nativeTransportCqlPortSaathratri: nativeTransportCqlPort,
-            }
+            },
           });
         }
 
@@ -182,15 +210,17 @@ export default class extends BaseApplicationGenerator {
         if (application.hasVectorFieldsSaathratri) {
           await this.writeFiles({
             sections: {
-              files: [{
-                ...javaMainPackageTemplatesBlock(),
-                templates: [
-                  'service/embedding/EmbeddingService.java',
-                  'config/EmbeddingConfiguration.java',
-                ]
-              }],
+              files: [
+                {
+                  ...javaMainPackageTemplatesBlock(),
+                  templates: [
+                    "service/embedding/EmbeddingService.java",
+                    "config/EmbeddingConfiguration.java",
+                  ],
+                },
+              ],
             },
-            context: application
+            context: application,
           });
         }
       },
@@ -200,55 +230,64 @@ export default class extends BaseApplicationGenerator {
   get [BaseApplicationGenerator.WRITING_ENTITIES]() {
     return this.asWritingEntitiesTaskGroup({
       async writingEntitiesTemplateTask({ application, entities }) {
-        
-        for (const entity of entities.filter(e => !e.builtIn)) { 
-
+        for (const entity of entities.filter((e) => !e.builtIn)) {
           await this.writeFiles({
             sections: {
               files: [
                 {
-                  condition: generator => generator.databaseTypeCassandra && !entity.skipServer,
-                  ...javaMainPackageTemplatesBlock('_entityPackage_/'),
+                  condition: (generator) =>
+                    generator.databaseTypeCassandra && !entity.skipServer,
+                  ...javaMainPackageTemplatesBlock("_entityPackage_/"),
                   templates: [
-                    'service/_entityClass_Service.java',
-                    'service/impl/_entityClass_ServiceImpl.java',
-                    'web/rest/_entityClass_Resource.java',
-                  ]
+                    "service/_entityClass_Service.java",
+                    "service/impl/_entityClass_ServiceImpl.java",
+                    "web/rest/_entityClass_Resource.java",
+                  ],
                 },
                 {
-                  condition: generator => generator.databaseTypeCassandra && !entity.skipServer,
-                  ...javaTestPackageTemplatesBlock('_entityPackage_/'),
-                  templates: [
-                    'web/rest/_entityClass_ResourceIT.java',
-                  ]
+                  condition: (generator) =>
+                    generator.databaseTypeCassandra && !entity.skipServer,
+                  ...javaTestPackageTemplatesBlock("_entityPackage_/"),
+                  templates: ["web/rest/_entityClass_ResourceIT.java"],
                 },
                 {
-                  condition: generator => generator.databaseTypeCassandra && !entity.skipServer && entity.primaryKeySaathratri.composite,
-                  ...javaMainPackageTemplatesBlock('_entityPackage_/'),
+                  condition: (generator) =>
+                    generator.databaseTypeCassandra &&
+                    !entity.skipServer &&
+                    entity.primaryKeySaathratri.composite,
+                  ...javaMainPackageTemplatesBlock("_entityPackage_/"),
                   templates: [
-                    'service/dto/_dtoClass_Id.java',
+                    "service/dto/_dtoClass_Id.java",
                     /* saathratri-needle-cassandra-copy-dto-id-class */
-                  ]
+                  ],
                 },
                 {
-                  condition: generator => generator.databaseTypeCassandra && !entity.skipServer,
-                  ...javaMainPackageTemplatesBlock('_entityPackage_/'),
+                  condition: (generator) =>
+                    generator.databaseTypeCassandra && !entity.skipServer,
+                  ...javaMainPackageTemplatesBlock("_entityPackage_/"),
                   templates: [
-                    'service/dto/_dtoClass_.java',
+                    "service/dto/_dtoClass_.java",
                     /* saathratri-needle-cassandra-copy-dto-class */
-                    'service/mapper/_entityClass_Mapper.java',
-                  ]
+                    "service/mapper/_entityClass_Mapper.java",
+                  ],
                 },
                 {
-                  condition: generator => generator.databaseTypeCassandra && !entity.skipServer,
-                  ...javaTestPackageTemplatesBlock('_entityPackage_/'),
-                  templates: [
-                    'service/dto/_dtoClass_Test.java',
-                  ]
-                }
+                  condition: (generator) =>
+                    generator.databaseTypeCassandra && !entity.skipServer,
+                  ...javaTestPackageTemplatesBlock("_entityPackage_/"),
+                  templates: ["service/dto/_dtoClass_Test.java"],
+                },
               ],
             },
-            context: { ...application, ...entity, ...cassandraSpringBootUtils, ...springDataCassandraSaathratriUtils, ...javaSaathratriUtils, ...cassandraSpringBootUtils, entityInstanceSnakeCase: snakeCase(entity.entityInstance) },
+            context: {
+              ...application,
+              ...entity,
+              ...cassandraSpringBootUtils,
+              ...springDataCassandraSaathratriUtils,
+              ...javaSaathratriUtils,
+              ...cassandraSpringBootUtils,
+              entityInstanceSnakeCase: snakeCase(entity.entityInstance),
+            },
           });
         }
       },
@@ -262,23 +301,23 @@ export default class extends BaseApplicationGenerator {
 
         // Add Spring AI BOM and OpenAI dependency to pom.xml
         if (application.buildToolMaven) {
-          const pomXmlPath = 'pom.xml';
-          this.editFile(pomXmlPath, content => {
+          const pomXmlPath = "pom.xml";
+          this.editFile(pomXmlPath, (content) => {
             // Add Spring AI OpenAI starter to the main <dependencies> section
             // Match the top-level </dependencies> (4-space indent) to avoid hitting dependencyManagement or profile ones
-            if (!content.includes('spring-ai-openai')) {
+            if (!content.includes("spring-ai-openai")) {
               content = content.replace(
-                /^(    )<\/dependencies>/m,
+                /^( {4})<\/dependencies>/m,
                 `$1    <dependency>
 $1        <groupId>org.springframework.ai</groupId>
 $1        <artifactId>spring-ai-openai</artifactId>
 $1    </dependency>
-$1</dependencies>`
+$1</dependencies>`,
               );
             }
 
             // Add Spring AI BOM inside <dependencyManagement><dependencies>
-            if (!content.includes('spring-ai-bom')) {
+            if (!content.includes("spring-ai-bom")) {
               content = content.replace(
                 /(<\/dependencies>\s*<\/dependencyManagement>)/,
                 `    <dependency>
@@ -288,25 +327,27 @@ $1</dependencies>`
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
-        $1`
+        $1`,
               );
             }
 
             // Add Spring Milestones repository if not present (needed for milestone releases)
-            if (!content.includes('spring-milestones')) {
-              if (content.includes('</repositories>')) {
+            if (!content.includes("spring-milestones")) {
+              if (content.includes("</repositories>")) {
                 content = content.replace(
-                  '</repositories>',
+                  "</repositories>",
                   `    <repository>
             <id>spring-milestones</id>
             <name>Spring Milestones</name>
             <url>https://repo.spring.io/milestone</url>
         </repository>
-    </repositories>`
+    </repositories>`,
                 );
               } else {
                 // No <repositories> section exists, add one before <profiles> or </project>
-                const insertBefore = content.includes('<profiles>') ? '<profiles>' : '</project>';
+                const insertBefore = content.includes("<profiles>")
+                  ? "<profiles>"
+                  : "</project>";
                 content = content.replace(
                   insertBefore,
                   `<repositories>
@@ -317,7 +358,7 @@ $1</dependencies>`
         </repository>
     </repositories>
 
-    ${insertBefore}`
+    ${insertBefore}`,
                 );
               }
             }

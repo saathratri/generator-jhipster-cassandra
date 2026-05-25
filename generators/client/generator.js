@@ -1,4 +1,4 @@
-import BaseApplicationGenerator from 'generator-jhipster/generators/base-application';
+import BaseApplicationGenerator from "generator-jhipster/generators/base-application";
 
 export default class extends BaseApplicationGenerator {
   constructor(args, opts, features) {
@@ -23,12 +23,16 @@ export default class extends BaseApplicationGenerator {
     });
   }
 
- get [BaseApplicationGenerator.COMPOSING]() {
+  get [BaseApplicationGenerator.COMPOSING]() {
     return this.asComposingTaskGroup({
       async composeTask() {
-        if (['angularX', 'angular'].includes(this.jhipsterConfigWithDefaults.clientFramework)) {
-         // Delegate the client sub-generator to the angular blueprint.
-         await this.composeWithJHipster('jhipster-cassandra:cassandra-client');
+        if (
+          ["angularX", "angular"].includes(
+            this.jhipsterConfigWithDefaults.clientFramework,
+          )
+        ) {
+          // Delegate the client sub-generator to the angular blueprint.
+          await this.composeWithJHipster("jhipster-cassandra:cassandra-client");
         }
       },
     });
@@ -93,7 +97,7 @@ export default class extends BaseApplicationGenerator {
       async writingTemplateTask({ application }) {
         await this.writeFiles({
           sections: {
-            files: [{ templates: ['template-file-client'] }],
+            files: [{ templates: ["template-file-client"] }],
           },
           context: application,
         });

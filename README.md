@@ -20,7 +20,7 @@ The `generator-jhipster-cassandra` blueprint provides powerful schema modeling t
 - **Set & Map Field Support**
   - Native Cassandra collection types are now fully supported:
     - `CassandraType.Name.SET`
-	  - Supports `TEXT`
+    - Supports `TEXT`
     - `CassandraType.Name.MAP`
       - Supports various key-value types: `TEXT`, `BOOLEAN`, `DECIMAL`, and `BIGINT`.
 
@@ -46,6 +46,7 @@ The `generator-jhipster-cassandra` blueprint provides powerful schema modeling t
 The following improvements have been made since the last open-source tagged release (v1.0.15):
 
 ### Cassandra Pagination Overhaul
+
 - Replaced page-number-based pagination with native **Cassandra Slice pagination** using paging state tokens, which is the correct approach for Cassandra's distributed architecture.
 - Added a dedicated `/slice` endpoint for backward-compatible paginated queries.
 - Replaced automatic infinite scroll with a **Load More button** for better UX control.
@@ -53,22 +54,26 @@ The following improvements have been made since the last open-source tagged rele
 - Fixed infinite "Load More" loop by properly checking for empty results.
 
 ### Composite Key Search Widget
+
 - Added **findBy search methods** for Cassandra composite keys with a full search widget on entity list pages.
 - Added **date pickers and comparison operators** (equals, greater than, less than, etc.) for clustering key fields.
 - Clustering key fields are **automatically disabled** when an inequality operator is selected on a preceding clustering column (respecting Cassandra's query restrictions).
 - Navbar entities are now **sorted alphabetically** for easier navigation.
 
 ### UTC Date Handling
+
 - Added `UTC_DATE` display support that prevents timezone shifting -- dates are rendered exactly as stored.
 - Added a custom `FormatUtcDatePipe` for consistent date-only formatting in Angular templates.
 - Fixed UTC_DATE form handling to use dayjs throughout the stack (create, update, and search forms).
 - Configured `DayjsDateAdapter` for Material Datepicker integration.
 
 ### Composite Key Sorting
+
 - Added **column sorting** for Cassandra entities, with proper data array clearing when sort changes.
 - Sort by composite key fields is now fully supported in the Angular list view.
 
 ### Backend Fixes
+
 - Fixed malformed CQL `@Query` generation in `findLatestBy` repository methods.
 - Removed expensive `count()` queries from Cassandra resource templates (not supported efficiently by Cassandra).
 - Fixed Cassandra pagination to use an explicit `pagingState` query parameter for clean API design.
@@ -90,10 +95,11 @@ The following improvements have been made since the last open-source tagged rele
 ### Composite Key Example
 
 Below are various examples of defining JDL entities using the @customAnnotation methodology to specify the details of the Cassandra composite primary key. Also, below is an example of a single-value primary key entity. Some example entities are of composite primary keys using Map fields and some are using a Set field. There are also examples of single-value primary key entities using Maps and Set data structures.
+
 ```
     // Composite Primary Key Example:
     entity Post {
-      @Id @customAnnotation("PrimaryKeyType.PARTITIONED") @customAnnotation("CassandraType.Name.BIGINT") @customAnnotation("UTC_DATE") @customAnnotation("0") createdDate Long 
+      @Id @customAnnotation("PrimaryKeyType.PARTITIONED") @customAnnotation("CassandraType.Name.BIGINT") @customAnnotation("UTC_DATE") @customAnnotation("0") createdDate Long
       // Do not name composite primary key fields as 'id' as it conflicts with the 'id' field in the JHipster entity.
       @customAnnotation("PrimaryKeyType.CLUSTERED") @customAnnotation("CassandraType.Name.BIGINT") @customAnnotation("UTC_DATETIME") @customAnnotation("1") addedDateTime Long
       @customAnnotation("PrimaryKeyType.CLUSTERED") @customAnnotation("CassandraType.Name.UUID") @customAnnotation("") @customAnnotation("2") postId UUID
@@ -205,6 +211,7 @@ Below are various examples of defining JDL entities using the @customAnnotation 
 ```
 
 **Vector Field Annotation Format:**
+
 - First annotation: `"VECTOR"` — marks the field as a vector embedding column
 - Second annotation: `"1536"` — the vector dimension (1536 for OpenAI text-embedding-3-small)
 - Third/fourth annotations: unused (leave as `""`)
@@ -212,6 +219,7 @@ Below are various examples of defining JDL entities using the @customAnnotation 
 The field name must end with `Embedding` (e.g., `nameEmbedding`). The source field is derived by stripping the `Embedding` suffix (e.g., `name`).
 
 When an entity has vector fields, the blueprint automatically generates:
+
 - A `GET /api/<entity>/ai-search?query=...&limit=...&fields=...` REST endpoint
 - Cassandra ANN (Approximate Nearest Neighbor) query methods in the repository
 - An AI search bar on the Angular list page with checkbox selection for choosing which vector fields to search
@@ -286,6 +294,7 @@ export OPENAI_API_KEY=sk-your-api-key-here
 ```
 
 Or add to `application-dev.yml`:
+
 ```yaml
 openai:
   api-key: sk-your-api-key-here
@@ -354,6 +363,7 @@ okta apps create jhipster
 ## 👏 Acknowledgements
 
 Huge thanks to:
+
 - [yelhouti](https://github.com/yelhouti)
 - [Jeremy Artero](https://www.linkedin.com/in/jeremyartero/)
 - [Matt Raible](https://github.com/mraible)

@@ -64,6 +64,7 @@ Cassandra primary keys consist of:
    - Supports multiple clustering keys with ordinal ordering
 
 **Syntax:**
+
 ```
 PRIMARY KEY ((partition_key1, partition_key2), clustering_key1, clustering_key2)
 ```
@@ -131,6 +132,7 @@ entity Post {
 ```
 
 **This creates:**
+
 ```cql
 PRIMARY KEY ((createdDate), addedDateTime, postId)
 ```
@@ -139,24 +141,25 @@ PRIMARY KEY ((createdDate), addedDateTime, postId)
 
 ### Partition and Clustering Keys
 
-| Annotation Value | Cassandra Type | Java Type | Description |
-|-----------------|----------------|-----------|-------------|
-| `CassandraType.Name.UUID` | UUID | UUID | Unique identifier |
-| `CassandraType.Name.TIMEUUID` | TIMEUUID | UUID | Time-based UUID |
-| `CassandraType.Name.BIGINT` | BIGINT | Long | 64-bit integer |
-| `CassandraType.Name.TEXT` | TEXT | String | Text string |
+| Annotation Value              | Cassandra Type | Java Type | Description       |
+| ----------------------------- | -------------- | --------- | ----------------- |
+| `CassandraType.Name.UUID`     | UUID           | UUID      | Unique identifier |
+| `CassandraType.Name.TIMEUUID` | TIMEUUID       | UUID      | Time-based UUID   |
+| `CassandraType.Name.BIGINT`   | BIGINT         | Long      | 64-bit integer    |
+| `CassandraType.Name.TEXT`     | TEXT           | String    | Text string       |
 
 ### Temporal Fields
 
-| Annotation | Format | Java Type | Description |
-|-----------|--------|-----------|-------------|
-| `UTC_DATE` | Date only | Long | Stored as epoch millis, day precision |
-| `UTC_DATETIME` | Date and time | Long | Stored as epoch millis, millisecond precision |
-| `TIMEUUID` | Time-based UUID | UUID | Version 1 UUID with timestamp |
+| Annotation     | Format          | Java Type | Description                                   |
+| -------------- | --------------- | --------- | --------------------------------------------- |
+| `UTC_DATE`     | Date only       | Long      | Stored as epoch millis, day precision         |
+| `UTC_DATETIME` | Date and time   | Long      | Stored as epoch millis, millisecond precision |
+| `TIMEUUID`     | Time-based UUID | UUID      | Version 1 UUID with timestamp                 |
 
 ### Collection Types
 
 **SET (String values):**
+
 ```jdl
 @customAnnotation("")
 @customAnnotation("CassandraType.Name.SET")
@@ -169,14 +172,15 @@ Generated as: `Set<String>` in Java
 
 **MAP Types:**
 
-| Value Type | Annotation | Java Type |
-|-----------|-----------|-----------|
-| TEXT | `CassandraType.Name.MAP` + `CassandraType.Name.TEXT` | `Map<String, String>` |
-| BOOLEAN | `CassandraType.Name.MAP` + `CassandraType.Name.BOOLEAN` | `Map<String, Boolean>` |
-| DECIMAL | `CassandraType.Name.MAP` + `CassandraType.Name.DECIMAL` | `Map<String, BigDecimal>` |
-| BIGINT | `CassandraType.Name.MAP` + `CassandraType.Name.BIGINT` | `Map<String, Long>` |
+| Value Type | Annotation                                              | Java Type                 |
+| ---------- | ------------------------------------------------------- | ------------------------- |
+| TEXT       | `CassandraType.Name.MAP` + `CassandraType.Name.TEXT`    | `Map<String, String>`     |
+| BOOLEAN    | `CassandraType.Name.MAP` + `CassandraType.Name.BOOLEAN` | `Map<String, Boolean>`    |
+| DECIMAL    | `CassandraType.Name.MAP` + `CassandraType.Name.DECIMAL` | `Map<String, BigDecimal>` |
+| BIGINT     | `CassandraType.Name.MAP` + `CassandraType.Name.BIGINT`  | `Map<String, Long>`       |
 
 Example:
+
 ```jdl
 @customAnnotation("")
 @customAnnotation("CassandraType.Name.MAP")
@@ -274,6 +278,7 @@ The blueprint automatically generates finder methods based on composite key stru
 **For Post entity with PRIMARY KEY ((createdDate), addedDateTime, postId):**
 
 Generated repository methods:
+
 ```java
 // Find by partition key only
 List<Post> findAllByCompositeIdCreatedDate(Long createdDate);
@@ -299,6 +304,7 @@ Optional<Post> findLatestByCompositeIdCreatedDateAndCompositeIdAddedDateTime(
 ```
 
 Generated REST endpoints:
+
 ```
 GET /api/posts/find-all-by-created-date/:createdDate
 GET /api/posts/find-all-by-created-date/:createdDate/and-added-date-time/:addedDateTime
@@ -348,23 +354,27 @@ public class Post implements Serializable {
 The blueprint generates sophisticated UI components for Cassandra-specific types:
 
 **Date/Time Component:**
+
 - Custom date/time picker integrated with Dayjs
 - Converts between Long (epoch millis) and user-friendly dates
 - Located in: `src/main/webapp/app/saathratri/date-time/`
 
 **SET Editor:**
+
 - Add/remove string values
 - Displays as chips/tags
 - Edit dialog for managing set contents
 - Located in: `src/main/webapp/app/saathratri/set-string/`
 
 **MAP Editors (4 types):**
+
 - **map-string**: String key-value pairs
 - **map-boolean**: String keys, boolean values
 - **map-number**: String keys, numeric values (BigDecimal/Long)
 - **map-dayjs**: String keys, date-time values
 
 Each MAP editor includes:
+
 - List view showing all entries
 - Add/Edit/Delete functionality
 - Dialog-based editing with Angular Material
@@ -430,6 +440,7 @@ Optional<Event> findLatestByCompositeIdPartitionKey(@Param("partitionKey") Strin
 Automatic Docker configuration with port management:
 
 **5 Ports per Cassandra Instance:**
+
 - **7000**: Inter-node communication (non-SSL)
 - **7001**: Inter-node communication (SSL)
 - **7199**: JMX monitoring
@@ -437,6 +448,7 @@ Automatic Docker configuration with port management:
 - **9160**: Thrift transport (legacy)
 
 **Port Allocation:**
+
 - Gateway: Starts at 7000, 7001, 7199, 9042, 9160
 - Each microservice: Increments by 100 (7100, 7101, 7299, 9142, 9260, etc.)
 
@@ -471,6 +483,7 @@ Automatic Docker configuration with port management:
 ### cassandra-spring-boot-utils.js (647 lines)
 
 **`setSaathratriPrimaryKeyAttributesOnEntityAndFields(entity, fields)`**
+
 - Main processing function for composite keys
 - Parses custom annotations
 - Determines partition vs clustering keys
@@ -478,21 +491,25 @@ Automatic Docker configuration with port management:
 - Sets up entity metadata for template generation
 
 **`initializeSaathratriPrimaryKeyAttributes(field)`**
+
 - Parses the four custom annotations
 - Extracts: primary key type, Cassandra type, date format, ordinal
 - Initializes field metadata structure
 
 **`getCompositePrimaryKeyValue(field, indentation)`**
+
 - Generates Java code for test sample values
 - Handles all data types: UUID, TIMEUUID, BIGINT, TEXT
 - Returns properly formatted value based on type
 
 **`getCompositePrimaryKeyComparisonsForIntegrationTest(entity)`**
+
 - Generates comparison methods for clustering keys
 - Creates LessThan/GreaterThan test methods
 - Used in integration test generation
 
 **Port Management Functions:**
+
 - `getApplicationCassandraPortsData()`: Reads port configuration
 - `incrementAndSetLastUsedCassandraPorts(applicationName)`: Allocates ports
 - `initializePortsFileIfNeeded()`: Creates tracking file if missing
@@ -500,21 +517,25 @@ Automatic Docker configuration with port management:
 ### cassandra-spring-data-cassandra-utils.js (187 lines)
 
 **`generatePrimaryKeyMethods(entity, partitionKeyFields, clusteringKeyFields)`**
+
 - Main query generation orchestrator
 - Creates all finder methods based on key combinations
 - Adds comparison methods for applicable clustering keys
 - Generates "findLatest" for TimeUUID clustering keys
 
 **`addMethodDeclarations(methods, fields, prefix, suffix, entityName, methodType)`**
+
 - Recursive function building method signatures
 - Creates permutations of partition + clustering key combinations
 - Generates Service, Repository, and Resource method declarations
 
 **`addComparisonMethods(methods, fields, prefix, entityName)`**
+
 - Adds LessThan/GreaterThan methods for Long and TimeUUID clustering keys
 - Essential for range queries in Cassandra
 
 **`getPrimaryKeyRepositoryMethodSignature(fields, methodType, entityName, suffix)`**
+
 - Formats Spring Data method signatures
 - Handles different method types: findBy, findAllBy, findLatestBy
 - Returns properly formatted Java method signature
@@ -522,11 +543,13 @@ Automatic Docker configuration with port management:
 ### cassandra-java-domain-utils.js (41 lines)
 
 **`getCompositePrimaryKeyComputeValue(field, indentation, entity)`**
+
 - Generates code to create composite key instances
 - Used in test data generation
 - Handles both simple and composite primary keys
 
 **`getCompositePrimaryKeyValue(field, entity)`**
+
 - Returns sample values for testing
 - Type-specific value generation
 - Example: UUID → `UUID.fromString("...")`, Long → `1L`
@@ -534,11 +557,13 @@ Automatic Docker configuration with port management:
 ### cassandra-angular-utils.js
 
 **`generateEntityClientFieldsSaathratri(primaryKey, fields, relationships, entity)`**
+
 - Generates TypeScript field definitions for Angular models
 - Maps Java types to TypeScript types
 - Handles composite keys, collections, and temporal fields
 
 **`getTypescriptType(field)`**
+
 - Type mapping function
 - Converts Cassandra/Java types to TypeScript equivalents
 - Example: `Map<String, BigDecimal>` → `{ [key: string]: number }`
@@ -548,6 +573,7 @@ Automatic Docker configuration with port management:
 ### Entity with Simple Primary Key
 
 **JDL:**
+
 ```jdl
 entity Tag {
   @Id
@@ -566,6 +592,7 @@ entity Tag {
 ```
 
 **Generated Java:**
+
 ```java
 @Table("tag")
 public class Tag implements Serializable {
@@ -583,6 +610,7 @@ public class Tag implements Serializable {
 ### Entity with Composite Key and Collections
 
 **JDL:**
+
 ```jdl
 entity UserProfile {
   @Id
@@ -615,6 +643,7 @@ entity UserProfile {
 ```
 
 **Generated Java Domain:**
+
 ```java
 @Table("user_profile")
 public class UserProfile implements Serializable {
@@ -636,6 +665,7 @@ public class UserProfile implements Serializable {
 ```
 
 **Generated Angular Model:**
+
 ```typescript
 export interface IUserProfile {
   username: string;
@@ -646,26 +676,31 @@ export interface IUserProfile {
 ```
 
 **Generated Angular Component (for SET field):**
+
 ```html
 <app-set-string-component
   [data]="userProfile.interests || []"
   (dataChange)="userProfile.interests = $event"
-  [label]="'Interests'">
+  [label]="'Interests'"
+>
 </app-set-string-component>
 ```
 
 **Generated Angular Component (for MAP fields):**
+
 ```html
 <app-map-string-component
   [data]="userProfile.preferences || {}"
   (dataChange)="userProfile.preferences = $event"
-  [label]="'Preferences'">
+  [label]="'Preferences'"
+>
 </app-map-string-component>
 
 <app-map-boolean-component
   [data]="userProfile.settings || {}"
   (dataChange)="userProfile.settings = $event"
-  [label]="'Settings'">
+  [label]="'Settings'"
+>
 </app-map-boolean-component>
 ```
 
@@ -676,20 +711,24 @@ export interface IUserProfile {
 The blueprint generates comprehensive tests:
 
 **Domain Tests:**
+
 - `EntityTest.java` - Entity field tests
 - `EntityTestSamples.java` - Sample data generators
 - `EntityAsserts.java` - Custom assertions for entities
 
 **Service Tests:**
+
 - Service layer test coverage (if applicable)
 
 **Integration Tests:**
+
 - `EntityResourceIT.java` - Full REST API integration tests
 - Tests all generated endpoints
 - Validates composite key queries
 - Tests comparison methods (LessThan/GreaterThan)
 
 **DTO Tests:**
+
 - `EntityDTOTest.java` - DTO serialization/deserialization
 
 ### Running Tests
@@ -710,6 +749,7 @@ npm test
 ### Side-by-Side Pattern
 
 Uses the SBS blueprint pattern:
+
 - `sbsBlueprint: true` in generator constructor
 - Extends JHipster without replacing core functionality
 - Adds Cassandra-specific customizations
@@ -731,6 +771,7 @@ get [BaseApplicationGenerator.PREPARING_EACH_ENTITY]() {
 ### Template System
 
 Uses EJS templating:
+
 - `.ejs` extension for templates
 - `<%= variable %>` for output
 - `<%- variable %>` for unescaped output
@@ -778,6 +819,7 @@ npm run prettier:format
 ### Debugging
 
 Enable debug output:
+
 ```bash
 DEBUG=* jhipster --blueprints cassandra
 ```
@@ -785,6 +827,7 @@ DEBUG=* jhipster --blueprints cassandra
 ## Example Project
 
 A complete working example is available:
+
 - **Repository:** https://github.com/amarpatel-xx/jhipster-cassandra-example
 - **Includes:** Sample entities with all data types
 - **Features:** Composite keys, collections, temporal data
@@ -888,6 +931,7 @@ jhipster jdl blog.jdl
 ### Step 3: Review Generated Files
 
 **Backend:**
+
 - `src/main/java/.../domain/BlogPost.java` - Entity
 - `src/main/java/.../domain/BlogPostId.java` - Composite key class
 - `src/main/java/.../repository/BlogPostRepository.java` - Repository with query methods
@@ -899,6 +943,7 @@ jhipster jdl blog.jdl
 - `src/main/java/.../service/mapper/BlogPostMapper.java` - Mapper
 
 **Frontend:**
+
 - `src/main/webapp/app/entities/blog-post/blog-post.model.ts` - TypeScript model
 - `src/main/webapp/app/entities/blog-post/list/` - List component
 - `src/main/webapp/app/entities/blog-post/detail/` - Detail component
@@ -906,6 +951,7 @@ jhipster jdl blog.jdl
 - `src/main/webapp/app/saathratri/` - Custom UI components
 
 **Tests:**
+
 - `src/test/java/.../domain/BlogPostTest.java`
 - `src/test/java/.../domain/BlogPostTestSamples.java`
 - `src/test/java/.../domain/BlogPostAsserts.java`
@@ -935,21 +981,25 @@ npm start
 ### Step 6: Test Endpoints
 
 **Find all posts in a category:**
+
 ```
 GET http://localhost:8080/api/blog-posts/find-all-by-category/Technology
 ```
 
 **Find posts in category after a date:**
+
 ```
 GET http://localhost:8080/api/blog-posts/find-all-by-category/Technology/and-published-date-greater-than/1704067200000
 ```
 
 **Find specific post:**
+
 ```
 GET http://localhost:8080/api/blog-posts/find-by-category/Technology/and-published-date/1704067200000/and-post-id/550e8400-e29b-41d4-a716-446655440000
 ```
 
 **Find latest post in category:**
+
 ```
 GET http://localhost:8080/api/blog-posts/find-latest-by-category/Technology
 ```
@@ -961,6 +1011,7 @@ GET http://localhost:8080/api/blog-posts/find-latest-by-category/Technology
 **Problem:** Application cannot connect to Cassandra
 
 **Solution:**
+
 ```bash
 # Check Cassandra is running
 docker ps | grep cassandra
@@ -979,6 +1030,7 @@ docker-compose -f src/main/docker/cassandra.yml restart
 **Problem:** Entity uses simple ID instead of composite key
 
 **Solution:**
+
 - Verify `@customAnnotation("PrimaryKeyType.PARTITIONED")` or `@customAnnotation("PrimaryKeyType.CLUSTERED")` is present
 - Check ordinal annotations (index 3) are sequential: 0, 1, 2...
 - Regenerate: `jhipster entity BlogPost --regenerate --force`
@@ -988,6 +1040,7 @@ docker-compose -f src/main/docker/cassandra.yml restart
 **Problem:** Collection editors not displaying or saving
 
 **Solution:**
+
 - Verify `@customAnnotation("CassandraType.Name.SET")` or `@customAnnotation("CassandraType.Name.MAP")` is present
 - For MAP, ensure value type annotation is set (index 2)
 - Check browser console for Angular errors
@@ -998,6 +1051,7 @@ docker-compose -f src/main/docker/cassandra.yml restart
 **Problem:** TimeUUID clustering key comparisons failing
 
 **Solution:**
+
 - Verify `@customAnnotation("TIMEUUID")` is in index 2 (not just CassandraType.Name.TIMEUUID)
 - Check that field is marked as clustering key
 - Review generated CQL queries in logs
@@ -1007,6 +1061,7 @@ docker-compose -f src/main/docker/cassandra.yml restart
 **Problem:** Cassandra ports already in use
 
 **Solution:**
+
 - Check `last-used-ports.json` in parent directory
 - Manually edit `src/main/docker/cassandra.yml` to use different ports
 - Update `application-dev.yml` spring.cassandra.port to match
@@ -1017,6 +1072,7 @@ docker-compose -f src/main/docker/cassandra.yml restart
 **Problem:** EntityResourceIT tests fail with 404 or 500 errors
 
 **Solution:**
+
 - Verify test Cassandra instance is running
 - Check test data samples have valid composite key values
 - Review generated query methods match URL patterns
@@ -1156,6 +1212,7 @@ MIT License - See LICENSE file for details
 ## Version History
 
 **1.0.16** (Current)
+
 - Clean up templates: remove dead code, add search partials, fix link stubs
 - Fix refresh button spinner animation and missing gateway icons
 - Fix navbar menu grouping and sorting for gateway and cassandra-angular
@@ -1165,6 +1222,7 @@ MIT License - See LICENSE file for details
 - Add uuid, @types/uuid, and material-icons via POST_WRITING package.json patch
 
 **1.0.15**
+
 - AI-powered semantic vector search with checkbox field selection
 - Vector embedding fields via `@customAnnotation("VECTOR")` annotation
 - Cassandra 5.0+ SAI (Storage Attached Index) with ANN query support
@@ -1173,6 +1231,7 @@ MIT License - See LICENSE file for details
 - Spring AI OpenAI dependency auto-injection in pom.xml
 
 **1.0.13**
+
 - Support for JHipster 9.0.0
 - Composite primary key support
 - SET and MAP data types
@@ -1219,17 +1278,20 @@ entity Tag {
 ### Generated Code
 
 **Repository** — ANN query methods:
+
 ```java
 @Query("SELECT * FROM tag ORDER BY name_embedding ANN OF ?0 LIMIT ?1")
 List<Tag> findSimilarByNameEmbedding(CqlVector<Float> queryVector, int limit);
 ```
 
 **Service** — AI search with field selection:
+
 ```java
 List<TagDTO> aiSearch(String query, int limit, List<String> fields);
 ```
 
 **REST Endpoint**:
+
 ```
 GET /api/tags/ai-search?query=search+text&limit=20&fields=nameEmbedding,descriptionEmbedding
 ```
@@ -1252,6 +1314,7 @@ Set the `OPENAI_API_KEY` environment variable or `openai.api-key` property. Requ
 **Amar Premsaran Patel**
 
 This blueprint represents advanced knowledge of:
+
 - JHipster generator architecture
 - Yeoman generator ecosystem
 - Apache Cassandra data modeling

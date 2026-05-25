@@ -1,4 +1,4 @@
-import BaseApplicationGenerator from 'generator-jhipster/generators/base-application';
+import BaseApplicationGenerator from "generator-jhipster/generators/base-application";
 
 export default class extends BaseApplicationGenerator {
   constructor(args, opts, features) {
@@ -26,9 +26,11 @@ export default class extends BaseApplicationGenerator {
   get [BaseApplicationGenerator.COMPOSING]() {
     return this.asComposingTaskGroup({
       async composeTask() {
-        if (['cassandra'].includes(this.jhipsterConfigWithDefaults.databaseType)) {
+        if (
+          ["cassandra"].includes(this.jhipsterConfigWithDefaults.databaseType)
+        ) {
           // Delegate to the i18n sub-generator.
-          await this.composeWith('./generators/i18n/index.js');
+          await this.composeWith("./generators/i18n/index.js");
         }
       },
     });
@@ -87,7 +89,7 @@ export default class extends BaseApplicationGenerator {
       async writingTemplateTask({ application }) {
         await this.writeFiles({
           sections: {
-            files: [{ templates: ['template-file-cassandra-client'] }],
+            files: [{ templates: ["template-file-cassandra-client"] }],
           },
           context: application,
         });
@@ -108,11 +110,14 @@ export default class extends BaseApplicationGenerator {
         // This runs for both Cassandra services AND the gateway (microfrontend host),
         // ensuring icons used by Cassandra entity list pages (e.g., check-circle for
         // "end of list" message) are registered in the gateway's icon library.
-        const srcMainWebapp = application.srcMainWebapp ?? 'src/main/webapp/';
+        const srcMainWebapp = application.srcMainWebapp ?? "src/main/webapp/";
         const fontAwesomeIconsPath = `${srcMainWebapp}app/config/font-awesome-icons.ts`;
-        this.editFile(fontAwesomeIconsPath, content => {
+        this.editFile(fontAwesomeIconsPath, (content) => {
           const extraIcons = [
-            'faCheckCircle', 'faChevronDown', 'faChevronRight', 'faKey',
+            "faCheckCircle",
+            "faChevronDown",
+            "faChevronRight",
+            "faKey",
           ];
           for (const icon of extraIcons) {
             if (!content.includes(icon)) {
@@ -121,7 +126,7 @@ export default class extends BaseApplicationGenerator {
                 `  ${icon},\n  // jhipster-needle-add-icon-import\n} from '@fortawesome/free-solid-svg-icons';`,
               );
               content = content.replace(
-                /  \/\/ jhipster-needle-add-icon-import\n\];/,
+                / {2}\/\/ jhipster-needle-add-icon-import\n\];/,
                 `  ${icon},\n  // jhipster-needle-add-icon-import\n];`,
               );
             }

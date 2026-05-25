@@ -1,7 +1,14 @@
-import BaseApplicationGenerator from 'generator-jhipster/generators/base-application';
-import { generateEntityClientFields, generateEntityClientEnumImports, clientRootTemplatesBlock, clientApplicationTemplatesBlock, clientSrcTemplatesBlock, generateEntityClientImports } from 'generator-jhipster/generators/client/support';
-import { cassandraSpringBootUtils } from '../cassandra-spring-boot/cassandra-spring-boot-utils.js';
-import { angularSaathratriUtils } from './cassandra-angular-utils.js';
+import BaseApplicationGenerator from "generator-jhipster/generators/base-application";
+import {
+  clientApplicationTemplatesBlock,
+  generateEntityClientEnumImports,
+  generateEntityClientFields,
+  generateEntityClientImports,
+} from "generator-jhipster/generators/client/support";
+
+import { cassandraSpringBootUtils } from "../cassandra-spring-boot/cassandra-spring-boot-utils.js";
+
+import { angularSaathratriUtils } from "./cassandra-angular-utils.js";
 
 export default class extends BaseApplicationGenerator {
   constructor(args, opts, features) {
@@ -58,8 +65,10 @@ export default class extends BaseApplicationGenerator {
 
   get [BaseApplicationGenerator.PREPARING_EACH_ENTITY]() {
     return this.asPreparingEachEntityTaskGroup({
-      async preparingEachEntityTemplateTask( { entity } ) {
-        cassandraSpringBootUtils.setSaathratriPrimaryKeyAttributesOnEntityAndFields(entity);
+      async preparingEachEntityTemplateTask({ entity }) {
+        cassandraSpringBootUtils.setSaathratriPrimaryKeyAttributesOnEntityAndFields(
+          entity,
+        );
       },
     });
   }
@@ -93,7 +102,7 @@ export default class extends BaseApplicationGenerator {
       async writingTemplateTask({ application }) {
         await this.writeFiles({
           sections: {
-            files: [{ templates: ['template-file-cassandra-angular'] }],
+            files: [{ templates: ["template-file-cassandra-angular"] }],
           },
           context: application,
         });
@@ -112,61 +121,61 @@ export default class extends BaseApplicationGenerator {
               {
                 ...clientApplicationTemplatesBlock(),
                 templates: [
-                  'shared/material.module.ts',
-                  'shared/date/convert-from-date-long-to-dayjs.pipe.ts',
-                  'shared/date/convert-from-dayjs-to-date-long.pipe.ts',
-                  'shared/date/format-utc-date.pipe.ts',
-                  'shared/date/saathratri-local-dayjs-and-utc-unix-utils.ts',
-                  'shared/date/dayjs-date-adapter.ts',
-                  'components/date-time/date-time.component.css',
-                  'components/date-time/date-time.component.html',
-                  'components/date-time/date-time.component.spec.ts',
-                  'components/date-time/date-time.component.ts',
-                  'components/set-string-component/set-string-component.component.css',
-                  'components/set-string-component/set-string-component.component.html',
-                  'components/set-string-component/set-string-component.component.spec.ts',
-                  'components/set-string-component/set-string-component.component.ts',
-                  'components/set-string-edit-dialog-component/set-string-edit-dialog-component.component.css',
-                  'components/set-string-edit-dialog-component/set-string-edit-dialog-component.component.html',
-                  'components/set-string-edit-dialog-component/set-string-edit-dialog-component.component.spec.ts',
-                  'components/set-string-edit-dialog-component/set-string-edit-dialog-component.component.ts',
-                  'components/map-boolean-component/map-boolean-component.component.css',
-                  'components/map-boolean-component/map-boolean-component.component.html',
-                  'components/map-boolean-component/map-boolean-component.component.spec.ts',
-                  'components/map-boolean-component/map-boolean-component.component.ts',
-                  'components/map-number-component/map-number-component.component.css',
-                  'components/map-number-component/map-number-component.component.html',
-                  'components/map-number-component/map-number-component.component.spec.ts',
-                  'components/map-number-component/map-number-component.component.ts',
-                  'components/map-dayjs-component/map-dayjs-component.component.css',
-                  'components/map-dayjs-component/map-dayjs-component.component.html',
-                  'components/map-dayjs-component/map-dayjs-component.component.spec.ts',
-                  'components/map-dayjs-component/map-dayjs-component.component.ts',
-                  'components/map-string-component/map-string-component.component.css',
-                  'components/map-string-component/map-string-component.component.html',
-                  'components/map-string-component/map-string-component.component.spec.ts',
-                  'components/map-string-component/map-string-component.component.ts',
-                  'components/map-string-edit-dialog-component/map-string-edit-dialog-component.component.css',
-                  'components/map-string-edit-dialog-component/map-string-edit-dialog-component.component.html',
-                  'components/map-string-edit-dialog-component/map-string-edit-dialog-component.component.spec.ts',
-                  'components/map-string-edit-dialog-component/map-string-edit-dialog-component.component.ts',
-                  'components/map-number-edit-dialog-component/map-number-edit-dialog-component.component.css',
-                  'components/map-number-edit-dialog-component/map-number-edit-dialog-component.component.html',
-                  'components/map-number-edit-dialog-component/map-number-edit-dialog-component.component.spec.ts',
-                  'components/map-number-edit-dialog-component/map-number-edit-dialog-component.component.ts',
-                  'components/map-dayjs-edit-dialog-component/map-dayjs-edit-dialog-component.component.css',
-                  'components/map-dayjs-edit-dialog-component/map-dayjs-edit-dialog-component.component.html',
-                  'components/map-dayjs-edit-dialog-component/map-dayjs-edit-dialog-component.component.spec.ts',
-                  'components/map-dayjs-edit-dialog-component/map-dayjs-edit-dialog-component.component.ts',
-                  'components/map-boolean-edit-dialog-component/map-boolean-edit-dialog-component.component.css',
-                  'components/map-boolean-edit-dialog-component/map-boolean-edit-dialog-component.component.html',
-                  'components/map-boolean-edit-dialog-component/map-boolean-edit-dialog-component.component.spec.ts',
-                  'components/map-boolean-edit-dialog-component/map-boolean-edit-dialog-component.component.ts'
-                ]
+                  "shared/material.module.ts",
+                  "shared/date/convert-from-date-long-to-dayjs.pipe.ts",
+                  "shared/date/convert-from-dayjs-to-date-long.pipe.ts",
+                  "shared/date/format-utc-date.pipe.ts",
+                  "shared/date/saathratri-local-dayjs-and-utc-unix-utils.ts",
+                  "shared/date/dayjs-date-adapter.ts",
+                  "components/date-time/date-time.component.css",
+                  "components/date-time/date-time.component.html",
+                  "components/date-time/date-time.component.spec.ts",
+                  "components/date-time/date-time.component.ts",
+                  "components/set-string-component/set-string-component.component.css",
+                  "components/set-string-component/set-string-component.component.html",
+                  "components/set-string-component/set-string-component.component.spec.ts",
+                  "components/set-string-component/set-string-component.component.ts",
+                  "components/set-string-edit-dialog-component/set-string-edit-dialog-component.component.css",
+                  "components/set-string-edit-dialog-component/set-string-edit-dialog-component.component.html",
+                  "components/set-string-edit-dialog-component/set-string-edit-dialog-component.component.spec.ts",
+                  "components/set-string-edit-dialog-component/set-string-edit-dialog-component.component.ts",
+                  "components/map-boolean-component/map-boolean-component.component.css",
+                  "components/map-boolean-component/map-boolean-component.component.html",
+                  "components/map-boolean-component/map-boolean-component.component.spec.ts",
+                  "components/map-boolean-component/map-boolean-component.component.ts",
+                  "components/map-number-component/map-number-component.component.css",
+                  "components/map-number-component/map-number-component.component.html",
+                  "components/map-number-component/map-number-component.component.spec.ts",
+                  "components/map-number-component/map-number-component.component.ts",
+                  "components/map-dayjs-component/map-dayjs-component.component.css",
+                  "components/map-dayjs-component/map-dayjs-component.component.html",
+                  "components/map-dayjs-component/map-dayjs-component.component.spec.ts",
+                  "components/map-dayjs-component/map-dayjs-component.component.ts",
+                  "components/map-string-component/map-string-component.component.css",
+                  "components/map-string-component/map-string-component.component.html",
+                  "components/map-string-component/map-string-component.component.spec.ts",
+                  "components/map-string-component/map-string-component.component.ts",
+                  "components/map-string-edit-dialog-component/map-string-edit-dialog-component.component.css",
+                  "components/map-string-edit-dialog-component/map-string-edit-dialog-component.component.html",
+                  "components/map-string-edit-dialog-component/map-string-edit-dialog-component.component.spec.ts",
+                  "components/map-string-edit-dialog-component/map-string-edit-dialog-component.component.ts",
+                  "components/map-number-edit-dialog-component/map-number-edit-dialog-component.component.css",
+                  "components/map-number-edit-dialog-component/map-number-edit-dialog-component.component.html",
+                  "components/map-number-edit-dialog-component/map-number-edit-dialog-component.component.spec.ts",
+                  "components/map-number-edit-dialog-component/map-number-edit-dialog-component.component.ts",
+                  "components/map-dayjs-edit-dialog-component/map-dayjs-edit-dialog-component.component.css",
+                  "components/map-dayjs-edit-dialog-component/map-dayjs-edit-dialog-component.component.html",
+                  "components/map-dayjs-edit-dialog-component/map-dayjs-edit-dialog-component.component.spec.ts",
+                  "components/map-dayjs-edit-dialog-component/map-dayjs-edit-dialog-component.component.ts",
+                  "components/map-boolean-edit-dialog-component/map-boolean-edit-dialog-component.component.css",
+                  "components/map-boolean-edit-dialog-component/map-boolean-edit-dialog-component.component.html",
+                  "components/map-boolean-edit-dialog-component/map-boolean-edit-dialog-component.component.spec.ts",
+                  "components/map-boolean-edit-dialog-component/map-boolean-edit-dialog-component.component.ts",
+                ],
               },
             ],
           },
-          context: application
+          context: application,
         });
       },
     });
@@ -175,51 +184,57 @@ export default class extends BaseApplicationGenerator {
   get [BaseApplicationGenerator.WRITING_ENTITIES]() {
     return this.asWritingEntitiesTaskGroup({
       async writingEntitiesTemplateTask({ application, entities }) {
-
-        for (const entity of entities.filter(e => !e.builtIn)) {
+        for (const entity of entities.filter((e) => !e.builtIn)) {
           await this.writeFiles({
-            rootTemplatesPath: this.templatePath('../entity-templates'),
+            rootTemplatesPath: this.templatePath("../entity-templates"),
             sections: {
               files: [
                 {
-                  condition: generator => !generator.embedded && generator.databaseTypeCassandra && !entity.skipClient,
+                  condition: (generator) =>
+                    !generator.embedded &&
+                    generator.databaseTypeCassandra &&
+                    !entity.skipClient,
                   ...clientApplicationTemplatesBlock(),
                   templates: [
                     //'entities/_entityFolder_/_entityFile_.routes.ts',
-                    'entities/_entityFolder_/detail/_entityFile_-detail.html',
-                    'entities/_entityFolder_/detail/_entityFile_-detail.ts',
+                    "entities/_entityFolder_/detail/_entityFile_-detail.html",
+                    "entities/_entityFolder_/detail/_entityFile_-detail.ts",
                     //'entities/_entityFolder_/detail/_entityFile_-detail.component.spec.ts',
-                    'entities/_entityFolder_/list/_entityFile_.html',
-                    'entities/_entityFolder_/list/_entityFile_.ts',
+                    "entities/_entityFolder_/list/_entityFile_.html",
+                    "entities/_entityFolder_/list/_entityFile_.ts",
                     //'entities/_entityFolder_/list/_entityFile_.component.spec.ts',
-                    'entities/_entityFolder_/route/_entityFile_-routing-resolve.service.ts',
+                    "entities/_entityFolder_/route/_entityFile_-routing-resolve.service.ts",
                     //'entities/_entityFolder_/route/_entityFile_-routing-resolve.service.spec.ts',
-                    
+
                     // Entity Service Files:
-                    'entities/_entityFolder_/service/_entityFile_.service.ts', 
+                    "entities/_entityFolder_/service/_entityFile_.service.ts",
                     //'entities/_entityFolder_/service/_entityFile_.service.spec.ts
-                    
+
                     // Entity Model Files:
-                    'entities/_entityFolder_/_entityFile_.model.ts', 
+                    "entities/_entityFolder_/_entityFile_.model.ts",
                     //'entities/_entityFolder_/_entityFile_.test-samples.ts'
 
                     // Entity Route File:
-                    'entities/_entityFolder_/_entityFile_.routes.ts',
-                  ]
+                    "entities/_entityFolder_/_entityFile_.routes.ts",
+                  ],
                 },
                 {
-                  condition: generator => !generator.readOnly && !generator.embedded && generator.databaseTypeCassandra && !entity.skipClient,
+                  condition: (generator) =>
+                    !generator.readOnly &&
+                    !generator.embedded &&
+                    generator.databaseTypeCassandra &&
+                    !entity.skipClient,
                   ...clientApplicationTemplatesBlock(),
                   templates: [
-                    'entities/_entityFolder_/update/_entityFile_-form.service.ts',
+                    "entities/_entityFolder_/update/_entityFile_-form.service.ts",
                     //'entities/_entityFolder_/update/_entityFile_-form.service.spec.ts',
-                    'entities/_entityFolder_/update/_entityFile_-update.html',
+                    "entities/_entityFolder_/update/_entityFile_-update.html",
                     //'entities/_entityFolder_/update/_entityFile_-update.component.spec.ts',
-                    'entities/_entityFolder_/delete/_entityFile_-delete-dialog.html',
-                    'entities/_entityFolder_/update/_entityFile_-update.ts',
-                    'entities/_entityFolder_/delete/_entityFile_-delete-dialog.ts',
+                    "entities/_entityFolder_/delete/_entityFile_-delete-dialog.html",
+                    "entities/_entityFolder_/update/_entityFile_-update.ts",
+                    "entities/_entityFolder_/delete/_entityFile_-delete-dialog.ts",
                     //'entities/_entityFolder_/delete/_entityFile_-delete-dialog.component.spec.ts',
-                  ]
+                  ],
                 },
               ],
             },
@@ -231,12 +246,17 @@ export default class extends BaseApplicationGenerator {
               generateEntityClientEnumImports,
               generateEntityClientImports,
               /* Saathratri change: provide JHipster 8 compatibility variables removed in JHipster 9 */
-              entityClassHumanized: entity.entityClassHumanized || entity.entityClass,
+              entityClassHumanized:
+                entity.entityClassHumanized || entity.entityClass,
               entityFormName: entity.entityFormName || entity.entityInstance,
               entityRestName: entity.entityRestName || entity.entityApiUrl,
-              frontendAppName: entity.frontendAppName || application.frontendAppName || application.baseName,
-              componentName: entity.componentName || `${entity.entityAngularName}Component`,
-              enumPrefix: entity.enumPrefix || '',
+              frontendAppName:
+                entity.frontendAppName ||
+                application.frontendAppName ||
+                application.baseName,
+              componentName:
+                entity.componentName || `${entity.entityAngularName}Component`,
+              enumPrefix: entity.enumPrefix || "",
             },
           });
         }
@@ -250,24 +270,25 @@ export default class extends BaseApplicationGenerator {
         // When this generator is renamed (e.g., cassandra-angular in the orchestrator),
         // SBS template override for package.json doesn't work because the name no longer
         // matches 'angular'. Patch package.json programmatically to add Material deps.
-        const packageJsonPath = 'package.json';
-        this.editFile(packageJsonPath, content => {
-          if (!content.includes('@angular/material')) {
-            const angularVersion = application.nodeDependencies?.['@angular/common'] || '21.0.0';
+        const packageJsonPath = "package.json";
+        this.editFile(packageJsonPath, (content) => {
+          if (!content.includes("@angular/material")) {
+            const angularVersion =
+              application.nodeDependencies?.["@angular/common"] || "21.0.0";
             content = content.replace(
               '"@angular/platform-browser"',
-              `"@angular/material": "${angularVersion}",\n    "@angular/cdk": "${angularVersion}",\n    "@angular/platform-browser"`
+              `"@angular/material": "${angularVersion}",\n    "@angular/cdk": "${angularVersion}",\n    "@angular/platform-browser"`,
             );
           }
           return content;
         });
 
         // Add uuid and @types/uuid to devDependencies
-        this.editFile(packageJsonPath, content => {
+        this.editFile(packageJsonPath, (content) => {
           if (!content.includes('"uuid"')) {
             content = content.replace(
               '"vitest-sonar-reporter": null',
-              '"vitest-sonar-reporter": null,\n    "@types/uuid": "10.0.0",\n    "uuid": "11.1.0",\n    "material-icons": "1.13.14"'
+              '"vitest-sonar-reporter": null,\n    "@types/uuid": "10.0.0",\n    "uuid": "11.1.0",\n    "material-icons": "1.13.14"',
             );
           }
           return content;
@@ -277,10 +298,10 @@ export default class extends BaseApplicationGenerator {
         // Without this, microfrontend signal change detection breaks (e.g., isLoading spinner
         // never stops) because the host and remote get different Angular core instances.
         // SBS template override doesn't work for composed generators, so patch programmatically.
-        const webpackMfPath = 'webpack/webpack.microfrontend.js';
+        const webpackMfPath = "webpack/webpack.microfrontend.js";
         if (this.existsDestination(webpackMfPath)) {
-          this.editFile(webpackMfPath, content => {
-            if (!content.includes('@angular/core/rxjs-interop')) {
+          this.editFile(webpackMfPath, (content) => {
+            if (!content.includes("@angular/core/rxjs-interop")) {
               content = content.replace(
                 "'@angular/common/http': sharedDependencies['@angular/common'],",
                 "'@angular/common/http': sharedDependencies['@angular/common'],\n  '@angular/core/rxjs-interop': sharedDependencies['@angular/core'],",
@@ -293,18 +314,18 @@ export default class extends BaseApplicationGenerator {
         // Patch global.scss to import Angular Material theme and Material Icons.
         // SBS template override doesn't work for composed generators (cassandra-angular
         // is composed, not a direct SBS of 'angular'), so patch programmatically.
-        const srcMainWebapp = application.srcMainWebapp ?? 'src/main/webapp/';
+        const srcMainWebapp = application.srcMainWebapp ?? "src/main/webapp/";
         const globalScssPath = `${srcMainWebapp}content/scss/global.scss`;
-        this.editFile(globalScssPath, content => {
-          if (!content.includes('@angular/material/prebuilt-themes')) {
+        this.editFile(globalScssPath, (content) => {
+          if (!content.includes("@angular/material/prebuilt-themes")) {
             content = content.replace(
               "@import 'bootstrap/scss/variables';",
               "@import 'bootstrap/scss/variables';\n@import '@angular/material/prebuilt-themes/indigo-pink.css';\n@import 'material-icons/iconfont/material-icons.scss';",
             );
           }
-          if (!content.includes('Infinite Scroll Styles')) {
+          if (!content.includes("Infinite Scroll Styles")) {
             content = content.replace(
-              '/* jhipster-needle-scss-add-main JHipster will add new css style */',
+              "/* jhipster-needle-scss-add-main JHipster will add new css style */",
               `/* ==========================================================================
 Infinite Scroll Styles
 ========================================================================== */
@@ -321,7 +342,7 @@ Infinite Scroll Styles
           // (API keys, prompt text, etc.) forces the grid past the viewport and
           // pushes the dt column off-screen, hiding every label. Patch dd so the
           // 1fr track constrains the cell and long text can wrap.
-          if (!content.includes('overflow-wrap: anywhere')) {
+          if (!content.includes("overflow-wrap: anywhere")) {
             content = content.replace(
               `    dd {
       border-bottom: 1px solid #eee;
@@ -342,10 +363,19 @@ Infinite Scroll Styles
 
         // Patch font-awesome-icons.ts to add Cassandra-specific icons
         const fontAwesomeIconsPath = `${srcMainWebapp}app/config/font-awesome-icons.ts`;
-        this.editFile(fontAwesomeIconsPath, content => {
+        this.editFile(fontAwesomeIconsPath, (content) => {
           const extraIcons = [
-            'faCheckCircle', 'faChevronDown', 'faChevronRight', 'faCloud',
-            'faCogs', 'faDatabase', 'faEye', 'faFlag', 'faHeart', 'faHome', 'faKey',
+            "faCheckCircle",
+            "faChevronDown",
+            "faChevronRight",
+            "faCloud",
+            "faCogs",
+            "faDatabase",
+            "faEye",
+            "faFlag",
+            "faHeart",
+            "faHome",
+            "faKey",
           ];
           for (const icon of extraIcons) {
             if (!content.includes(icon)) {
@@ -354,7 +384,7 @@ Infinite Scroll Styles
                 `  ${icon},\n  // jhipster-needle-add-icon-import\n} from '@fortawesome/free-solid-svg-icons';`,
               );
               content = content.replace(
-                /  \/\/ jhipster-needle-add-icon-import\n\];/,
+                / {2}\/\/ jhipster-needle-add-icon-import\n\];/,
                 `  ${icon},\n  // jhipster-needle-add-icon-import\n];`,
               );
             }
@@ -366,12 +396,14 @@ Infinite Scroll Styles
         // Skip for gateway — the pipe files are only written to Cassandra services
         if (!application.applicationTypeGateway) {
           const dateIndexPath = `${srcMainWebapp}app/shared/date/index.ts`;
-          this.editFile(dateIndexPath, content => {
-            if (!content.includes('ConvertFromDayjsToDateLongPipe')) {
-              content += "\nexport { ConvertFromDayjsToDateLongPipe } from './convert-from-dayjs-to-date-long.pipe';\n";
+          this.editFile(dateIndexPath, (content) => {
+            if (!content.includes("ConvertFromDayjsToDateLongPipe")) {
+              content +=
+                "\nexport { ConvertFromDayjsToDateLongPipe } from './convert-from-dayjs-to-date-long.pipe';\n";
             }
-            if (!content.includes('FormatUtcDatePipe')) {
-              content += "export { default as FormatUtcDatePipe } from './format-utc-date.pipe';\n";
+            if (!content.includes("FormatUtcDatePipe")) {
+              content +=
+                "export { default as FormatUtcDatePipe } from './format-utc-date.pipe';\n";
             }
             return content;
           });
@@ -382,58 +414,65 @@ Infinite Scroll Styles
         // that breaks Popper.js positioning for every dropdown on the page.
         if (!application.skipClient) {
           const navbarHtmlForDisplay = `${srcMainWebapp}app/layouts/navbar/navbar.html`;
-          this.editFile(navbarHtmlForDisplay, content => {
+          this.editFile(navbarHtmlForDisplay, (content) => {
             return content.replace(/display="dynamic"/g, 'display="static"');
           });
         }
 
         // Patch navbar.ts - add EntityNavbarItems import, property, and alphabetical sorting
         if (!application.skipClient) {
-          const clientSrcDir = application.clientSrcDir || 'src/main/webapp/';
+          const clientSrcDir = application.clientSrcDir || "src/main/webapp/";
           const navbarTsFile = `${clientSrcDir}app/layouts/navbar/navbar.ts`;
           const navbarHtmlFile = `${clientSrcDir}app/layouts/navbar/navbar.html`;
-          const isMicrofrontendGateway = application.microfrontend && application.applicationTypeGateway;
+          const isMicrofrontendGateway =
+            application.microfrontend && application.applicationTypeGateway;
 
-          this.editFile(navbarTsFile, content => {
+          this.editFile(navbarTsFile, (content) => {
             if (!isMicrofrontendGateway) {
               // Add EntityNavbarItems import
-              if (!content.includes('EntityNavbarItems')) {
+              if (!content.includes("EntityNavbarItems")) {
                 content = content.replace(
                   "import NavbarItem from './navbar-item.model';",
                   "import { EntityNavbarItems } from 'app/entities/entity-navbar-items';\nimport NavbarItem from './navbar-item.model';",
                 );
               }
               // Add entitiesNavbarItems property
-              if (!content.includes('entitiesNavbarItems')) {
+              if (!content.includes("entitiesNavbarItems")) {
                 content = content.replace(
-                  'readonly account = inject(AccountService).account;',
-                  'readonly account = inject(AccountService).account;\n  entitiesNavbarItems: NavbarItem[] = [];',
+                  "readonly account = inject(AccountService).account;",
+                  "readonly account = inject(AccountService).account;\n  entitiesNavbarItems: NavbarItem[] = [];",
                 );
               }
               // Add sorting in ngOnInit
-              if (!content.includes('EntityNavbarItems].sort')) {
+              if (!content.includes("EntityNavbarItems].sort")) {
                 content = content.replace(
-                  '    this.profileService.getProfileInfo().subscribe(profileInfo => {',
-                  '    // Saathratri modification - sort entity navbar items alphabetically\n' +
-                    '    this.entitiesNavbarItems = [...EntityNavbarItems].sort((a, b) => a.name.localeCompare(b.name));\n' +
-                    '    this.profileService.getProfileInfo().subscribe(profileInfo => {',
+                  "    this.profileService.getProfileInfo().subscribe(profileInfo => {",
+                  "    // Saathratri modification - sort entity navbar items alphabetically\n" +
+                    "    this.entitiesNavbarItems = [...EntityNavbarItems].sort((a, b) => a.name.localeCompare(b.name));\n" +
+                    "    this.profileService.getProfileInfo().subscribe(profileInfo => {",
                 );
               }
             }
 
             // For gateways with microfrontends: add sorting helper
             if (isMicrofrontendGateway) {
-              if (!content.includes('sortNavbarItemsAlphabetically') && content.includes('loadMicrofrontendsEntities')) {
+              if (
+                !content.includes("sortNavbarItemsAlphabetically") &&
+                content.includes("loadMicrofrontendsEntities")
+              ) {
                 content = content.replace(
-                  '  loadMicrofrontendsEntities(): void {',
-                  '  private sortNavbarItemsAlphabetically(items: NavbarItem[]): NavbarItem[] {\n' +
-                    '    return [...items].sort((a, b) => a.name.localeCompare(b.name));\n' +
-                    '  }\n\n' +
-                    '  loadMicrofrontendsEntities(): void {',
+                  "  loadMicrofrontendsEntities(): void {",
+                  "  private sortNavbarItemsAlphabetically(items: NavbarItem[]): NavbarItem[] {\n" +
+                    "    return [...items].sort((a, b) => a.name.localeCompare(b.name));\n" +
+                    "  }\n\n" +
+                    "  loadMicrofrontendsEntities(): void {",
                 );
               }
-              if (content.includes('sortNavbarItemsAlphabetically')) {
-                content = content.replace(/\.set\(items\)/g, '.set(this.sortNavbarItemsAlphabetically(items))');
+              if (content.includes("sortNavbarItemsAlphabetically")) {
+                content = content.replace(
+                  /\.set\(items\)/g,
+                  ".set(this.sortNavbarItemsAlphabetically(items))",
+                );
               }
             }
 
@@ -442,15 +481,17 @@ Infinite Scroll Styles
 
           // Patch navbar.html - restructure entity menu into per-microfrontend grouped dropdowns
           if (isMicrofrontendGateway && application.microfrontends) {
-            this.editFile(navbarHtmlFile, content => {
-              const sortedMicrofrontends = [...application.microfrontends].sort((a, b) => a.baseName.localeCompare(b.baseName));
-              const jhiPrefix = application.jhiPrefix || 'jhi';
+            this.editFile(navbarHtmlFile, (content) => {
+              const sortedMicrofrontends = [...application.microfrontends].sort(
+                (a, b) => a.baseName.localeCompare(b.baseName),
+              );
+              const jhiPrefix = application.jhiPrefix || "jhi";
               const enableTranslation = application.enableTranslation;
-              let microfrontendMenus = '';
+              let microfrontendMenus = "";
               for (const remote of sortedMicrofrontends) {
                 const translationAttr = enableTranslation
                   ? `\n                  [${jhiPrefix}Translate]="entityNavbarItem.translationKey"`
-                  : '';
+                  : "";
                 microfrontendMenus += `
       @if (account() !== null && ${remote.lowercaseBaseName}EntityNavbarItems().length > 0) {
         <li ngbDropdown class="nav-item dropdown pointer" display="static" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
@@ -461,7 +502,7 @@ Infinite Scroll Styles
             @for (entityNavbarItem of ${remote.lowercaseBaseName}EntityNavbarItems(); track $index) {
               <li>
                 <a class="dropdown-item" [routerLink]="entityNavbarItem.route" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="collapseNavbar()">
-                  <fa-icon icon="asterisk" [fixedWidth]="true" />${translationAttr ? `\n                  <span${translationAttr}>{{entityNavbarItem.name}}</span>` : '\n                  <span>{{entityNavbarItem.name}}</span>'}
+                  <fa-icon icon="asterisk" [fixedWidth]="true" />${translationAttr ? `\n                  <span${translationAttr}>{{entityNavbarItem.name}}</span>` : "\n                  <span>{{entityNavbarItem.name}}</span>"}
                 </a>
               </li>
             }
@@ -470,13 +511,14 @@ Infinite Scroll Styles
       }`;
               }
 
-              const entityDropdownRegex = /\s*@if \(account\(\) !== null\) \{\s*<li[\s\S]*?data-cy="entity"[\s\S]*?<\/ul>\s*<\/li>\s*\}/;
+              const entityDropdownRegex =
+                /\s*@if \(account\(\) !== null\) \{\s*<li[\s\S]*?data-cy="entity"[\s\S]*?<\/ul>\s*<\/li>\s*\}/;
               if (entityDropdownRegex.test(content)) {
                 content = content.replace(
                   entityDropdownRegex,
-                  '\n      <!-- jhipster-needle-add-element-to-menu - JHipster will add new menu items here -->' +
-                    microfrontendMenus +
-                    '\n      <!-- jhipster-needle-add-entity-to-menu - JHipster will add entities to the menu here -->',
+                  `\n      <!-- jhipster-needle-add-element-to-menu - JHipster will add new menu items here -->${
+                    microfrontendMenus
+                  }\n      <!-- jhipster-needle-add-entity-to-menu - JHipster will add entities to the menu here -->`,
                 );
               }
 

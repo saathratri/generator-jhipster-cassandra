@@ -1,25 +1,25 @@
-import { beforeAll, describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from "vitest";
 
-import { defaultHelpers as helpers, result } from 'generator-jhipster/testing';
+import { defaultHelpers as helpers, result } from "generator-jhipster/testing";
 
-const SUB_GENERATOR = 'angular';
+const SUB_GENERATOR = "angular";
 const BLUEPRINT_NAMESPACE = `jhipster:${SUB_GENERATOR}`;
 
-describe('SubGenerator angular of cassandra JHipster blueprint', () => {
-  describe('run', () => {
+describe("SubGenerator angular of cassandra JHipster blueprint", () => {
+  describe("run", () => {
     beforeAll(async function () {
       await helpers
         .run(BLUEPRINT_NAMESPACE)
         .withJHipsterConfig()
         .withOptions({
           ignoreNeedlesError: true,
-          blueprint: 'cassandra',
         })
-        .withJHipsterLookup()
-        .withParentBlueprintLookup();
+        .withJHipsterGenerators()
+        .withConfiguredBlueprint()
+        .withBlueprintConfig();
     });
 
-    it('should succeed', () => {
+    it("should succeed", () => {
       expect(result.getStateSnapshot()).toMatchSnapshot();
     });
   });
