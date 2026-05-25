@@ -258,46 +258,6 @@ export default class extends BaseApplicationGenerator {
   get [BaseApplicationGenerator.POST_WRITING]() {
     return this.asPostWritingTaskGroup({
       async postWritingTemplateTask({ application }) {
-        // Define a `heroku` Maven profile for ALL cassandra services (regardless of
-        // vector fields), so it must run before the early return below. Activated
-        // alongside `prod` via `-Pprod,heroku`; follows JHipster's additive profile
-        // convention (like `tls`) and appends the `heroku` Spring profile to the prod
-        // build's spring.profiles.active so application-heroku.yml is active in the jar.
-        if (application.buildToolMaven) {
-          this.editFile('pom.xml', content => {
-            if (!content.includes('<id>heroku</id>')) {
-              content = content.replace(
-                '        <profile.tls/>\n',
-                '        <profile.tls/>\n        <profile.heroku/>\n'
-              );
-              content = content.replace(
-                '            <id>tls</id>\n' +
-                  '            <properties>\n' +
-                  '                <profile.tls>,tls</profile.tls>\n' +
-                  '            </properties>\n' +
-                  '        </profile>\n',
-                '            <id>tls</id>\n' +
-                  '            <properties>\n' +
-                  '                <profile.tls>,tls</profile.tls>\n' +
-                  '            </properties>\n' +
-                  '        </profile>\n' +
-                  '        <profile>\n' +
-                  '            <id>heroku</id>\n' +
-                  '            <properties>\n' +
-                  '                <profile.heroku>,heroku</profile.heroku>\n' +
-                  '            </properties>\n' +
-                  '        </profile>\n'
-              );
-              content = content.replace(
-                /(<spring\.profiles\.active>prod[^<]*?)(<\/spring\.profiles\.active>)/,
-                (m, p1, p2) => p1 + '${profile.heroku}' + p2
-              );
-              this.log.info('[cassandra-spring-boot] Added `heroku` Maven profile to pom.xml');
-            }
-            return content;
-          });
-        }
-
         if (!application.hasVectorFieldsSaathratri) return;
 
         // Add Spring AI BOM and OpenAI dependency to pom.xml
