@@ -202,6 +202,13 @@ export default class extends BaseApplicationGenerator {
                     // detail.spec override: works for both single-key and composite entities
                     // (uses test-samples + the blueprint's <Entity>DetailComponent class name).
                     "entities/_entityFolder_/detail/_entityFile_-detail.spec.ts",
+                    // delete-dialog.spec override: <Entity>DeleteDialogComponent, HttpResponse
+                    // delete mock, confirmDelete(entity|id) by key shape.
+                    "entities/_entityFolder_/delete/_entityFile_-delete-dialog.spec.ts",
+                    // list.spec + route-resolve.spec overrides: blueprint component class names,
+                    // boolean isLoading, find(...keys) mock by key shape.
+                    "entities/_entityFolder_/list/_entityFile_.spec.ts",
+                    "entities/_entityFolder_/route/_entityFile_-routing-resolve.service.spec.ts",
                     "entities/_entityFolder_/list/_entityFile_.html",
                     "entities/_entityFolder_/list/_entityFile_.ts",
                     //'entities/_entityFolder_/list/_entityFile_.component.spec.ts',
