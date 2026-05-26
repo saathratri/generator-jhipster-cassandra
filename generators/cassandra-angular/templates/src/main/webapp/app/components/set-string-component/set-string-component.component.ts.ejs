@@ -17,16 +17,16 @@ export class SetStringComponent {
     @Input() inputFields: Set<string> = new Set<string>();
     @Output() dataChange = new EventEmitter<Set<string>>();
   
-    // eslint-disable-next-line @typescript-eslint/member-ordering
+    form!: FormGroup;
+    newFieldControl!: FormControl;
     private fb = inject(FormBuilder);
     private dialog = inject(MatDialog);
 
-    form: FormGroup = this.fb.group({
-      fields: this.fb.array([]),
-    });
-    newFieldControl: FormControl = new FormControl('', Validators.required);
-
     constructor() {
+      this.form = this.fb.group({
+        fields: this.fb.array([]),
+      });
+      this.newFieldControl = new FormControl('', Validators.required);
       this.populateFormArray();
     }
   

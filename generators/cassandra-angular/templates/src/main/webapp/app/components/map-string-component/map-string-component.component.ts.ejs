@@ -19,14 +19,16 @@ export class MapStringComponent implements OnChanges {
 
   mapDetails: Record<string, string> = {};
 
-  // eslint-disable-next-line @typescript-eslint/member-ordering
+  form!: FormGroup;
   private fb = inject(FormBuilder);
   private dialog = inject(MatDialog);
 
-  form: FormGroup = this.fb.group({
+  constructor() {
+    this.form = this.fb.group({
       newKey: ['', Validators.required],
       newValue: [''],
     });
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition

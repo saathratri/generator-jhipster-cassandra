@@ -38,16 +38,18 @@ export class MapBooleanComponent implements OnInit, OnChanges {
   @Input() inputFields: Record<string, boolean> = {};
   @Output() dataChange = new EventEmitter<Record<string, boolean>>();
 
-  // eslint-disable-next-line @typescript-eslint/member-ordering
+  mapDetails: Record<string, boolean> = {};
+  form!: FormGroup;
   private fb = inject(FormBuilder);
   private dialog = inject(MatDialog);
 
-  mapDetails: Record<string, boolean> = {};
-  form: FormGroup = this.fb.group({
-    fields: this.fb.array([]),
-    newKey: ['', Validators.required],
-    newValue: [null, Validators.required]
-  });
+  constructor() {
+    this.form = this.fb.group({
+      fields: this.fb.array([]),
+      newKey: ['', Validators.required],
+      newValue: [null, Validators.required]
+    });
+  }
 
   get formArray(): FormArray {
     return this.form.get('fields') as FormArray;
