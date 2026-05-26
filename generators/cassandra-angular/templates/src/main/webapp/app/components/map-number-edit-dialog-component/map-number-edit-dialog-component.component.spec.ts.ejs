@@ -12,7 +12,7 @@ describe('MapNumberEditDialogComponent', () => {
     await TestBed.configureTestingModule({
       imports: [MapNumberEditDialogComponent],
       providers: [
-        { provide: MatDialogRef, useValue: { close: () => {} } },
+        { provide: MatDialogRef, useValue: { close() {} } },
         { provide: MAT_DIALOG_DATA, useValue: { key: 'a', value: 1 } },
       ],
     })

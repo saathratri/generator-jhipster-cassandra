@@ -5,7 +5,8 @@ import {
   Output,
   OnChanges,
   SimpleChanges,
-  OnInit
+  OnInit,
+  inject
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
@@ -37,16 +38,16 @@ export class MapBooleanComponent implements OnInit, OnChanges {
   @Input() inputFields: Record<string, boolean> = {};
   @Output() dataChange = new EventEmitter<Record<string, boolean>>();
 
-  mapDetails: Record<string, boolean> = {};
-  form: FormGroup;
+  // eslint-disable-next-line @typescript-eslint/member-ordering
+  private fb = inject(FormBuilder);
+  private dialog = inject(MatDialog);
 
-  constructor(private fb: FormBuilder, private dialog: MatDialog) {
-    this.form = this.fb.group({
-      fields: this.fb.array([]),
-      newKey: ['', Validators.required],
-      newValue: [null, Validators.required]
-    });
-  }
+  mapDetails: Record<string, boolean> = {};
+  form: FormGroup = this.fb.group({
+    fields: this.fb.array([]),
+    newKey: ['', Validators.required],
+    newValue: [null, Validators.required]
+  });
 
   get formArray(): FormArray {
     return this.form.get('fields') as FormArray;

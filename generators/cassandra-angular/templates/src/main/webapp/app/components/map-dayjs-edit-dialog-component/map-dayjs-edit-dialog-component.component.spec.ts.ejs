@@ -14,7 +14,7 @@ describe('MapDayjsEditDialogComponent', () => {
     await TestBed.configureTestingModule({
       imports: [MapDayjsEditDialogComponent],
       providers: [
-        { provide: MatDialogRef, useValue: { close: () => {} } },
+        { provide: MatDialogRef, useValue: { close() {} } },
         { provide: MAT_DIALOG_DATA, useValue: { key: 'a', value: dayjs() } },
       ],
     })

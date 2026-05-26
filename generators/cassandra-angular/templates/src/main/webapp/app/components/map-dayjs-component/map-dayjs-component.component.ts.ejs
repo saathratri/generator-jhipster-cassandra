@@ -1,5 +1,5 @@
 import {
-  Component, EventEmitter, Input, Output, OnChanges, SimpleChanges
+  Component, EventEmitter, Input, Output, OnChanges, SimpleChanges, inject
 } from '@angular/core';
 import {
   FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormControl
@@ -33,14 +33,14 @@ export class MapDayjsComponent implements OnChanges {
   isDateTimeValid: Record<string, boolean> = {};
   isDateTimeDirty: Record<string, boolean> = {};
 
-  form: FormGroup;
+  // eslint-disable-next-line @typescript-eslint/member-ordering
+  private fb = inject(FormBuilder);
+  private dialog = inject(MatDialog);
 
-  constructor(private fb: FormBuilder, private dialog: MatDialog) {
-    this.form = this.fb.group({
+  form: FormGroup = this.fb.group({
       newKey: ['', Validators.required],
       newValue: [null, Validators.required]
     });
-  }
 
   getControlForEntry(entry: any): FormControl {
     return this.fb.control(entry.value);

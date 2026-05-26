@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MaterialModule } from '../../shared/material.module';
@@ -19,14 +19,14 @@ export class MapStringComponent implements OnChanges {
 
   mapDetails: Record<string, string> = {};
 
-  form: FormGroup;
+  // eslint-disable-next-line @typescript-eslint/member-ordering
+  private fb = inject(FormBuilder);
+  private dialog = inject(MatDialog);
 
-  constructor(private fb: FormBuilder, private dialog: MatDialog) {
-    this.form = this.fb.group({
+  form: FormGroup = this.fb.group({
       newKey: ['', Validators.required],
       newValue: [''],
     });
-  }
 
   ngOnChanges(changes: SimpleChanges): void {
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition

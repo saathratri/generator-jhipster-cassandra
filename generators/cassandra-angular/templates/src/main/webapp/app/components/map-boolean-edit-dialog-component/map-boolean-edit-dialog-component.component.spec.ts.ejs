@@ -12,7 +12,7 @@ describe('MapBooleanEditDialogComponent', () => {
     await TestBed.configureTestingModule({
       imports: [MapBooleanEditDialogComponent],
       providers: [
-        { provide: MatDialogRef, useValue: { close: () => {} } },
+        { provide: MatDialogRef, useValue: { close() {} } },
         { provide: MAT_DIALOG_DATA, useValue: { key: 'a', value: false } },
       ],
     })
