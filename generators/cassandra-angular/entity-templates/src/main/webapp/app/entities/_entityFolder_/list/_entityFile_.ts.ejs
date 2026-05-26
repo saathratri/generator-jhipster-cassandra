@@ -309,6 +309,7 @@ _%>
 <%_ if (cassandraNoPagination) { _%>
     // Cassandra entities use Observable-based loading (plain boolean, not signal,
     // because signals don't reliably trigger change detection in Module Federation microfrontends)
+    // eslint-disable-next-line @typescript-eslint/member-ordering
     isLoading = false;
 <%_ } else { _%>
     // eslint-disable-next-line @typescript-eslint/member-ordering
@@ -330,8 +331,8 @@ _%>
 <%_ } _%>
     protected ngZone = inject(NgZone);
 
-    constructor() {
 <%_ if (!cassandraNoPagination) { _%>
+    constructor() {
 <%_ if (!paginationNo) { _%>
       effect(() => {
         const headers = this.<%= entityInstance %>Service.<%= entityInstancePlural %>Resource.headers();
@@ -358,8 +359,8 @@ _%>
         }
       });
 <%_ } _%>
-<%_ } _%>
     }
+<%_ } _%>
 
 <%_ if (primaryKeySaathratri.composite) { _%>
       // Saathratri: Composite Primary Key Code
@@ -651,7 +652,7 @@ _%>
         this.load();
     }
 
-    onSearchDateChange(fieldName: string, isDateTime: boolean = false): void {
+    onSearchDateChange(fieldName: string, isDateTime = false): void {
         const criteria = this.searchCriteria as any;
         const dateValue: Date | null = criteria[fieldName + 'Date'];
 
@@ -922,6 +923,7 @@ _%>
     const allPkFields = primaryKeySaathratri.ids;
     const ckeyName = primaryKeySaathratri.nameCapitalized;
 _%>
+    // eslint-disable-next-line @typescript-eslint/member-ordering
     protected queryBackend(): Observable<EntityArrayResponseType> {
       const queryObject: any = {
 <%_ if (databaseTypeCassandra && paginationNo) { _%>
@@ -1046,6 +1048,7 @@ _%>
         // Fallback: no valid criteria
         return this.<%= entityInstance %>Service.querySlice(queryObject);
 <%_ } else if (databaseTypeCassandra && paginationNo) { _%>
+    // eslint-disable-next-line @typescript-eslint/member-ordering
     protected queryBackend(): Observable<EntityArrayResponseType> {
       const queryObject: any = {
         pagingState: this.pagingState,
@@ -1093,6 +1096,7 @@ _%>
 <%_ } _%>
     }
 
+    // eslint-disable-next-line @typescript-eslint/member-ordering
     protected handleNavigation(<% if (paginationPagination) { %>page: number, <% } %>sortState: SortState<% if (jpaMetamodelFiltering && paginationPagination) { %>, filterOptions?: IFilterOption[]<% } %><% if (searchEngineAny) { %>, currentSearch?: string<% } %>): void {
 <%_ if (paginationInfiniteScroll) { _%>
       this.links.set({});
