@@ -44,16 +44,16 @@ describe('<%= entityAngularName %> Management Component', () => {
   });
 
   it('should load all on init', () => {
-    // GIVEN
+    // GIVEN — the Cassandra list pages via querySlice (not query)
     vitest
-      .spyOn(service, 'query')
+      .spyOn(service, 'querySlice')
       .mockReturnValue(of(new HttpResponse({ body: [sampleWithRequiredData], headers: new HttpHeaders() })));
 
     // WHEN
     comp.ngOnInit();
 
     // THEN
-    expect(service.query).toHaveBeenCalled();
+    expect(service.querySlice).toHaveBeenCalled();
   });
 
   describe('delete', () => {

@@ -1,8 +1,16 @@
 <%_
-  // Composite-key aware service spec. The Cassandra service exposes find(<each key field>)
-  // and delete(entity) (vs base's flat find(id)/delete(id)), and compare() takes
-  // Pick<I, 'compositeId'>. Build the calls/objects to match.
-  const findArgs = primaryKeySaathratri.ids.map(f => `sampleWithRequiredData.compositeId.${f.fieldName}!`).join(', ');
+  // Service spec matching the blueprint service API. Composite: find(<each key field>),
+  // delete(entity), compare(Pick<I,'compositeId'>). Single-key: find(id), delete(id),
+  // compare(Pick<I,'id'>). find() args use type-appropriate literals (the find params follow
+  // the raw key type — number for Long keys even when the model exposes them as dayjs).
+  const composite = primaryKeySaathratri.composite;
+  const findLiteral = name => {
+    const f = fields.find(ff => ff.fieldName === name);
+    return f && f.tsType === 'number' ? '1' : `'${name}'`;
+  };
+  const findArgs = composite ? primaryKeySaathratri.ids.map(id => findLiteral(id.fieldName)).join(', ') : findLiteral(primaryKey.name);
+  const deleteArg = composite ? 'sampleWithRequiredData' : `sampleWithRequiredData.${primaryKey.name}!`;
+  const cmp = sample => (composite ? `{ compositeId: ${sample}.compositeId }` : `{ ${primaryKey.name}: ${sample}.${primaryKey.name} }`);
 _%>
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
@@ -98,7 +106,7 @@ describe('<%= entityAngularName %> Service', () => {
     });
 
     it('should delete a <%= entityAngularName %>', () => {
-      service.delete(sampleWithRequiredData).subscribe();
+      service.delete(<%- deleteArg %>).subscribe();
 
       const requests = httpMock.match({ method: 'DELETE' });
       expect(requests.length).toBe(1);
@@ -169,7 +177,7 @@ describe('<%= entityAngularName %> Service', () => {
       });
 
       it('should return false if one entity is null', () => {
-        const entity1 = { compositeId: sampleWithRequiredData.compositeId };
+        const entity1 = <%- cmp('sampleWithRequiredData') %>;
         const entity2 = null;
 
         const compareResult1 = service.compare<%= entityAngularName %>(entity1, entity2);
@@ -180,8 +188,8 @@ describe('<%= entityAngularName %> Service', () => {
       });
 
       it('should return false if primaryKey differs', () => {
-        const entity1 = { compositeId: sampleWithRequiredData.compositeId };
-        const entity2 = { compositeId: sampleWithPartialData.compositeId };
+        const entity1 = <%- cmp('sampleWithRequiredData') %>;
+        const entity2 = <%- cmp('sampleWithPartialData') %>;
 
         const compareResult1 = service.compare<%= entityAngularName %>(entity1, entity2);
         const compareResult2 = service.compare<%= entityAngularName %>(entity2, entity1);
@@ -191,8 +199,8 @@ describe('<%= entityAngularName %> Service', () => {
       });
 
       it('should return true if primaryKey matches', () => {
-        const entity1 = { compositeId: sampleWithRequiredData.compositeId };
-        const entity2 = { compositeId: sampleWithRequiredData.compositeId };
+        const entity1 = <%- cmp('sampleWithRequiredData') %>;
+        const entity2 = <%- cmp('sampleWithRequiredData') %>;
 
         const compareResult1 = service.compare<%= entityAngularName %>(entity1, entity2);
         const compareResult2 = service.compare<%= entityAngularName %>(entity2, entity1);

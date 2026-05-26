@@ -1,10 +1,3 @@
-<%_
-  // Composite-key aware update-component spec. Differences from base: the component class is
-  // <Entity>UpdateComponent, isSaving is a plain boolean field (not a signal), the service
-  // save methods return Observable<HttpResponse<I>> (so the test Subject is typed/next-ed with
-  // HttpResponse), and entity objects nest keys under compositeId.
-  const nullCompositeId = `{ ${primaryKeySaathratri.ids.map(f => `${f.fieldName}: null`).join(', ')} }`;
-_%>
 import { beforeEach, describe, expect, it, vitest } from 'vitest';
 import { HttpResponse } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
@@ -37,6 +30,8 @@ describe('<%= entityAngularName %> Management Update Component', () => {
           provide: ActivatedRoute,
           useValue: {
             params: from([{}]),
+            // ngOnInit reads snapshot.routeConfig?.path to decide isNew
+            snapshot: { routeConfig: { path: '' } },
           },
         },
       ],
@@ -52,7 +47,7 @@ describe('<%= entityAngularName %> Management Update Component', () => {
 
   describe('ngOnInit', () => {
     it('should update editForm', () => {
-      const <%= entityInstance %>: I<%= entityAngularName %> = sampleWithRequiredData;
+      const <%= entityInstance %>: I<%= entityAngularName %> = { ...sampleWithRequiredData };
 
       activatedRoute.data = of({ <%= entityInstance %> });
       comp.ngOnInit();
@@ -65,7 +60,7 @@ describe('<%= entityAngularName %> Management Update Component', () => {
     it('should call update service on save for existing entity', () => {
       // GIVEN
       const saveSubject = new Subject<HttpResponse<I<%= entityAngularName %>>>();
-      const <%= entityInstance %> = sampleWithRequiredData;
+      const <%= entityInstance %> = { ...sampleWithRequiredData };
       vitest.spyOn(<%= entityInstance %>FormService, 'get<%= entityAngularName %>').mockReturnValue(<%= entityInstance %>);
       vitest.spyOn(<%= entityInstance %>Service, 'update').mockReturnValue(saveSubject);
       vitest.spyOn(comp, 'previousState');
@@ -88,10 +83,12 @@ describe('<%= entityAngularName %> Management Update Component', () => {
     it('should call create service on save for new entity', () => {
       // GIVEN
       const saveSubject = new Subject<HttpResponse<I<%= entityAngularName %>>>();
-      const <%= entityInstance %> = sampleWithRequiredData;
-      vitest.spyOn(<%= entityInstance %>FormService, 'get<%= entityAngularName %>').mockReturnValue({ compositeId: <%- nullCompositeId %> });
+      const <%= entityInstance %> = { ...sampleWithRequiredData };
+      vitest.spyOn(<%= entityInstance %>FormService, 'get<%= entityAngularName %>').mockReturnValue(<%= entityInstance %>);
       vitest.spyOn(<%= entityInstance %>Service, 'create').mockReturnValue(saveSubject);
       vitest.spyOn(comp, 'previousState');
+      // routeConfig.path === 'new' makes the component treat this as a create
+      (activatedRoute as unknown as { snapshot: unknown }).snapshot = { routeConfig: { path: 'new' } };
       activatedRoute.data = of({ <%= entityInstance %>: null });
       comp.ngOnInit();
 
@@ -111,7 +108,7 @@ describe('<%= entityAngularName %> Management Update Component', () => {
     it('should set isSaving to false on error', () => {
       // GIVEN
       const saveSubject = new Subject<HttpResponse<I<%= entityAngularName %>>>();
-      const <%= entityInstance %> = sampleWithRequiredData;
+      const <%= entityInstance %> = { ...sampleWithRequiredData };
       vitest.spyOn(<%= entityInstance %>Service, 'update').mockReturnValue(saveSubject);
       vitest.spyOn(comp, 'previousState');
       activatedRoute.data = of({ <%= entityInstance %> });

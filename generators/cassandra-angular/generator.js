@@ -209,6 +209,12 @@ export default class extends BaseApplicationGenerator {
                     // boolean isLoading, find(...keys) mock by key shape.
                     "entities/_entityFolder_/list/_entityFile_.spec.ts",
                     "entities/_entityFolder_/route/_entityFile_-routing-resolve.service.spec.ts",
+                    // service / update / form-service spec overrides — branch on key shape
+                    // (single vs composite); match the blueprint API (find(...keys), HttpResponse
+                    // returns, nested compositeId form, <Entity>UpdateComponent, boolean isSaving).
+                    "entities/_entityFolder_/service/_entityFile_.service.spec.ts",
+                    "entities/_entityFolder_/update/_entityFile_-form.service.spec.ts",
+                    "entities/_entityFolder_/update/_entityFile_-update.spec.ts",
                     "entities/_entityFolder_/list/_entityFile_.html",
                     "entities/_entityFolder_/list/_entityFile_.ts",
                     //'entities/_entityFolder_/list/_entityFile_.component.spec.ts',
@@ -228,22 +234,6 @@ export default class extends BaseApplicationGenerator {
 
                     // Entity Route File:
                     "entities/_entityFolder_/_entityFile_.routes.ts",
-                  ],
-                },
-                {
-                  // Composite-key entities: the base entity spec files assume a flat primary
-                  // key, a body-returning service and base component class names; override them
-                  // with compositeId-aware versions. Single-key entities keep base's specs.
-                  condition: () =>
-                    !entity.embedded &&
-                    entity.databaseTypeCassandra !== false &&
-                    !entity.skipClient &&
-                    entity.primaryKeySaathratri?.composite,
-                  ...clientApplicationTemplatesBlock(),
-                  templates: [
-                    "entities/_entityFolder_/service/_entityFile_.service.spec.ts",
-                    "entities/_entityFolder_/update/_entityFile_-form.service.spec.ts",
-                    "entities/_entityFolder_/update/_entityFile_-update.spec.ts",
                   ],
                 },
                 {

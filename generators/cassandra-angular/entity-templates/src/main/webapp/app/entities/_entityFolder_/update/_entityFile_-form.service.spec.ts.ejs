@@ -1,13 +1,14 @@
 <%_
-  // Composite-key aware form-service spec. The form nests the key fields under a `compositeId`
-  // FormGroup (not flat controls), getX() uses getRawValue(), and resetForm() always disables
-  // the composite-id controls. Assertions are built to match that shape/behaviour.
-  const keyFieldNames = primaryKeySaathratri.ids.map(f => f.fieldName);
-  const nonKeyFormFields = fields.filter(
-    f => !keyFieldNames.includes(f.fieldName) && !f.fieldTypeVectorSaathratri && f.fieldName !== 'id',
-  );
-  const firstKey = primaryKeySaathratri.ids[0].fieldName;
-  const nullCompositeId = `{ ${primaryKeySaathratri.ids.map(f => `${f.fieldName}: null`).join(', ')} }`;
+  // Form-service spec matching the blueprint form. Composite entities nest the key fields under
+  // a `compositeId` FormGroup; single-key entities have a flat key control. getX() uses
+  // getRawValue() and resetForm() always disables the key control(s). Assertions match that.
+  const composite = primaryKeySaathratri.composite;
+  const keyFieldNames = composite ? primaryKeySaathratri.ids.map(f => f.fieldName) : [primaryKey.name];
+  const nonKeyFormFields = fields.filter(f => !keyFieldNames.includes(f.fieldName) && !f.fieldTypeVectorSaathratri);
+  const firstKey = keyFieldNames[0];
+  const keyControlEntry = composite ? 'compositeId: expect.any(Object)' : `${firstKey}: expect.any(Object)`;
+  const keyControlPath = composite ? `compositeId.controls.${firstKey}` : firstKey;
+  const resetArg = composite ? `{ compositeId: { ${keyFieldNames.map(n => `${n}: null`).join(', ')} } }` : 'sampleWithRequiredData';
 _%>
 import { beforeEach, describe, expect, it } from 'vitest';
 import { TestBed } from '@angular/core/testing';
@@ -30,7 +31,7 @@ describe('<%= entityAngularName %> Form Service', () => {
 
         expect(formGroup.controls).toEqual(
           expect.objectContaining({
-            compositeId: expect.any(Object),
+            <%- keyControlEntry %>,
 <%_ nonKeyFormFields.forEach(f => { _%>
             <%= f.fieldName %>: expect.any(Object),
 <%_ }); _%>
@@ -43,7 +44,7 @@ describe('<%= entityAngularName %> Form Service', () => {
 
         expect(formGroup.controls).toEqual(
           expect.objectContaining({
-            compositeId: expect.any(Object),
+            <%- keyControlEntry %>,
 <%_ nonKeyFormFields.forEach(f => { _%>
             <%= f.fieldName %>: expect.any(Object),
 <%_ }); _%>
@@ -79,21 +80,21 @@ describe('<%= entityAngularName %> Form Service', () => {
     });
 
     describe('resetForm', () => {
-      it('passing I<%= entityAngularName %> should keep the composite-id controls disabled', () => {
+      it('passing I<%= entityAngularName %> should keep the key control disabled', () => {
         const formGroup = service.create<%= entityAngularName %>FormGroup(sampleWithRequiredData);
-        expect(formGroup.controls.compositeId.controls.<%= firstKey %>.disabled).toBe(true);
+        expect(formGroup.controls.<%- keyControlPath %>.disabled).toBe(true);
 
         service.resetForm(formGroup, sampleWithRequiredData);
 
-        expect(formGroup.controls.compositeId.controls.<%= firstKey %>.disabled).toBe(true);
+        expect(formGroup.controls.<%- keyControlPath %>.disabled).toBe(true);
       });
 
-      it('resetForm disables the composite-id controls even for a new entity', () => {
+      it('resetForm disables the key control even for a new entity', () => {
         const formGroup = service.create<%= entityAngularName %>FormGroup();
 
-        service.resetForm(formGroup, { compositeId: <%- nullCompositeId %> });
+        service.resetForm(formGroup, <%- resetArg %>);
 
-        expect(formGroup.controls.compositeId.controls.<%= firstKey %>.disabled).toBe(true);
+        expect(formGroup.controls.<%- keyControlPath %>.disabled).toBe(true);
       });
     });
   });
