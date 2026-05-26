@@ -199,7 +199,9 @@ export default class extends BaseApplicationGenerator {
                     //'entities/_entityFolder_/_entityFile_.routes.ts',
                     "entities/_entityFolder_/detail/_entityFile_-detail.html",
                     "entities/_entityFolder_/detail/_entityFile_-detail.ts",
-                    //'entities/_entityFolder_/detail/_entityFile_-detail.component.spec.ts',
+                    // detail.spec override: works for both single-key and composite entities
+                    // (uses test-samples + the blueprint's <Entity>DetailComponent class name).
+                    "entities/_entityFolder_/detail/_entityFile_-detail.spec.ts",
                     "entities/_entityFolder_/list/_entityFile_.html",
                     "entities/_entityFolder_/list/_entityFile_.ts",
                     //'entities/_entityFolder_/list/_entityFile_.component.spec.ts',
@@ -212,17 +214,19 @@ export default class extends BaseApplicationGenerator {
 
                     // Entity Model Files:
                     "entities/_entityFolder_/_entityFile_.model.ts",
-                    //'entities/_entityFolder_/_entityFile_.test-samples.ts'
+                    // test-samples.ts: our override matches the blueprint model for both
+                    // composite (nested compositeId) and single-key (flat) entities — and,
+                    // unlike base, types date-Long columns as dayjs and Set/Map correctly.
+                    "entities/_entityFolder_/_entityFile_.test-samples.ts",
 
                     // Entity Route File:
                     "entities/_entityFolder_/_entityFile_.routes.ts",
                   ],
                 },
                 {
-                  // Composite-key entities: emit a compositeId-aware test-samples.ts. Base
-                  // JHipster writes a flat-key version that doesn't match the nested model,
-                  // breaking the generated client's compilation/tests. Single-key entities
-                  // keep base's flat test-samples (which matches their flat model).
+                  // Composite-key entities: the base entity spec files assume a flat primary
+                  // key, a body-returning service and base component class names; override them
+                  // with compositeId-aware versions. Single-key entities keep base's specs.
                   condition: () =>
                     !entity.embedded &&
                     entity.databaseTypeCassandra !== false &&
@@ -230,7 +234,6 @@ export default class extends BaseApplicationGenerator {
                     entity.primaryKeySaathratri?.composite,
                   ...clientApplicationTemplatesBlock(),
                   templates: [
-                    "entities/_entityFolder_/_entityFile_.test-samples.ts",
                     "entities/_entityFolder_/service/_entityFile_.service.spec.ts",
                     "entities/_entityFolder_/update/_entityFile_-form.service.spec.ts",
                     "entities/_entityFolder_/update/_entityFile_-update.spec.ts",
