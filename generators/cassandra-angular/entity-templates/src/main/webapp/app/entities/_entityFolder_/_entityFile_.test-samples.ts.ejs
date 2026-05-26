@@ -1,0 +1,47 @@
+<%_
+  // Composite-key aware test samples. The Cassandra model nests the key fields under
+  // `compositeId` (unlike the flat single-key shape base JHipster emits), so build the
+  // sample objects to match: { compositeId: { <key fields> }, <non-key fields> }.
+  const keyFieldNames = primaryKeySaathratri.ids.map(id => id.fieldName);
+  const keyFields = keyFieldNames.map(n => fields.find(f => f.fieldName === n)).filter(Boolean);
+  const nonKeyFields = fields.filter(
+    f => !keyFieldNames.includes(f.fieldName) && !f.fieldTypeVectorSaathratri && !f.fieldIsEnum && f.fieldName !== 'id',
+  );
+  const anyDate = [...keyFields, ...nonKeyFields].some(
+    f => f.fieldTypeLocalDateSaathratri || f.fieldTypeTimedSaathratri || f.fieldTypeMapDayjsSaathratri,
+  );
+  const sampleValue = (field, i) => {
+    if (field.fieldTypeSetSaathratri) return `new Set(['sample-${i}'])`;
+    if (field.fieldTypeMapDayjsSaathratri) return `{ 'key${i}': dayjs('2024-01-0${(i % 9) + 1}T12:00:00Z') }`;
+    if (field.fieldTypeMapSaathratri) {
+      const v = field.tsType === 'number' ? `${i}` : field.tsType === 'boolean' ? (i % 2 === 0 ? 'true' : 'false') : `'val-${i}'`;
+      return `{ 'key${i}': ${v} }`;
+    }
+    if (field.fieldTypeLocalDateSaathratri || field.fieldTypeTimedSaathratri) return `dayjs('2024-01-0${(i % 9) + 1}T12:00:00Z')`;
+    if (field.tsType === 'number') return `${1000 + i}`;
+    if (field.tsType === 'boolean') return i % 2 === 0 ? 'true' : 'false';
+    return `'sample-${field.fieldName}-${i}'`;
+  };
+  const compositeIdLiteral = i => `{ ${keyFields.map(f => `${f.fieldName}: ${sampleValue(f, i)}`).join(', ')} }`;
+  const sampleObj = (i, subset) =>
+    `{\n  compositeId: ${compositeIdLiteral(i)},${subset.map(f => `\n  ${f.fieldName}: ${sampleValue(f, i)},`).join('')}\n}`;
+  const half = nonKeyFields.slice(0, Math.ceil(nonKeyFields.length / 2));
+_%>
+<%_ if (anyDate) { _%>
+import dayjs from 'dayjs/esm';
+
+<%_ } _%>
+import { I<%= entityAngularName %>, New<%= entityAngularName %> } from './<%= entityFileName %>.model';
+
+export const sampleWithRequiredData: I<%= entityAngularName %> = <%- sampleObj(1, []) %>;
+
+export const sampleWithPartialData: I<%= entityAngularName %> = <%- sampleObj(2, half) %>;
+
+export const sampleWithFullData: I<%= entityAngularName %> = <%- sampleObj(3, nonKeyFields) %>;
+
+export const sampleWithNewData: New<%= entityAngularName %> = <%- sampleObj(4, []) %>;
+
+Object.freeze(sampleWithNewData);
+Object.freeze(sampleWithRequiredData);
+Object.freeze(sampleWithPartialData);
+Object.freeze(sampleWithFullData);

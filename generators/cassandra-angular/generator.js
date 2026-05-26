@@ -219,6 +219,21 @@ export default class extends BaseApplicationGenerator {
                   ],
                 },
                 {
+                  // Composite-key entities: emit a compositeId-aware test-samples.ts. Base
+                  // JHipster writes a flat-key version that doesn't match the nested model,
+                  // breaking the generated client's compilation/tests. Single-key entities
+                  // keep base's flat test-samples (which matches their flat model).
+                  condition: () =>
+                    !entity.embedded &&
+                    entity.databaseTypeCassandra !== false &&
+                    !entity.skipClient &&
+                    entity.primaryKeySaathratri?.composite,
+                  ...clientApplicationTemplatesBlock(),
+                  templates: [
+                    "entities/_entityFolder_/_entityFile_.test-samples.ts",
+                  ],
+                },
+                {
                   condition: (generator) =>
                     !generator.readOnly &&
                     !generator.embedded &&
