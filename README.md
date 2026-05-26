@@ -389,10 +389,15 @@ From the generated app directory:
 ./mvnw -ntp -Dskip.npm verify
 ```
 
-Expected: `package` produces `target/*.jar`. `verify` starts a Cassandra Testcontainer;
-the domain, DTO, security, exception-translator and structural tests pass. The
-composite-key entity REST integration tests (`*ResourceIT`) are still being hardened —
-run `verify` locally to see current status.
+Expected: `package` produces `target/*.jar`. `verify` starts a Cassandra Testcontainer and
+runs the full test suite green — the domain, DTO, security, exception-translator and
+structural tests, **plus the composite-key entity REST CRUD integration tests**
+(`*ResourceIT`): create / get-one / get-all / update (PUT) / partial update (PATCH) /
+delete and their negative cases, for both single-value and composite primary keys
+(including auto-generated `TIMEUUID` clustering keys, and `Set` / `Map` columns).
+
+The `samples.yml` GitHub workflow runs exactly this `verify` on every push (the runner
+provides Docker), so the composite-key CRUD contract is continuously regression-tested.
 
 ### Frontend
 

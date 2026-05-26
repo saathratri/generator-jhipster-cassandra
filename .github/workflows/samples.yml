@@ -23,6 +23,9 @@ jobs:
           mkdir -p "$RUNNER_TEMP/app"
           cd "$RUNNER_TEMP/app"
           node "$GITHUB_WORKSPACE/cli/cli.cjs" generate-sample sample --skip-jhipster-dependencies --skip-install
-      - name: Build sample backend (skip frontend)
+      - name: Build + test sample backend (skip frontend)
+        # ubuntu-latest provides a running Docker daemon, so the *ResourceIT integration
+        # tests can start a Cassandra Testcontainer. This runs the unit tests plus the
+        # composite-key REST CRUD integration tests against a real Cassandra 5 container.
         working-directory: ${{ runner.temp }}/app
-        run: ./mvnw -ntp -DskipTests -Dskip.npm package
+        run: ./mvnw -ntp -Dskip.npm verify

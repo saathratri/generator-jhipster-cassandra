@@ -92,6 +92,36 @@ public class <%- dtoClass %> implements Serializable {
 <%_ } _%>
 <%_ for (property of restProperties) { _%>
   <%_ if (!isCompositePrimaryKeyServerProperty(primaryKeySaathratri, property) && property.propertyName !== 'id' && !property.fieldTypeVectorSaathratri) { _%>
+    <%_ if (property.fieldValidationRequired) { _%>
+    @NotNull
+    <%_ } _%>
+    <%_ if (property.fieldValidationMinLength && property.fieldValidationMaxLength) { _%>
+    @Size(min = <%= property.fieldValidateRulesMinlength %>, max = <%= property.fieldValidateRulesMaxlength %>)
+    <%_ } else if (property.fieldValidationMinLength) { _%>
+    @Size(min = <%= property.fieldValidateRulesMinlength %>)
+    <%_ } else if (property.fieldValidationMaxLength) { _%>
+    @Size(max = <%= property.fieldValidateRulesMaxlength %>)
+    <%_ } _%>
+    <%_ if (property.fieldValidationPattern) { _%>
+    @Pattern(regexp = "<%- property.fieldValidateRulesPattern %>")
+    <%_ } _%>
+    <%_ if (property.fieldValidationMin || property.fieldValidationMax) { _%>
+      <%_ if (property.fieldTypeBigDecimal) { _%>
+        <%_ if (property.fieldValidationMin) { _%>
+    @DecimalMin(value = "<%= property.fieldValidateRulesMin %>")
+        <%_ } _%>
+        <%_ if (property.fieldValidationMax) { _%>
+    @DecimalMax(value = "<%= property.fieldValidateRulesMax %>")
+        <%_ } _%>
+      <%_ } else { _%>
+        <%_ if (property.fieldValidationMin) { _%>
+    @Min(value = <%= property.fieldValidateRulesMin %>)
+        <%_ } _%>
+        <%_ if (property.fieldValidationMax) { _%>
+    @Max(value = <%= property.fieldValidateRulesMax %>)
+        <%_ } _%>
+      <%_ } _%>
+    <%_ } _%>
     <%_
         if(property.fieldTypeSetSaathratri) {
     _%>

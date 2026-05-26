@@ -55,7 +55,7 @@ webTestClient
 .isOk();
 <%_ } else { _%>
 <%_ if (primaryKeySaathratri.composite) { _%>
-rest<%= entityClass %>MockMvc.perform(patch(ENTITY_API_URL_ID, partialUpdated<%= persistClass %>.get<%= primaryKeySaathratri.nameCapitalized %>())<% if (authenticationUsesCsrf) { %>.with(csrf())<% }%>
+rest<%= entityClass %>MockMvc.perform(patch(ENTITY_API_URL + "/<%= primaryKeySaathratri.ids.map(f => '{' + f.fieldName + '}').join('/') %>"<%_ for (field of primaryKeySaathratri.ids) { _%>, partialUpdated<%= persistClass %>.get<%= primaryKeySaathratri.nameCapitalized %>().get<%= field.fieldNameCapitalized %>()<%_ } _%>)<% if (authenticationUsesCsrf) { %>.with(csrf())<% }%>
 <%_ } else { _%>
 rest<%= entityClass %>MockMvc.perform(patch(ENTITY_API_URL_ID, partialUpdated<%= persistClass %>.get<%= primaryKey.nameCapitalized %>())<% if (authenticationUsesCsrf) { %>.with(csrf())<% }%>
 <%_ } _%>
