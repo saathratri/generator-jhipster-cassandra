@@ -232,6 +232,8 @@ export default class extends BaseApplicationGenerator {
                   templates: [
                     "entities/_entityFolder_/_entityFile_.test-samples.ts",
                     "entities/_entityFolder_/service/_entityFile_.service.spec.ts",
+                    "entities/_entityFolder_/update/_entityFile_-form.service.spec.ts",
+                    "entities/_entityFolder_/update/_entityFile_-update.spec.ts",
                   ],
                 },
                 {
