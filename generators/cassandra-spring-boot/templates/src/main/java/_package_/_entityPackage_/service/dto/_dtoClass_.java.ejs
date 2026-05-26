@@ -175,7 +175,7 @@ public <%- dtoClass %> () {
         return <%- property.propertyName %>;
     }
 
-    public void set<%- property.propertyJavaBeanName %>(Set<<%- property.propertyDtoJavaType %>> <%- property.propertyName %>) %> {
+    public void set<%- property.propertyJavaBeanName %>(Set<<%- property.propertyDtoJavaType %>> <%- property.propertyName %>) {
         this.<%- property.propertyName %> = <%- property.propertyName %>;
     }
       <%_ if (fluentMethods) { _%>
@@ -192,7 +192,7 @@ public <%- dtoClass %> () {
         return <%- property.propertyName %>;
     }
 
-    public void set<%- property.propertyJavaBeanName %>(Map<String, <%- property.propertyDtoJavaType %>> <%- property.propertyName %>) %> {
+    public void set<%- property.propertyJavaBeanName %>(Map<String, <%- property.propertyDtoJavaType %>> <%- property.propertyName %>) {
         this.<%- property.propertyName %> = <%- property.propertyName %>;
     }
       <%_ if (fluentMethods) { _%>
@@ -208,7 +208,7 @@ public <%- dtoClass %> () {
         return <%- property.propertyName %>;
     }
 
-    public void set<%- property.propertyJavaBeanName %>(<%- property.propertyDtoJavaType %> <%- property.propertyName %>) %> {
+    public void set<%- property.propertyJavaBeanName %>(<%- property.propertyDtoJavaType %> <%- property.propertyName %>) {
         this.<%- property.propertyName %> = <%- property.propertyName %>;
     }
       <%_ if (fluentMethods) { _%>

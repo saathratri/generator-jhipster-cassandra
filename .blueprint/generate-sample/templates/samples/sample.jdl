@@ -1,0 +1,30 @@
+application {
+  config {
+    applicationType microservice
+    baseName cassandraSample
+    packageName com.mycompany.myapp
+    authenticationType oauth2
+    databaseType cassandra
+    devDatabaseType cassandra
+    prodDatabaseType cassandra
+    serverPort 8081
+    serviceDiscoveryType eureka
+    clientFramework no
+    testFrameworks []
+  }
+
+  entities AddOnByOrganization
+}
+
+/**
+ * Cassandra entity following this blueprint's composite-primary-key convention.
+ * Each field carries (up to) two CassandraType customAnnotations; a dummy
+ * @customAnnotation("") is used when only one is needed (see the blueprint README).
+ */
+entity AddOnByOrganization {
+  @Id @customAnnotation("PrimaryKeyType.PARTITIONED") @customAnnotation("CassandraType.Name.UUID") @customAnnotation("") organizationId UUID
+  @customAnnotation("CassandraType.Name.MAP") @customAnnotation("CassandraType.Name.TEXT") @customAnnotation("") addOnDetailsText String
+  @customAnnotation("CassandraType.Name.MAP") @customAnnotation("CassandraType.Name.DECIMAL") @customAnnotation("") addOnDetailsDecimal BigDecimal
+  @customAnnotation("CassandraType.Name.MAP") @customAnnotation("CassandraType.Name.BOOLEAN") @customAnnotation("") addOnDetailsBoolean Boolean
+  @customAnnotation("CassandraType.Name.MAP") @customAnnotation("CassandraType.Name.BIGINT") @customAnnotation("UTC_DATETIME") addOnDetailsBigInt Long
+}
