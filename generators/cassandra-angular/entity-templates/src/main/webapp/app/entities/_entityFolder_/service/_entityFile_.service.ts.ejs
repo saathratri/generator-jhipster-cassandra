@@ -169,7 +169,6 @@ export class <%- entityAngularNamePlural %>Service {
           <%= field.fieldName %>: rest<%= entityAngularName %>.<%= field.fieldName %> ? new Set(rest<%= entityAngularName %>.<%= field.fieldName %>) : new Set<string>(),
       <%_ } else if (field.fieldTypeMapDayjsSaathratri) { _%>
           <%= field.fieldName %>: rest<%= entityAngularName %>.<%= field.fieldName %>
-              // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
               ? Object.fromEntries(Object.entries(rest<%= entityAngularName %>.<%= field.fieldName %>).map(([k, v]) => [k, dayjs(v)])) : {},
       <%_ } else if (field.fieldTypeTimedSaathratri) { _%>
       <%= field.fieldName %>: rest<%= entityAngularName %>.<%= field.fieldName %> ? dayjs(rest<%= entityAngularName %>.<%= field.fieldName %>) : null,

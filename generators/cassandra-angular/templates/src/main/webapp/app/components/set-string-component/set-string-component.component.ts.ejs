@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnChanges, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormArray, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MaterialModule } from '../../shared/material.module';
@@ -13,7 +13,7 @@ import { MatDialog } from '@angular/material/dialog';
   templateUrl: './set-string-component.component.html',
   styleUrls: ['./set-string-component.component.css'],
 })
-export class SetStringComponent {
+export class SetStringComponent implements OnChanges {
     @Input() inputFields: Set<string> = new Set<string>();
     @Output() dataChange = new EventEmitter<Set<string>>();
   

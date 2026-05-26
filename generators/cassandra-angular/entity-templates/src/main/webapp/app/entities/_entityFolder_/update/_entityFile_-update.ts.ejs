@@ -171,7 +171,6 @@ export class <%= entityAngularName %>UpdateComponent implements OnInit {
 
     <%_ if (anyFieldIsUUIDSaathratri || anyFieldIsTimeUUIDSaathratri) { _%>
         protected isResetDisabled: Record<string, boolean> = {}; // Track reset button states
-        // eslint-disable-next-line @typescript-eslint/member-ordering
         private lastSavedValues: Record<string, any> = {}; // Store last valid values
     <%_ } _%>
 
@@ -327,7 +326,6 @@ _%>
             <%_ let first = true; _%>
             return (<%_ for (const field of fields) { _%>
                 <%_ if (field.fieldTypeTimedSaathratri) { _%>
-                    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
                     <%_ if(!first) { _%> && <%_ } _%>(!<%= field.fieldName %>Control?.hasError('required') || this.isDateTimeValid['<%= field.fieldName %>'])
                 <%_ 
                         first = false;
