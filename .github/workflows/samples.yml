@@ -1,0 +1,28 @@
+name: Sample
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  generate-sample:
+    name: generate-sample
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "npm"
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - run: npm ci
+      - name: Generate sample application
+        run: |
+          mkdir -p "$RUNNER_TEMP/app"
+          cd "$RUNNER_TEMP/app"
+          node "$GITHUB_WORKSPACE/cli/cli.cjs" generate-sample sample --skip-jhipster-dependencies --skip-install
+      - name: Build sample backend (skip frontend)
+        working-directory: ${{ runner.temp }}/app
+        run: ./mvnw -ntp -DskipTests -Dskip.npm package

@@ -95,15 +95,15 @@ public class <%- dtoClass %> implements Serializable {
     <%_
         if(property.fieldTypeSetSaathratri) {
     _%>
-    private Set<<%- property.propertyDtoJavaType %>> <%- property.propertyName %>;
+    private Set<<%- (property.propertyDtoJavaType || property.fieldType) %>> <%- property.propertyName %>;
     <%_
         } else if(property.fieldTypeMapSaathratri) {
     _%>
-    private Map<String, <%- property.propertyDtoJavaType %>> <%- property.propertyName %>;
+    private Map<String, <%- (property.propertyDtoJavaType || property.fieldType) %>> <%- property.propertyName %>;
     <%_
         } else {
     _%>
-    private <%- property.propertyDtoJavaType %> <%- property.propertyName %>;
+    private <%- (property.propertyDtoJavaType || property.fieldType) %> <%- property.propertyName %>;
     <%_
         }
     _%>
@@ -171,50 +171,50 @@ public <%- dtoClass %> () {
   <%_ if (!isCompositePrimaryKeyServerProperty(primaryKeySaathratri, property) && property.propertyName !== 'id' && !property.fieldTypeVectorSaathratri) { _%>
 
     <%_ if(property.fieldTypeSetSaathratri) { _%>
-    public Set<<%- property.propertyDtoJavaType %>> get<%- property.propertyJavaBeanName %>() {
+    public Set<<%- (property.propertyDtoJavaType || property.fieldType) %>> get<%- property.propertyJavaBeanName %>() {
         return <%- property.propertyName %>;
     }
 
-    public void set<%- property.propertyJavaBeanName %>(Set<<%- property.propertyDtoJavaType %>> <%- property.propertyName %>) {
+    public void set<%- property.propertyJavaBeanName %>(Set<<%- (property.propertyDtoJavaType || property.fieldType) %>> <%- property.propertyName %>) {
         this.<%- property.propertyName %> = <%- property.propertyName %>;
     }
       <%_ if (fluentMethods) { _%>
 
 
-        public <%= dtoClass %> <%= property.propertyName %>(Set<<%= property.propertyDtoJavaType %>> <%= property.propertyName %>) {
+        public <%= dtoClass %> <%= property.propertyName %>(Set<<%= (property.propertyDtoJavaType || property.fieldType) %>> <%= property.propertyName %>) {
             this.<%= property.propertyName %> = <%= property.propertyName %>;
             return this;
     }
   <%_ } _%>
   <%_ } else if(property.fieldTypeMapSaathratri) {_%>
 
-  public Map<String, <%- property.propertyDtoJavaType %>> get<%- property.propertyJavaBeanName %>() {
+  public Map<String, <%- (property.propertyDtoJavaType || property.fieldType) %>> get<%- property.propertyJavaBeanName %>() {
         return <%- property.propertyName %>;
     }
 
-    public void set<%- property.propertyJavaBeanName %>(Map<String, <%- property.propertyDtoJavaType %>> <%- property.propertyName %>) {
+    public void set<%- property.propertyJavaBeanName %>(Map<String, <%- (property.propertyDtoJavaType || property.fieldType) %>> <%- property.propertyName %>) {
         this.<%- property.propertyName %> = <%- property.propertyName %>;
     }
       <%_ if (fluentMethods) { _%>
 
 
-        public <%= dtoClass %> <%= property.propertyName %>(Map<String, <%= property.propertyDtoJavaType %>> <%= property.propertyName %>) {
+        public <%= dtoClass %> <%= property.propertyName %>(Map<String, <%= (property.propertyDtoJavaType || property.fieldType) %>> <%= property.propertyName %>) {
             this.<%= property.propertyName %> = <%= property.propertyName %>;
             return this;
     }
   <%_ } _%>
   <%_ } else { _%>
-    public <%- property.propertyDtoJavaType %> get<%- property.propertyJavaBeanName %>() {
+    public <%- (property.propertyDtoJavaType || property.fieldType) %> get<%- property.propertyJavaBeanName %>() {
         return <%- property.propertyName %>;
     }
 
-    public void set<%- property.propertyJavaBeanName %>(<%- property.propertyDtoJavaType %> <%- property.propertyName %>) {
+    public void set<%- property.propertyJavaBeanName %>(<%- (property.propertyDtoJavaType || property.fieldType) %> <%- property.propertyName %>) {
         this.<%- property.propertyName %> = <%- property.propertyName %>;
     }
       <%_ if (fluentMethods) { _%>
 
 
-        public <%= dtoClass %> <%= property.propertyName %>(<%= property.propertyDtoJavaType %> <%= property.propertyName %>) {
+        public <%= dtoClass %> <%= property.propertyName %>(<%= (property.propertyDtoJavaType || property.fieldType) %> <%= property.propertyName %>) {
             this.<%= property.propertyName %> = <%= property.propertyName %>;
             return this;
     }

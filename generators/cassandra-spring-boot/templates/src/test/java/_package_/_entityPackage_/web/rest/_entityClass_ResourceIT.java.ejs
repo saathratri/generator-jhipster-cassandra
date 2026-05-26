@@ -1439,7 +1439,7 @@ _%>
       // Composite Primary Key Code
       if (primaryKeySaathratri.composite) { 
     _%>
-          rest<%= entityClass %>MockMvc.perform(put(ENTITY_API_URL_ID, <%- (dtoMapstruct ? dtoInstance : getCompositePrimaryKeyServerUrl('updated' + _.upperFirst(entityInstance), primaryKeySaathratri)) %>)<% if (authenticationUsesCsrf) { %>.with(csrf())<% } %>
+          rest<%= entityClass %>MockMvc.perform(put(ENTITY_API_URL_ID, <%- (dtoMapstruct ? dtoInstance : getCompositePrimaryKeyServerUrl('updated' + this._.upperFirst(entityInstance), primaryKeySaathratri)) %>)<% if (authenticationUsesCsrf) { %>.with(csrf())<% } %>
     <%_ 
         // Single-value Primary Key Code
         } else { 
