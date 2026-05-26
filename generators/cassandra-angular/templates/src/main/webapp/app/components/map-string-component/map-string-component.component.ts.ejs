@@ -56,7 +56,7 @@ export class MapStringComponent implements OnChanges {
   addNewRow(): void {
     if (this.form.valid) {
       const { newKey, newValue } = this.form.value;
-      this.mapDetails[newKey.trim()] = newValue?.trim() || '';
+      this.mapDetails[newKey.trim()] = newValue?.trim() ?? '';
       this.form.reset();
       this.emitData();
     }

@@ -2,7 +2,7 @@
   // confirmDelete takes the whole entity for composite keys, or the single id otherwise; and
   // service.delete returns Observable<HttpResponse<{}>> (so mock with an HttpResponse, not
   // undefined). The dialog component class is <Entity>DeleteDialogComponent.
-  const deleteArg = primaryKeySaathratri.composite ? 'sampleWithRequiredData' : `sampleWithRequiredData.${primaryKey.name}!`;
+  const deleteArg = primaryKeySaathratri.composite ? 'sampleWithRequiredData' : `sampleWithRequiredData.${primaryKey.name}`;
 _%>
 import { beforeEach, describe, expect, it, vitest } from 'vitest';
 import { HttpResponse } from '@angular/common/http';

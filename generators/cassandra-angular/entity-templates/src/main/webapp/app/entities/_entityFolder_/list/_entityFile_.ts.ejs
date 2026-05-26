@@ -529,15 +529,15 @@ _%>
     isSearchFormValid(): boolean {
 <%_ for (const field of partitionKeyFieldsForMethods) { _%>
   <%_ if (field.fieldTypeTimedSaathratri || field.fieldTypeLocalDateSaathratri) { _%>
-        if (this.searchCriteria.<%= field.fieldName %> === null || this.searchCriteria.<%= field.fieldName %> === undefined) {
+        if (this.searchCriteria.<%= field.fieldName %> === null) {
             return false;
         }
   <%_ } else if (field.fieldType === 'String') { _%>
-        if (this.searchCriteria.<%= field.fieldName %> === null || this.searchCriteria.<%= field.fieldName %> === undefined || this.searchCriteria.<%= field.fieldName %> === '') {
+        if (this.searchCriteria.<%= field.fieldName %> === null || this.searchCriteria.<%= field.fieldName %> === '') {
             return false;
         }
   <%_ } else { _%>
-        if (this.searchCriteria.<%= field.fieldName %> === null || this.searchCriteria.<%= field.fieldName %> === undefined) {
+        if (this.searchCriteria.<%= field.fieldName %> === null) {
             return false;
         }
   <%_ } _%>
@@ -841,7 +841,7 @@ _%>
         return order === 'asc' ? result : -result;
       });
 <%_ } else { _%>
-      return predicate && order ? data.sort(this.sortService.startSort({ predicate, order })) : data;
+      return data.sort(this.sortService.startSort({ predicate, order }));
 <%_ } _%>
     }
 
@@ -902,7 +902,7 @@ _%>
 <%_ if (primaryKeySaathratri.composite) { _%>
       return this.getCompositeKey(item);
 <%_ } else { _%>
-      return String(this.<%= entityInstance %>Service.get<%= entityAngularName %>Identifier(item));
+      return JSON.stringify(this.<%= entityInstance %>Service.get<%= entityAngularName %>Identifier(item));
 <%_ } _%>
     }
 

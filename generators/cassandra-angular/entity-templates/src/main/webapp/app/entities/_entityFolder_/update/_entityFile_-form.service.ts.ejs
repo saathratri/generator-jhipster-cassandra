@@ -404,7 +404,7 @@ _%>
       const { fieldName, fieldTypeTimed } = field;
 _%>
   <%_ if (fieldTypeTimed || field.fieldTypeTimedSaathratri) { _%>
-      <%= fieldName %>: <%= entityInstance %>.<%= primaryKeySaathratri.name %>.<%= fieldName %> ? <%= entityInstance %>.<%= primaryKeySaathratri.name %>.<%= fieldName %> : null,
+      <%= fieldName %>: <%= entityInstance %>.<%= primaryKeySaathratri.name %>.<%= fieldName %> ?? null,
   <%_ } _%>
 <%_ } _%>
    },  

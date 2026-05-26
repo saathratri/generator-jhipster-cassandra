@@ -9,7 +9,7 @@
     return f && f.tsType === 'number' ? '1' : `'${name}'`;
   };
   const findArgs = composite ? primaryKeySaathratri.ids.map(id => findLiteral(id.fieldName)).join(', ') : findLiteral(primaryKey.name);
-  const deleteArg = composite ? 'sampleWithRequiredData' : `sampleWithRequiredData.${primaryKey.name}!`;
+  const deleteArg = composite ? 'sampleWithRequiredData' : `sampleWithRequiredData.${primaryKey.name}`;
   const cmp = sample => (composite ? `{ compositeId: ${sample}.compositeId }` : `{ ${primaryKey.name}: ${sample}.${primaryKey.name} }`);
 _%>
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
