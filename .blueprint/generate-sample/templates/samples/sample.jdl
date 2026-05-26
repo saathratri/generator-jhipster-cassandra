@@ -9,7 +9,7 @@ application {
     prodDatabaseType cassandra
     serverPort 8081
     serviceDiscoveryType eureka
-    clientFramework no
+    clientFramework angularX
     testFrameworks []
   }
 

@@ -342,6 +342,67 @@ sh saathratri-generate-code-dev-cassandra.sh
 
 ---
 
+## 🧪 Testing
+
+Two layers of tests: the **generator's own unit tests**, and the **generated
+application's tests** (backend + frontend). This blueprint is **Cassandra-only** and
+targets **composite primary keys**, so the sample covers composite keys, single-value
+keys, multiple partitioned/clustered keys, TIMEUUID, BLOB, and Set/Map data structures.
+
+### Generator unit tests
+
+Lint, format check, and Vitest snapshot tests (each sub-generator is run and its output
+asserted). This is what the `generator.yml` GitHub workflow runs on every push:
+
+```bash
+npm test
+```
+
+Expected: Prettier prints `All matched files use Prettier code style!`, ESLint reports
+`0 problems`, and all **12** generator spec suites pass (`Test Files 12 passed`).
+
+### Generate a sample application
+
+The `samples.yml` GitHub workflow generates the bundled README example entities and
+builds the backend. To do the same locally (Node 22+; Java 21 + Docker for the build):
+
+```bash
+mkdir sample-app && cd sample-app
+node /path/to/generator-jhipster-cassandra/cli/cli.cjs \
+  generate-sample sample --skip-jhipster-dependencies --skip-install
+```
+
+Expected: `Congratulations, JHipster execution is complete!` — a full Spring Boot 4 /
+Java 21 microservice (≈100 Java + ≈245 TypeScript files) covering all the example
+entities.
+
+### Backend
+
+From the generated app directory:
+
+```bash
+# Compile + package the backend only — no Docker needed (this is what CI runs)
+./mvnw -ntp -DskipTests -Dskip.npm package
+
+# Unit + integration tests. Integration tests (*IT) use Testcontainers, so a running
+# Docker daemon is required — a Cassandra container is started automatically.
+./mvnw -ntp -Dskip.npm verify
+```
+
+Expected: `package` produces `target/*.jar`. `verify` starts a Cassandra Testcontainer;
+the domain, DTO, security, exception-translator and structural tests pass. The
+composite-key entity REST integration tests (`*ResourceIT`) are still being hardened —
+run `verify` locally to see current status.
+
+### Frontend
+
+```bash
+npm install
+npm test     # Angular client unit tests (Jest)
+```
+
+---
+
 ## 🔐 Identity Providers
 
 This blueprint supports Keycloak by default. You can switch to Okta using:

@@ -240,8 +240,14 @@ public <%- dtoClass %> () {
 
         <%- dtoClass %> that = (<%- dtoClass %>) o;
         <%_ if (primaryKeySaathratri.composite) { _%>
+        if (this.get<%= primaryKeySaathratri.nameCapitalized %>() == null) {
+            return false;
+        }
         return Objects.equals(get<%= primaryKeySaathratri.nameCapitalized %>(), that.get<%= primaryKeySaathratri.nameCapitalized %>());
 <%_ } else { _%>
+        if (this.get<%= primaryKey.nameCapitalized %>() == null) {
+            return false;
+        }
         return Objects.equals(get<%= primaryKey.nameCapitalized %>(), that.get<%= primaryKey.nameCapitalized %>());
 <%_ } _%>
     }
