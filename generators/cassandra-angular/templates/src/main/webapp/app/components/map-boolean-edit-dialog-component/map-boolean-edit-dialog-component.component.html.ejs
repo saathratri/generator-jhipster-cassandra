@@ -12,9 +12,9 @@
       {{ toggleLabel }}
     </mat-slide-toggle>
 
-    <mat-error *ngIf="form.controls['value'].invalid && form.controls['value'].touched">
+    @if (form.controls['value'].invalid && form.controls['value'].touched) { <mat-error>
       Please select a value
-    </mat-error>
+    </mat-error> }
   </form>
 </mat-dialog-content>
 

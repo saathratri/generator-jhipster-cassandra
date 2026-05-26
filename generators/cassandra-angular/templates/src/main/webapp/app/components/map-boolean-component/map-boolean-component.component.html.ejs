@@ -1,8 +1,9 @@
 <div class="container">
   <form [formGroup]="form">
     <!-- Existing Entries -->
-    <div *ngFor="let control of formArray.controls; let i = index" class="input-row">
-      
+    @for (control of formArray.controls; track control; let i = $index) {
+    <div class="input-row">
+
       <!-- Read-Only Key -->
       <mat-form-field appearance="outline" class="form-field">
         <mat-label>Key</mat-label>
@@ -27,6 +28,7 @@
         </button>
       </div>
     </div>
+    }
 
     <!-- Add New Entry Row -->
     <div class="input-row">
@@ -37,9 +39,9 @@
           matInput
           formControlName="newKey"
           (blur)="form.controls['newKey'].markAsTouched()" />
-        <mat-error *ngIf="form.controls['newKey'].invalid && form.controls['newKey'].touched">
+        @if (form.controls['newKey'].invalid && form.controls['newKey'].touched) { <mat-error>
           Key is required
-        </mat-error>
+        </mat-error> }
       </mat-form-field>
 
       <!-- New Boolean Toggle -->

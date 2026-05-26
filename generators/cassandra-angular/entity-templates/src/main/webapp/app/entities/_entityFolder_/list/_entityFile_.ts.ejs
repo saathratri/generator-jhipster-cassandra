@@ -892,7 +892,7 @@ _%>
       this.hasNextPage = hasNextPage === 'true';
 
       const pagingStateHeader = headers.get('X-Paging-State');
-      this.pagingState = pagingStateHeader || null;
+      this.pagingState = pagingStateHeader ?? null;
 
       const totalCountHeader = headers.get('X-Total-Count');
       this.totalItems = totalCountHeader !== null ? Number(totalCountHeader) : null;
@@ -945,13 +945,13 @@ _%>
             methodNameParts.push(`${ckeyName}${field.fieldNameCapitalized}`);
 
             if (field.fieldTypeTimedSaathratri || field.fieldTypeLocalDateSaathratri) {
-                conditions.push(`this.searchCriteria.${field.fieldName} !== null && this.searchCriteria.${field.fieldName} !== undefined`);
+                conditions.push(`this.searchCriteria.${field.fieldName} !== null`);
                 methodArgs.push(`this.searchCriteria.${field.fieldName}`);
             } else if (field.fieldType === 'Boolean') {
                 conditions.push(`this.searchCriteria.${field.fieldName} !== null`);
                 methodArgs.push(`this.searchCriteria.${field.fieldName}`);
             } else if (field.fieldTypeNumeric) {
-                conditions.push(`this.searchCriteria.${field.fieldName} !== null && this.searchCriteria.${field.fieldName} !== undefined`);
+                conditions.push(`this.searchCriteria.${field.fieldName} !== null`);
                 methodArgs.push(`this.searchCriteria.${field.fieldName}`);
             } else {
                 conditions.push(`this.searchCriteria.${field.fieldName} && this.searchCriteria.${field.fieldName}.trim() !== ''`);
@@ -975,7 +975,7 @@ _%>
 _%>
             if (<%- conditionStr %>) {
 <%_ if (supportsComparison) { _%>
-                const operator<%= lastField.fieldNameCapitalized %> = this.searchCriteria.<%= lastField.fieldName %>Operator || 'eq';
+                const operator<%= lastField.fieldNameCapitalized %> = this.searchCriteria.<%= lastField.fieldName %>Operator ?? 'eq';
                 if (operator<%= lastField.fieldNameCapitalized %> === 'eq') {
                     return this.<%= entityInstance %>Service.<%= findByMethodName %>(<%- argsStr %>)
                         .pipe(
@@ -1027,7 +1027,7 @@ _%>
 _%>
              else if (<%- conditionStr %>) {
 <%_ if (supportsComparison) { _%>
-                const operator<%= lastField.fieldNameCapitalized %> = this.searchCriteria.<%= lastField.fieldName %>Operator || 'eq';
+                const operator<%= lastField.fieldNameCapitalized %> = this.searchCriteria.<%= lastField.fieldName %>Operator ?? 'eq';
                 if (operator<%= lastField.fieldNameCapitalized %> === 'lt') {
                     return this.<%= entityInstance %>Service.findAllBy<%= baseMethodName %>LessThanPageable(<%- argsStr %>, queryObject);
                 } else if (operator<%= lastField.fieldNameCapitalized %> === 'lte') {
