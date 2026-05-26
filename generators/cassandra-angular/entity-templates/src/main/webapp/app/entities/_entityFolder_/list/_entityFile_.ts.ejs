@@ -944,16 +944,16 @@ _%>
 
             if (field.fieldTypeTimedSaathratri || field.fieldTypeLocalDateSaathratri) {
                 conditions.push(`this.searchCriteria.${field.fieldName} !== null && this.searchCriteria.${field.fieldName} !== undefined`);
-                methodArgs.push(`this.searchCriteria.${field.fieldName}!`);
+                methodArgs.push(`this.searchCriteria.${field.fieldName}`);
             } else if (field.fieldType === 'Boolean') {
                 conditions.push(`this.searchCriteria.${field.fieldName} !== null`);
-                methodArgs.push(`this.searchCriteria.${field.fieldName}!`);
+                methodArgs.push(`this.searchCriteria.${field.fieldName}`);
             } else if (field.fieldTypeNumeric) {
                 conditions.push(`this.searchCriteria.${field.fieldName} !== null && this.searchCriteria.${field.fieldName} !== undefined`);
-                methodArgs.push(`this.searchCriteria.${field.fieldName}!`);
+                methodArgs.push(`this.searchCriteria.${field.fieldName}`);
             } else {
                 conditions.push(`this.searchCriteria.${field.fieldName} && this.searchCriteria.${field.fieldName}.trim() !== ''`);
-                methodArgs.push(`this.searchCriteria.${field.fieldName}!`);
+                methodArgs.push(`this.searchCriteria.${field.fieldName}`);
             }
         }
 

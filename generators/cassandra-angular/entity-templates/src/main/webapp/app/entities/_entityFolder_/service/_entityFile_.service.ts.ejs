@@ -321,7 +321,7 @@ _%>
     <%= methodName %>(<%- paramDeclarations.join(', ') %>, req?: any): Observable<EntityArrayResponseType> {
         let options = createRequestOption(req);
 <%_ for (const pName of paramNames) { _%>
-        options = options.set('<%= pName %>', String(<%= pName %>));
+        options = options.set('<%= pName %>', <%= pName %>);
 <%_ } _%>
         return this.http.get<<%= entityRestName %>[]>(`${this.resourceUrl}/<%= urlPath %>`, { params: options, observe: 'response' })
             <% if (requiresRestTypeConversion) { %>.pipe(map(res => this.convertResponseArrayFromServer(res)))<% } %>;
@@ -366,7 +366,7 @@ _%>
     <%= compMethodName %>(<%- baseParamDeclarations.join(', ') %>, req?: any): Observable<EntityArrayResponseType> {
         let options = createRequestOption(req);
 <%_ for (const pName of baseParamNames) { _%>
-        options = options.set('<%= pName %>', String(<%= pName %>));
+        options = options.set('<%= pName %>', <%= pName %>);
 <%_ } _%>
         return this.http.get<<%= entityRestName %>[]>(`${this.resourceUrl}/<%= compUrlPath %>`, { params: options, observe: 'response' })
             <% if (requiresRestTypeConversion) { %>.pipe(map(res => this.convertResponseArrayFromServer(res)))<% } %>;
@@ -401,7 +401,7 @@ _%>
     <%= findByMethodName %>(<%- allParamDeclarations.join(', ') %>): Observable<EntityResponseType> {
         let options = new HttpParams();
 <%_ for (const pName of allParamNames) { _%>
-        options = options.set('<%= pName %>', String(<%= pName %>));
+        options = options.set('<%= pName %>', <%= pName %>);
 <%_ } _%>
         return this.http.get<<%= entityRestName %>>(`${this.resourceUrl}/<%= findByUrlPath %>`, { params: options, observe: 'response' })
             <% if (requiresRestTypeConversion) { %>.pipe(map(res => this.convertResponseFromServer(res)))<% } %>;
