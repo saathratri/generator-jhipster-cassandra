@@ -401,10 +401,29 @@ provides Docker), so the composite-key CRUD contract is continuously regression-
 
 ### Frontend
 
+From the generated app directory (Node 22+):
+
 ```bash
 npm install
-npm test     # Angular client unit tests (Jest)
+npm test     # = pretest (eslint .) THEN ng test (Vitest)
 ```
+
+`npm test` runs **`eslint .` first** — if lint fails, the Vitest run never starts — then
+the Angular unit tests on **Vitest**. The lint gate fails only on **errors** (not
+warnings). To run just one half: `npx eslint .` (lint only) or `npx ng test` (Vitest only).
+
+Expected: ESLint reports **0 problems** and Vitest passes all **~407** specs — the
+generated services, list/detail/update components, routing resolvers and the
+Cassandra-specific `Set`/`Map`/date-time field components, for both single-value and
+composite primary keys.
+
+### Debugging test failures
+
+The golden rule for this blueprint is **fix the `.ejs` templates / `generator.js`, never
+the generated app** (it is overwritten on every regeneration). The full runbook for
+diagnosing and fixing failures at every layer — the generate-sample tight loop, backend
+composite-key REST CRUD bug patterns, and the Angular frontend (compile / runtime / lint)
+bug catalogue — is in **[`TESTING.md`](TESTING.md)**.
 
 ---
 
