@@ -68,8 +68,5 @@ exports[`SubGenerator cypress of cassandra JHipster blueprint > run > should suc
   "src/test/javascript/cypress/tsconfig.json": {
     "stateCleared": "modified",
   },
-  "template-file-cypress": {
-    "stateCleared": "modified",
-  },
 }
 `;

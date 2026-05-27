@@ -209,6 +209,45 @@ they had to be overridden. Categories, in the order they surface:
 - `no-unnecessary-type-assertion`/`-conversion`: stray `x!` after a guard, `String(x)` on a string.
 - `prefer-nullish-coalescing`: `||` → `??`.
 
+### 5.2 Generated E2E (Cypress)
+
+Generated apps ship the upstream JHipster Cypress suite (account / admin / per-entity specs) under
+`src/test/javascript/cypress/`. This blueprint does **not** fork those templates —
+`generators/cypress/generator.js` only **post-processes** the generated entity specs in
+`POST_WRITING_ENTITIES` (via `editFile`), fixing the one place upstream assumes a single-segment primary
+key:
+
+- **Composite-key DELETE cleanup URL.** Composite keys nest under `compositeId` and the REST endpoint takes
+  one path segment per key field. Upstream's `afterEach` cleanup deletes via `/${entity.<oneField>}` → it
+  hits `/.../undefined`. The patch rewrites it (and any required-related composite entity's cleanup) to
+  `/${entity.compositeId.k1}/${entity.compositeId.k2}/…`, matching the Angular service. Single-key
+  (non-composite) entities are left untouched.
+- **DELETE intercept glob.** Widened from `'…/<apiUrl>/*'` to one `*` per key field (`'…/<apiUrl>/*/*/*/*'`)
+  so `cy.wait('@deleteEntityRequest')` matches the multi-segment URL.
+
+The patch keys off `entity.primaryKeySaathratri` (set by
+`cassandra-spring-boot-utils.setSaathratriPrimaryKeyAttributesOnEntityAndFields`); the no-op
+`template-file-cypress` stub the scaffold used to emit was removed.
+
+**Run the generated Cypress tests** from a generated app dir (e.g. `cassandragateway` / `cassandrablog`).
+Cypress drives a **running** app, so the datastore + Keycloak must be up first (e.g. `docker compose` the
+app's `src/main/docker` services):
+
+```bash
+NODE_OPTIONS=--use-system-ca npm install        # once
+npm run e2e:devserver   # self-contained: starts backend + frontend, waits, runs cypress
+npm run e2e             # cypress run (headed) against an already-running app
+npm run cypress         # interactive runner (cypress open)
+```
+
+> **Microfrontend note:** each app (gateway + every `microfrontend` remote) generates its **own** entity
+> specs but points `baseUrl` at the **gateway** port, so they execute against the assembled shell. Bring
+> the whole federated stack (gateway + all remotes) up before running a remote's specs.
+
+**Verify after a regen:** in a composite-key spec (e.g. `saathratri-entity-2.cy.ts`) the `afterEach` URL
+lists every `compositeId.<field>` and the DELETE intercept has one `*` per key field; a single-key entity
+(e.g. `set-entity-by-organization.cy.ts`) stays flat and unchanged.
+
 ---
 
 ## 6. Cross-cutting debugging techniques
@@ -281,6 +320,10 @@ NODE_OPTIONS=--use-system-ca npm install                   # once
 NODE_OPTIONS=--use-system-ca npm test                      # eslint pretest + vitest (the real gate)
 NODE_OPTIONS=--use-system-ca npx ng test --coverage        # vitest only
 NODE_OPTIONS=--use-system-ca npx eslint . --fix            # discovery for lint fixes (then port to templates)
+
+# ----- generated E2E (Cypress; from a generated app — needs the full stack running) -----
+NODE_OPTIONS=--use-system-ca npm run e2e:devserver         # starts backend + frontend, waits, runs cypress
+NODE_OPTIONS=--use-system-ca npm run e2e                   # cypress run against an already-running app
 ```
 
 CI mirrors this: `.github/workflows/generator.yml` runs Layer 1; `.github/workflows/samples.yml`
