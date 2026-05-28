@@ -297,6 +297,26 @@ export default class extends BaseApplicationGenerator {
   get [BaseApplicationGenerator.POST_WRITING]() {
     return this.asPostWritingTaskGroup({
       async postWritingTemplateTask({ application }) {
+        // Replace the legacy Driver-3 Cluster API calls in the upstream-generated
+        // CassandraTestContainersSpringContextCustomizerFactory with Testcontainers'
+        // direct accessors. The Driver-3 metadata parse trips on CQL vector<float, N>
+        // columns ("Could not parse type name vector<float, 1536>") and the warning
+        // would mask real metadata problems in any future vector-dependent IT.
+        if (application.databaseTypeCassandra) {
+          const customizerPath = `src/test/java/${application.packageFolder}/config/CassandraTestContainersSpringContextCustomizerFactory.java`;
+          this.editFile(customizerPath, (content) => {
+            return content
+              .replace(
+                /cassandraBean\s*\.getCassandraContainer\(\)\s*\.getCluster\(\)[\s\S]*?\.getDatacenter\(\)/g,
+                "cassandraBean.getCassandraContainer().getLocalDatacenter()",
+              )
+              .replace(
+                /cassandraBean\s*\.getCassandraContainer\(\)\s*\.getCluster\(\)[\s\S]*?\.getClusterName\(\)/g,
+                '"Test Cluster"',
+              );
+          });
+        }
+
         if (!application.hasVectorFieldsSaathratri) return;
 
         // Add Spring AI BOM and OpenAI dependency to pom.xml

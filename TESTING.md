@@ -203,6 +203,13 @@ they had to be overridden. Categories, in the order they surface:
 - `prefer-inject`: constructor DI → `inject()` field initializers. Watch **member-ordering**: public
   fields must precede private inject fields, and a field initializer can't use an injected dep declared
   after it — so declare `form!: FormGroup;` (public) first and build it in a parameterless `constructor()`.
+- `member-ordering` on `navbar.ts` (gateway with microfrontends): we inject a
+  `sortNavbarItemsAlphabetically` helper into the navbar via `cassandra-angular/generator.js`'s `editFile`.
+  Insert it **AFTER** `loadMicrofrontendsEntities` (anchor on the class's trailing `\n}` and prepend the
+  helper there), not before — otherwise a private method sits between two public ones and ESLint fails the
+  `pretest` gate. TypeScript method lookup is `this`-relative so order doesn't matter at runtime; the lint
+  rule is the only thing that cares. The same fix lives in `sql-angular/generator.js` of the ai-postgresql
+  blueprint.
 - `prefer-control-flow`: `*ngIf`/`*ngFor` → `@if`/`@for` (wrap element in the block + closing `}`; `@for`
   needs a `track`).
 - `no-unnecessary-condition`: redundant `X !== undefined` where the type is `X | null`.
@@ -299,7 +306,59 @@ generated file to understand them 1:1. `entities/**` are **EJS** with composite/
 
 ---
 
-## 7. Quick reference
+## 7. Blueprint-applied workarounds for upstream issues
+
+Some bugs originate in **upstream `generator-jhipster`** templates that this blueprint doesn't
+fork (we don't want to copy entire files just to change two lines). For those, the blueprint
+patches the generated file in `POST_WRITING` via `editFile(...)`, parallel to how `pom.xml`
+mods are layered on for vector-field apps. Each patch is keyed to a stable string so it's
+idempotent (re-running on already-patched content is a no-op).
+
+Current list:
+
+### 7.1 `CassandraTestContainersSpringContextCustomizerFactory` — Driver 3 vector-type crash
+
+**Symptom (in a generated app's `mvnw verify`):**
+
+```
+ERROR ... com.datastax.driver.core.SchemaParser : Error parsing schema for table
+cassandratestkeyspace.tag: Cluster.getMetadata().getKeyspace("cassandratestkeyspace")
+.getTable("tag") will be missing or incomplete
+java.lang.IllegalArgumentException: Could not parse type name vector<float, 1536>
+```
+
+Tests still pass (Driver 4.x is the actual runtime driver), but the warning is noisy and
+will silently *mask* metadata problems for any future vector-dependent IT.
+
+**Root cause:** upstream JHipster's customizer factory pulls the local DC and cluster name via
+the legacy `CassandraContainer.getCluster().getMetadata()...` chain. `getCluster()` returns a
+Driver 3.x `Cluster`, which on first connect tries to parse the **full schema** of every
+keyspace. Driver 3.x predates the CQL `vector` type and trips on any `vector<float, N>` column
+(e.g. the `tag` table when the blueprint's vector-embedding support is in use).
+
+**Fix:** `generators/cassandra-spring-boot/generator.js` POST_WRITING task replaces the two
+`getCluster().getMetadata()` chains with Testcontainers' direct accessors:
+
+```js
+// in POST_WRITING, gated on application.databaseTypeCassandra
+editFile(`src/test/java/${application.packageFolder}/config/CassandraTestContainersSpringContextCustomizerFactory.java`, content =>
+  content
+    .replace(/cassandraBean\.getCassandraContainer\(\)\.getCluster\(\)[\s\S]*?\.getDatacenter\(\)/g,
+             "cassandraBean.getCassandraContainer().getLocalDatacenter()")
+    .replace(/cassandraBean\.getCassandraContainer\(\)\.getCluster\(\)[\s\S]*?\.getClusterName\(\)/g,
+             '"Test Cluster"')
+);
+```
+
+Driver 3.x stays on the test classpath (Testcontainers transitively depends on it) but is
+no longer invoked, so no schema parse happens.
+
+**If upstream JHipster ever fixes this:** the regex will silently no-op (no harm), and you can
+delete the editFile block on the next blueprint cleanup pass.
+
+---
+
+## 8. Quick reference
 
 ```bash
 # ----- in the generator repo ($REPO) -----

@@ -472,18 +472,22 @@ Infinite Scroll Styles
               }
             }
 
-            // For gateways with microfrontends: add sorting helper
+            // For gateways with microfrontends: add sorting helper. Insert AFTER
+            // loadMicrofrontendsEntities (immediately before the class's closing brace) so
+            // the public method stays before the private helper — @typescript-eslint/member-ordering
+            // requires public-before-private.
             if (isMicrofrontendGateway) {
               if (
                 !content.includes("sortNavbarItemsAlphabetically") &&
                 content.includes("loadMicrofrontendsEntities")
               ) {
                 content = content.replace(
-                  "  loadMicrofrontendsEntities(): void {",
-                  "  private sortNavbarItemsAlphabetically(items: NavbarItem[]): NavbarItem[] {\n" +
+                  /\n\}\s*$/,
+                  "\n\n" +
+                    "  private sortNavbarItemsAlphabetically(items: NavbarItem[]): NavbarItem[] {\n" +
                     "    return [...items].sort((a, b) => a.name.localeCompare(b.name));\n" +
-                    "  }\n\n" +
-                    "  loadMicrofrontendsEntities(): void {",
+                    "  }\n" +
+                    "}\n",
                 );
               }
               if (content.includes("sortNavbarItemsAlphabetically")) {
