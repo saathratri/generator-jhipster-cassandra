@@ -324,6 +324,18 @@ export default class extends BaseApplicationGenerator {
           ),
         );
 
+        // Disable Angular CLI analytics so `ng test` / `ng build` doesn't prompt the user
+        // ("Would you like to share pseudonymous usage data..."), which blocks CI and
+        // any non-interactive run. Injects `"analytics": false` at the top of the
+        // angular.json `"cli"` block. Idempotent — won't double-inject.
+        this.editFile("angular.json", (content) => {
+          if (content.includes('"analytics"')) return content;
+          return content.replace(
+            /"cli":\s*\{\n(\s*)"cache":/,
+            '"cli": {\n$1"analytics": false,\n$1"cache":',
+          );
+        });
+
         // Patch webpack.microfrontend.js to share @angular/core/rxjs-interop as singleton.
         // Without this, microfrontend signal change detection breaks (e.g., isLoading spinner
         // never stops) because the host and remote get different Angular core instances.
