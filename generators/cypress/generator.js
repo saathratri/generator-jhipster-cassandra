@@ -406,11 +406,18 @@ export default class extends BaseApplicationGenerator {
             // fields (e.g. Post.addedDateTime) this is REQUIRED so the form passes
             // validation; for optional UTC_DATETIME fields it's harmless. Detection:
             // `customAnnotation` array contains "UTC_DATETIME".
-            const dateTimeFields = (entity.fields ?? []).filter(
-              (f) =>
-                Array.isArray(f.options?.customAnnotation) &&
-                f.options.customAnnotation.includes("UTC_DATETIME"),
-            );
+            const dateTimeFields = (entity.fields ?? []).filter((f) => {
+              const ann = f.options?.customAnnotation;
+              if (!Array.isArray(ann) || !ann.includes("UTC_DATETIME"))
+                return false;
+              // Exclude MAP<DAYJS> / SET<DAYJS> — those wrap the datetime inside a
+              // widget component, so there's no top-level <app-date-time> to drive
+              // and no `<fieldName>-{date,hours,minutes,ampm}` scalar data-cy.
+              return (
+                ann[0] !== "CassandraType.Name.MAP" &&
+                ann[0] !== "CassandraType.Name.SET"
+              );
+            });
             for (const f of dateTimeFields) {
               const lineRe = new RegExp(
                 `^\\s*cy\\.get\\(\`\\[data-cy="${escapeRegExp(f.fieldName)}"\\]\`\\)[^;]+;\\s*\\n`,
@@ -514,7 +521,7 @@ export default class extends BaseApplicationGenerator {
                     `    it('should accept input on the ${fn} MAP<BOOLEAN> widget add row', () => {`,
                     `      cy.get(\`[data-cy="${fn}-add-key"]\`).type('sample-key');`,
                     `      cy.get(\`[data-cy="${fn}-add-key"]\`).should('have.value', 'sample-key');`,
-                    `      cy.get(\`[data-cy="${fn}-add-toggle"]\`).click();`,
+                    `      cy.get(\`[data-cy="${fn}-add-toggle"]\`).click({ force: true });`,
                     `      cy.get(\`[data-cy="${fn}-add-button"]\`).should('not.be.disabled');`,
                     `    });`,
                   ].join("\n"),
@@ -609,7 +616,7 @@ export default class extends BaseApplicationGenerator {
                   if (ann[1] === "CassandraType.Name.BOOLEAN") {
                     return [
                       `      cy.get(\`[data-cy="${fn}-add-key"]\`).type('rt-${fn}-key');`,
-                      `      cy.get(\`[data-cy="${fn}-add-toggle"]\`).click();`,
+                      `      cy.get(\`[data-cy="${fn}-add-toggle"]\`).click({ force: true });`,
                       `      cy.get(\`[data-cy="${fn}-add-button"]\`).click();`,
                     ].join("\n");
                   }
@@ -619,7 +626,7 @@ export default class extends BaseApplicationGenerator {
                     // hooks become `<fn>-add-datetime-{date,hours,minutes,ampm}`.
                     return [
                       `      cy.get(\`[data-cy="${fn}-add-key"]\`).type('rt-${fn}-key');`,
-                      `      cy.get(\`[data-cy="${fn}-add-datetime-date"]\`).type('1/15/2030');`,
+                      `      cy.get(\`[data-cy="${fn}-add-datetime-date"]\`).type('1/15/2030', { force: true });`,
                       `      cy.get(\`[data-cy="${fn}-add-datetime-date"]\`).blur();`,
                       `      cy.get(\`[data-cy="${fn}-add-datetime-hours"]\`).clear();`,
                       `      cy.get(\`[data-cy="${fn}-add-datetime-hours"]\`).type('10');`,
@@ -731,11 +738,11 @@ export default class extends BaseApplicationGenerator {
               } else if (ann[1] === "CassandraType.Name.BOOLEAN") {
                 lines.push(
                   `      cy.get(\`[data-cy="${fn}-add-key"]\`).type('edit-${safe}-key');`,
-                  `      cy.get(\`[data-cy="${fn}-add-toggle"]\`).click();`,
+                  `      cy.get(\`[data-cy="${fn}-add-toggle"]\`).click({ force: true });`,
                   `      cy.get(\`[data-cy="${fn}-add-button"]\`).click();`,
                   `      cy.get(\`[data-cy="${fn}-row-0-edit"]\`).click();`,
                   `      cy.get('mat-dialog-container').should('be.visible');`,
-                  `      cy.get('[data-cy="dialog-edit-toggle"]').click();`,
+                  `      cy.get('[data-cy="dialog-edit-toggle"]').click({ force: true });`,
                   `      cy.get('[data-cy="dialog-save-button"]').click();`,
                   `      cy.get('mat-dialog-container').should('not.exist');`,
                 );
@@ -785,7 +792,7 @@ export default class extends BaseApplicationGenerator {
               } else if (ann[1] === "CassandraType.Name.BOOLEAN") {
                 lines.push(
                   `      cy.get(\`[data-cy="${fn}-add-key"]\`).type('del-${safe}-key');`,
-                  `      cy.get(\`[data-cy="${fn}-add-toggle"]\`).click();`,
+                  `      cy.get(\`[data-cy="${fn}-add-toggle"]\`).click({ force: true });`,
                   `      cy.get(\`[data-cy="${fn}-add-button"]\`).click();`,
                   `      cy.get(\`[data-cy="${fn}-row-0-edit"]\`).should('exist');`,
                   `      cy.get(\`[data-cy="${fn}-row-0-delete"]\`).click();`,
@@ -797,7 +804,7 @@ export default class extends BaseApplicationGenerator {
                 const delKey = `del-${safe}-key`;
                 lines.push(
                   `      cy.get(\`[data-cy="${fn}-add-key"]\`).type('${delKey}');`,
-                  `      cy.get(\`[data-cy="${fn}-add-datetime-date"]\`).type('1/15/2030');`,
+                  `      cy.get(\`[data-cy="${fn}-add-datetime-date"]\`).type('1/15/2030', { force: true });`,
                   `      cy.get(\`[data-cy="${fn}-add-datetime-date"]\`).blur();`,
                   `      cy.get(\`[data-cy="${fn}-add-datetime-hours"]\`).clear();`,
                   `      cy.get(\`[data-cy="${fn}-add-datetime-hours"]\`).type('10');`,
