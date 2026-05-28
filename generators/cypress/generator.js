@@ -372,16 +372,22 @@ export default class extends BaseApplicationGenerator {
               "cy.wait('@entitiesRequestInternal', { timeout: 30000 })",
             );
 
-            // (d) Widen the `entitiesRequest` / `entitiesRequestInternal` intercept URL
-            // pattern. Upstream emits `'/services/<svc>/api/<entity>+(?*|)'` (matches the
-            // base path optionally followed by `?...`). The cassandra pagination overhaul
-            // moved the list GET to `/api/<entity>/slice?size=20`, so the upstream pattern
-            // never matches and the cy.wait times out even though the GET returned 200.
-            // Replace `+(?*|)` with `**` (minimatch globstar) so the pattern matches
-            // `/<entity>`, `/<entity>?...`, `/<entity>/slice`, and `/<entity>/slice?...`.
+            // (d) Widen the `entitiesRequest` / `entitiesRequestInternal` intercept URL.
+            // Upstream emits `'/services/<svc>/api/<entity>+(?*|)'` (matches the base path
+            // optionally followed by `?...`). The cassandra pagination overhaul moved the
+            // list GET to `/api/<entity>/slice?size=20` — the `/slice` path segment
+            // breaks the upstream glob (and also `**` when attached to a non-`/` segment
+            // like `<entity>**`, since minimatch's `**` only crosses path separators when
+            // it's a standalone segment). Convert the string glob to a regex literal
+            // anchored with `\b` (word boundary) so it matches `/<entity>`, `/<entity>?...`,
+            // `/<entity>/slice`, and `/<entity>/slice?...` uniformly. Forward slashes are
+            // escaped because they're the regex delimiter in the emitted source.
             content = content.replace(
-              /('\/services\/[^']+?)\+\(\?\*\|\)'/g,
-              "$1**'",
+              /'((?:\/services\/)?[^']*)(?:\+\(\?\*\|\)|\*\*)'/g,
+              (_, urlPath) => {
+                const escaped = urlPath.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&");
+                return `/^${escaped}\\b/`;
+              },
             );
 
             return content;
