@@ -195,23 +195,28 @@ export default class extends BaseApplicationGenerator {
           );
         });
 
-        // Bump the dropdown-item find timeout in clickOnEntityMenuItem.
-        // The per-microfrontend dropdowns are populated async via module federation —
-        // `loadMicrofrontendsEntities()` fires after login as an effect, fetches the
-        // remoteEntry.js, and only THEN does `cassandrablogEntityNavbarItems()` populate
-        // and `*ngFor` render the .dropdown-item links. In a real browser there's enough
-        // human-time elapsed for that to finish; in Cypress the click fires immediately
-        // and the default 4-second `.find` retry isn't enough on cold load, so every
-        // entity spec's first test fails with
-        // "Expected to find element: `.dropdown-item[href=\"/.../...\"]`, but never found it."
-        // Extend the timeout to 30s.
+        // Patch clickOnEntityMenuItem in support/navbar.ts. Two issues to fix:
+        //
+        // 1. Selector chain: upstream chains `.find(entityItemSelector).find('.dropdown-item[href=...]')`
+        //    expecting the items to be CHILDREN of the data-cy="entity" element. The
+        //    cassandra-angular blueprint's per-microfrontend navbar puts data-cy on the
+        //    `<a ngbDropdownToggle>` element while the items live in a SIBLING
+        //    `<ul ngbDropdownMenu>`. So `.find(entityItemSelector).find('.dropdown-item')`
+        //    finds nothing — the items are outside the toggle's subtree. Drop the
+        //    intermediate `.find(entityItemSelector)` and search from `navbarSelector`
+        //    so the sibling `<ul>` is reachable.
+        //
+        // 2. Timeout: the per-microfrontend dropdowns populate async via module federation
+        //    (loadMicrofrontendsEntities → loadNavbarItems → remoteEntry.js fetch → signal
+        //    set → `*ngFor` render). Cypress's default 4s retry isn't enough on cold load.
+        //    Extend to 30s.
         const navbarPath = `${cypressDir}support/navbar.ts`;
         if (this.existsDestination(navbarPath)) {
           this.editFile(navbarPath, (content) => {
-            if (content.includes("/* SAATHRATRI mf timeout */")) return content;
+            if (content.includes("/* SAATHRATRI mf nav */")) return content;
             return content.replace(
-              "return cy.get(navbarSelector).find(entityItemSelector).find(`.dropdown-item[href=\"/${entityName}\"]`).click();",
-              "return cy.get(navbarSelector).find(entityItemSelector).find(`.dropdown-item[href=\"/${entityName}\"]`, /* SAATHRATRI mf timeout */ { timeout: 30000 }).click();",
+              /cy\s*\.get\(navbarSelector\)\s*\.find\(entityItemSelector\)\s*\.find\(`\.dropdown-item\[href="\/\$\{entityName\}"\]`(?:,\s*\/\*\s*SAATHRATRI mf timeout\s*\*\/\s*\{\s*timeout:\s*\d+\s*\})?\)\s*\.click\(\)/,
+              'cy\n    .get(navbarSelector)\n    .find(`.dropdown-item[href="/${entityName}"]`, /* SAATHRATRI mf nav */ { timeout: 30000 })\n    .click()',
             );
           });
         }
