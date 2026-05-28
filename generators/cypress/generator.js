@@ -441,7 +441,12 @@ export default class extends BaseApplicationGenerator {
                   const generateLines = dateTimeFields
                     .map(
                       (f) =>
-                        `${indent}cy.get(\`app-date-time[fieldName="${f.fieldName}"]\`).parent().contains('button', 'Generate').click();`,
+                        // The <app-date-time> component now hosts its own Generate
+                        // button (data-cy="<field>-generate") that fills date / hours
+                        // / minutes / amPm with the current timestamp via the
+                        // component's generateDateTime() method. Click it directly
+                        // — no need to walk the DOM up to the parent.
+                        `${indent}cy.get(\`[data-cy="${f.fieldName}-generate"]\`).click({ force: true });`,
                     )
                     .join("\n");
                   const saveClickIdx = blockStart + block.indexOf(saveMatch[0]);
@@ -467,15 +472,20 @@ export default class extends BaseApplicationGenerator {
                     const fn = f.fieldName;
                     return [
                       `    it('should accept input on the ${fn} date-time widget sub-inputs', () => {`,
-                      `      cy.get(\`[data-cy="${fn}-hours"]\`).clear();`,
-                      `      cy.get(\`[data-cy="${fn}-hours"]\`).type('10');`,
+                      // mat-form-field's floating <mat-label> covers the input until
+                      // first focus, and the Material datepicker hides the date
+                      // <input>'s actionability behind its toggle. Use { force: true }
+                      // on every sub-input interaction so Cypress doesn't fail on
+                      // actionability.
+                      `      cy.get(\`[data-cy="${fn}-hours"]\`).clear({ force: true });`,
+                      `      cy.get(\`[data-cy="${fn}-hours"]\`).type('10', { force: true });`,
                       `      cy.get(\`[data-cy="${fn}-hours"]\`).should('have.value', '10');`,
                       ``,
-                      `      cy.get(\`[data-cy="${fn}-minutes"]\`).clear();`,
-                      `      cy.get(\`[data-cy="${fn}-minutes"]\`).type('30');`,
+                      `      cy.get(\`[data-cy="${fn}-minutes"]\`).clear({ force: true });`,
+                      `      cy.get(\`[data-cy="${fn}-minutes"]\`).type('30', { force: true });`,
                       `      cy.get(\`[data-cy="${fn}-minutes"]\`).should('have.value', '30');`,
                       ``,
-                      `      cy.get(\`[data-cy="${fn}-ampm"]\`).click();`,
+                      `      cy.get(\`[data-cy="${fn}-ampm"]\`).click({ force: true });`,
                       `      cy.get('mat-option').contains('AM').click();`,
                       `      cy.get(\`[data-cy="${fn}-ampm"]\`).should('contain', 'AM');`,
                       `    });`,
@@ -633,19 +643,14 @@ export default class extends BaseApplicationGenerator {
                     ].join("\n");
                   }
                   if (ann[1] === "CassandraType.Name.BIGINT") {
-                    // MAP<DAYJS> — interact with nested <app-date-time> sub-inputs.
-                    // The fieldName binding adds suffix `-add-datetime` so the
-                    // hooks become `<fn>-add-datetime-{date,hours,minutes,ampm}`.
+                    // MAP<DAYJS> — type a key and click the nested <app-date-time>'s
+                    // own Generate button (data-cy "<fn>-add-datetime-generate") so
+                    // date / hours / minutes / amPm are populated atomically by the
+                    // component, bypassing the mat-form-field actionability issues on
+                    // the individual sub-inputs.
                     return [
                       `      cy.get(\`[data-cy="${fn}-add-key"]\`).type('rt-${fn}-key');`,
-                      `      cy.get(\`[data-cy="${fn}-add-datetime-date"]\`).type('1/15/2030', { force: true });`,
-                      `      cy.get(\`[data-cy="${fn}-add-datetime-date"]\`).blur();`,
-                      `      cy.get(\`[data-cy="${fn}-add-datetime-hours"]\`).clear();`,
-                      `      cy.get(\`[data-cy="${fn}-add-datetime-hours"]\`).type('10');`,
-                      `      cy.get(\`[data-cy="${fn}-add-datetime-minutes"]\`).clear();`,
-                      `      cy.get(\`[data-cy="${fn}-add-datetime-minutes"]\`).type('30');`,
-                      `      cy.get(\`[data-cy="${fn}-add-datetime-ampm"]\`).click();`,
-                      `      cy.get('mat-option').contains('AM').click();`,
+                      `      cy.get(\`[data-cy="${fn}-add-datetime-generate"]\`).click({ force: true });`,
                       `      cy.get(\`[data-cy="${fn}-add-button"]\`).click();`,
                     ].join("\n");
                   }
@@ -813,19 +818,13 @@ export default class extends BaseApplicationGenerator {
                   `      cy.get(\`[data-cy="${fn}-row-0-edit"]\`).should('not.exist');`,
                 );
               } else if (ann[1] === "CassandraType.Name.BIGINT") {
-                // MAP<DAYJS> — populate Add row via sub-input typing, then
-                // delete by key.
+                // MAP<DAYJS> — type the key, click the nested <app-date-time>'s
+                // own Generate button to fill the datetime atomically, then add
+                // the row and verify the delete cycle.
                 const delKey = `del-${safe}-key`;
                 lines.push(
                   `      cy.get(\`[data-cy="${fn}-add-key"]\`).type('${delKey}');`,
-                  `      cy.get(\`[data-cy="${fn}-add-datetime-date"]\`).type('1/15/2030', { force: true });`,
-                  `      cy.get(\`[data-cy="${fn}-add-datetime-date"]\`).blur();`,
-                  `      cy.get(\`[data-cy="${fn}-add-datetime-hours"]\`).clear();`,
-                  `      cy.get(\`[data-cy="${fn}-add-datetime-hours"]\`).type('10');`,
-                  `      cy.get(\`[data-cy="${fn}-add-datetime-minutes"]\`).clear();`,
-                  `      cy.get(\`[data-cy="${fn}-add-datetime-minutes"]\`).type('30');`,
-                  `      cy.get(\`[data-cy="${fn}-add-datetime-ampm"]\`).click();`,
-                  `      cy.get('mat-option').contains('AM').click();`,
+                  `      cy.get(\`[data-cy="${fn}-add-datetime-generate"]\`).click({ force: true });`,
                   `      cy.get(\`[data-cy="${fn}-add-button"]\`).click();`,
                   `      cy.get(\`[data-cy="${fn}-row-${delKey}-edit"]\`).should('exist');`,
                   `      cy.get(\`[data-cy="${fn}-row-${delKey}-delete"]\`).click();`,

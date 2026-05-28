@@ -1,8 +1,20 @@
-import { Component, EventEmitter, Input, OnInit, Output, forwardRef } from '@angular/core';
-import { ControlValueAccessor, FormControl, FormGroup, NG_VALUE_ACCESSOR, ReactiveFormsModule, Validators, ValidatorFn, AbstractControl, ValidationErrors } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { MaterialModule } from '../../shared/material.module';
+import { Component, EventEmitter, Input, OnInit, Output, forwardRef } from '@angular/core';
+import {
+  AbstractControl,
+  ControlValueAccessor,
+  FormControl,
+  FormGroup,
+  NG_VALUE_ACCESSOR,
+  ReactiveFormsModule,
+  ValidationErrors,
+  ValidatorFn,
+  Validators,
+} from '@angular/forms';
+
 import dayjs from 'dayjs/esm';
+
+import { MaterialModule } from '../../shared/material.module';
 
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
@@ -20,7 +32,6 @@ import dayjs from 'dayjs/esm';
   ],
 })
 export class DateTimeComponent implements OnInit, ControlValueAccessor {
-
   editForm!: FormGroup;
 
   private lastValidValue: number | null = null; // Store last valid timestamp
@@ -199,6 +210,24 @@ export class DateTimeComponent implements OnInit, ControlValueAccessor {
     const input = event.target as HTMLInputElement;
     const paddedValue = this.padZero(parseInt(input.value, 10));
     this.editForm.get(field)?.setValue(paddedValue, { emitEvent: true });
+  }
+
+  // eslint-disable-next-line @typescript-eslint/member-ordering
+  generateDateTime(): void {
+    const now = new Date();
+    const hours12 = now.getHours() % 12 || 12;
+    this.editForm.setValue(
+      {
+        date: dayjs(now),
+        hours: this.padZero(hours12),
+        minutes: this.padZero(now.getMinutes()),
+        amPm: now.getHours() >= 12 ? 'PM' : 'AM',
+        seconds: 0,
+        milliseconds: 0,
+      },
+      { emitEvent: true },
+    );
+    this.editForm.markAsDirty();
   }
 
   // eslint-disable-next-line @typescript-eslint/member-ordering
