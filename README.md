@@ -285,6 +285,42 @@ The detail/view page renders all MAP fields with their key-value pairs.
 
 ---
 
+### E2E Testing with Cypress
+
+Every custom Angular widget the blueprint ships exposes `data-cy` hooks so the
+generated Cypress specs can drive them without DOM gymnastics:
+
+| Widget | Add-row hooks | Per-row hooks | Dialog hooks |
+|---|---|---|---|
+| `set-string-component` | `<field>-add-value`, `<field>-add-button` | `<field>-row-<i>-edit`, `<field>-row-<i>-delete` | `dialog-edit-value`, `dialog-save-button` |
+| `map-string-component` | `<field>-add-key`, `-add-value`, `-add-button` | `<field>-row-<key>-edit`, `-delete` | `dialog-edit-value`, `dialog-save-button` |
+| `map-number-component` | same as map-string | same as map-string | same |
+| `map-boolean-component` | `<field>-add-key`, `-add-toggle`, `-add-button` | `<field>-row-<i>-edit`, `-delete` | `dialog-edit-toggle`, `dialog-save-button` |
+| `map-dayjs-component` | `<field>-add-key`, `-add-datetime-{date,hours,minutes,ampm}`, `-add-button` | `<field>-row-<key>-edit`, `-delete` | `dialog-save-button` |
+| `app-date-time` | `<field>-{date,hours,minutes,ampm}` | n/a | n/a |
+
+The cypress generator (`generators/cypress/generator.js`) post-processes the
+generated entity specs in `POST_WRITING_ENTITIES` and emits:
+
+- **Smoke tests** that drive each widget's Add-row inputs.
+- **Round-trip tests** that fill every MAP/SET widget (incl. MAP<DAYJS> via
+  the nested `<app-date-time>` sub-inputs), Save, and assert the POST response
+  body contains the keys/values.
+- **Edit-dialog tests** that add a row, open its edit dialog, modify the value
+  (or toggle), Save the dialog, and assert it closes.
+- **Delete-row tests** that add a row and assert its per-row hook disappears
+  after delete.
+
+For UTC_DATETIME scalar fields the patch swaps the upstream `.type(…)` form-fill
+for a click on the entity-update's "Generate" button (which fills date/time
+sub-inputs via Angular's reactive form). For MAP/SET scalar fills it strips the
+upstream `cy.get('[data-cy="<field>"]')` lines that target non-existent inputs.
+
+See [TESTING.md §5.2](TESTING.md#52-generated-e2e-cypress) for the full pass-by-pass
+catalogue (a → c.11 → d) and run instructions.
+
+---
+
 ### AI Search Setup
 
 To enable AI-powered semantic search, set your OpenAI API key:

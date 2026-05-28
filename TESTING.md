@@ -221,20 +221,36 @@ they had to be overridden. Categories, in the order they surface:
 Generated apps ship the upstream JHipster Cypress suite (account / admin / per-entity specs) under
 `src/test/javascript/cypress/`. This blueprint does **not** fork those templates —
 `generators/cypress/generator.js` only **post-processes** the generated entity specs in
-`POST_WRITING_ENTITIES` (via `editFile`), fixing the one place upstream assumes a single-segment primary
-key:
+`POST_WRITING_ENTITIES` (via `editFile`). Passes are labelled (a) – (d); each addresses a real
+failure mode observed against the example apps.
 
-- **Composite-key DELETE cleanup URL.** Composite keys nest under `compositeId` and the REST endpoint takes
-  one path segment per key field. Upstream's `afterEach` cleanup deletes via `/${entity.<oneField>}` → it
-  hits `/.../undefined`. The patch rewrites it (and any required-related composite entity's cleanup) to
-  `/${entity.compositeId.k1}/${entity.compositeId.k2}/…`, matching the Angular service. Single-key
-  (non-composite) entities are left untouched.
-- **DELETE intercept glob.** Widened from `'…/<apiUrl>/*'` to one `*` per key field (`'…/<apiUrl>/*/*/*/*'`)
-  so `cy.wait('@deleteEntityRequest')` matches the multi-segment URL.
+| Pass | Purpose |
+|---|---|
+| (a) | Inject `compositeId: {…}` into the sample body so composite-key POSTs return 201 instead of 500 (`getCompositeId() is null`). |
+| (b) | Inject the single `id` UUID field into single-key sample bodies (avoids 400 `error.idinvalid`). |
+| (c) | Inject `cy.get(\`[data-cy="<id>"]\`).type(…)` into `should create an instance of X` for UUID `@Id` fields so the Save button isn't disabled. |
+| (c.5) | **Strip** upstream `cy.get(\`[data-cy="<mapOrSetField>"]\`)…` form-fills for MAP/SET columns — they target a non-existent input. MAP/SET aren't required, so removing them leaves the form valid. |
+| (c.6) | **Replace** upstream form-fill for UTC_DATETIME with a click on the entity-update's "Generate" button (`cy.get(\`app-date-time[fieldName="X"]\`).parent().contains('button','Generate').click()`). For composite-key UTC_DATETIME (e.g. `Post.addedDateTime`) this is required for form validity. |
+| (c.7) | Emit `should accept input on the <field> date-time widget sub-inputs` smoke test — covers the data-cy hooks on `<app-date-time>` (`-date`, `-hours`, `-minutes`, `-ampm`). Complements (c.6): if (c.6) fails, the Generate button regressed; if this fails, the data-cy hooks regressed. |
+| (c.8) | Per-widget smoke tests for SET<TEXT> / MAP<TEXT, *> / MAP<TEXT, BOOLEAN> / MAP<TEXT, BIGINT> Add-row hooks (`<field>-add-{key,value,toggle,button}`). |
+| (c.9) | **Round-trip test** — copy the scalar form fills from `should create an instance of X`, drive every MAP/SET widget via its Add-row hooks, click Save, then `expect(response.body.<field>).to.…` for each widget. Covers the full Angular → DTO → backend → DTO → JSON pipeline. **MAP<DAYJS> is included** via the nested `<app-date-time>` sub-inputs (the Add row binds `[fieldName]="fieldName + '-add-datetime'"` so date/hours/minutes/ampm are addressable). |
+| (c.10) | **Per-widget Edit-dialog test** — add a row, click its `<field>-row-<key\|i>-edit` hook, assert `mat-dialog-container` is visible, modify the dialog's `dialog-edit-value` (or `dialog-edit-toggle`), click `dialog-save-button`, assert the dialog dismissed. MAP<DAYJS> dialog is skipped (no scalar value input). |
+| (c.11) | **Per-widget Delete-row test** — add a row, click `<field>-row-<key\|i>-delete`, assert the row's edit hook no longer exists. Index-based for SET / MAP<BOOLEAN>, key-based for MAP<TEXT> / MAP<DECIMAL> / MAP<DAYJS>. |
+| (d) | **Composite-key DELETE cleanup URL.** Composite keys nest under `compositeId` and the REST endpoint takes one path segment per key field. Upstream's `afterEach` cleanup deletes via `/${entity.<oneField>}` → it hits `/.../undefined`. The patch rewrites it to `/${entity.compositeId.k1}/${entity.compositeId.k2}/…`. Single-key (non-composite) entities are left untouched. |
+| (d) | **DELETE intercept glob.** Widened from `'…/<apiUrl>/*'` to one `*` per key field, and the `entitiesRequest` / `entitiesRequestInternal` intercepts are converted from a minimatch glob to a regex literal (`/^\/services\/<svc>\/api\/<entity>\b/`) so the pagination overhaul's `/slice` segment doesn't break the wildcard. |
 
-The patch keys off `entity.primaryKeySaathratri` (set by
+The composite-key patches key off `entity.primaryKeySaathratri` (set by
 `cassandra-spring-boot-utils.setSaathratriPrimaryKeyAttributesOnEntityAndFields`); the no-op
 `template-file-cypress` stub the scaffold used to emit was removed.
+
+#### Lint-clean codegen
+
+ESLint runs as part of `npm test` in generated apps; the cypress generator emits code that satisfies:
+
+- `@typescript-eslint/no-inferrable-types`: the widget templates declare `@Input() fieldName = '';`
+  (the `: string` annotation is redundant and was dropped).
+- `cypress/unsafe-to-chain-command`: the generator splits `.clear().type(X)` and `.type(X).blur()`
+  into two statements (a `cy.get(…).clear()` and a `cy.get(…).type(X)`).
 
 **Run the generated Cypress tests** from a generated app dir (e.g. `cassandragateway` / `cassandrablog`).
 Cypress drives a **running** app, so the datastore + Keycloak must be up first (e.g. `docker compose` the
