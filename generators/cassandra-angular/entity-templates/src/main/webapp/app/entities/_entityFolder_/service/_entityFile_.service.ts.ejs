@@ -537,9 +537,9 @@ _%>
 <%_ if (hasVectorFieldsForAngularService) { _%>
 
     aiSearch(query: string, limit: number, fields?: string[]): Observable<I<%= entityAngularName %>[]> {
-        let params: { [key: string]: string | string[] } = { query, limit: String(limit) };
+        const params: Record<string, string | string[]> = { query, limit: String(limit) };
         if (fields && fields.length > 0) {
-            params['fields'] = fields.join(',');
+            params.fields = fields.join(',');
         }
         return this.http.get<<%- entityRestName %>[]>(`${this.resourceUrl}/ai-search`, {
             params,
