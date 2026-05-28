@@ -576,18 +576,12 @@ export default class extends BaseApplicationGenerator {
             // bugs in the widget → form `(dataChange)` → DTO → backend → DTO →
             // JSON pipeline that smoke tests can't.
             //
-            // MAP<DAYJS> is excluded — interacting with the nested <app-date-time>
-            // inside the Add row to populate a value requires either typing into
-            // sub-inputs with form-validation timing or clicking a Generate
-            // button that doesn't exist on the nested date-time. Deferred to a
-            // follow-up iteration.
-            const roundTripWidgets = mapSetFields.filter((f) => {
-              const ann = f.options?.customAnnotation || [];
-              const isMapDayjs =
-                ann[0] === "CassandraType.Name.MAP" &&
-                ann[1] === "CassandraType.Name.BIGINT";
-              return !isMapDayjs;
-            });
+            // MAP<DAYJS> (MAP<TEXT, BIGINT>) is now included — the nested
+            // <app-date-time> in the Add row binds `[fieldName]="fieldName +
+            // '-add-datetime'"`, so its date/hours/minutes/ampm sub-inputs are
+            // addressable via data-cy. We type into each sub-input directly
+            // (no Generate button is rendered inside the Add row).
+            const roundTripWidgets = mapSetFields;
             if (roundTripWidgets.length > 0) {
               const createTestStart = `it('should create an instance of ${entity.entityAngularName}', () => {`;
               const createIdx = content.indexOf(createTestStart);
@@ -617,6 +611,20 @@ export default class extends BaseApplicationGenerator {
                       `      cy.get(\`[data-cy="${fn}-add-button"]\`).click();`,
                     ].join("\n");
                   }
+                  if (ann[1] === "CassandraType.Name.BIGINT") {
+                    // MAP<DAYJS> — interact with nested <app-date-time> sub-inputs.
+                    // The fieldName binding adds suffix `-add-datetime` so the
+                    // hooks become `<fn>-add-datetime-{date,hours,minutes,ampm}`.
+                    return [
+                      `      cy.get(\`[data-cy="${fn}-add-key"]\`).type('rt-${fn}-key');`,
+                      `      cy.get(\`[data-cy="${fn}-add-datetime-date"]\`).type('1/15/2030').blur();`,
+                      `      cy.get(\`[data-cy="${fn}-add-datetime-hours"]\`).clear().type('10');`,
+                      `      cy.get(\`[data-cy="${fn}-add-datetime-minutes"]\`).clear().type('30');`,
+                      `      cy.get(\`[data-cy="${fn}-add-datetime-ampm"]\`).click();`,
+                      `      cy.get('mat-option').contains('AM').click();`,
+                      `      cy.get(\`[data-cy="${fn}-add-button"]\`).click();`,
+                    ].join("\n");
+                  }
                   // MAP<TEXT> and MAP<DECIMAL>
                   const value =
                     ann[1] === "CassandraType.Name.DECIMAL"
@@ -641,6 +649,11 @@ export default class extends BaseApplicationGenerator {
                     // backend may return string vs number depending on
                     // serialization; just check key exists.
                     return `        expect(response.body.${fn}, 'MAP<DECIMAL> round-trip: ${fn}').to.have.property('rt-${fn}-key');`;
+                  }
+                  if (ann[1] === "CassandraType.Name.BIGINT") {
+                    // MAP<DAYJS>: backend serializes the dayjs value as ISO
+                    // string or epoch ms; key presence is the round-trip signal.
+                    return `        expect(response.body.${fn}, 'MAP<DAYJS> round-trip: ${fn}').to.have.property('rt-${fn}-key');`;
                   }
                   return `        expect(response.body.${fn}, 'MAP<TEXT> round-trip: ${fn}').to.have.property('rt-${fn}-key', 'rt-${fn}-value');`;
                 };
@@ -674,6 +687,169 @@ export default class extends BaseApplicationGenerator {
                     "\n\n" +
                     roundTripTest +
                     content.slice(realInsertAt);
+                }
+              }
+            }
+
+            // (c.10) Per-widget Edit-dialog tests. For each MAP/SET widget:
+            // type into the Add row → click Add → click the new row's Edit
+            // button (keyed by typed key or index) → assert dialog visible →
+            // modify the dialog's value (or toggle) → click Save → assert
+            // dialog dismissed. Validates the dialog open/save/close lifecycle
+            // and the row-keyed data-cy hooks. MAP<DAYJS> is skipped because
+            // its dialog wraps an <app-date-time> with no scalar value input.
+            const editableWidgets = mapSetFields.filter((f) => {
+              const ann = f.options?.customAnnotation || [];
+              return !(
+                ann[0] === "CassandraType.Name.MAP" &&
+                ann[1] === "CassandraType.Name.BIGINT"
+              );
+            });
+            const editTests = editableWidgets.map((f) => {
+              const fn = f.fieldName;
+              const ann = f.options?.customAnnotation || [];
+              const safe = fn.replace(/[^a-zA-Z0-9]/g, "");
+              const lines = [
+                `    it('should edit a row in the ${fn} widget via dialog', () => {`,
+              ];
+              if (ann[0] === "CassandraType.Name.SET") {
+                lines.push(
+                  `      cy.get(\`[data-cy="${fn}-add-value"]\`).type('edit-orig');`,
+                  `      cy.get(\`[data-cy="${fn}-add-button"]\`).click();`,
+                  `      cy.get(\`[data-cy="${fn}-row-0-edit"]\`).click();`,
+                  `      cy.get('mat-dialog-container').should('be.visible');`,
+                  `      cy.get('[data-cy="dialog-edit-value"]').clear().type('edit-new');`,
+                  `      cy.get('[data-cy="dialog-save-button"]').click();`,
+                  `      cy.get('mat-dialog-container').should('not.exist');`,
+                );
+              } else if (ann[1] === "CassandraType.Name.BOOLEAN") {
+                lines.push(
+                  `      cy.get(\`[data-cy="${fn}-add-key"]\`).type('edit-${safe}-key');`,
+                  `      cy.get(\`[data-cy="${fn}-add-toggle"]\`).click();`,
+                  `      cy.get(\`[data-cy="${fn}-add-button"]\`).click();`,
+                  `      cy.get(\`[data-cy="${fn}-row-0-edit"]\`).click();`,
+                  `      cy.get('mat-dialog-container').should('be.visible');`,
+                  `      cy.get('[data-cy="dialog-edit-toggle"]').click();`,
+                  `      cy.get('[data-cy="dialog-save-button"]').click();`,
+                  `      cy.get('mat-dialog-container').should('not.exist');`,
+                );
+              } else {
+                // MAP<TEXT> / MAP<DECIMAL>
+                const editKey = `edit-${safe}-key`;
+                const orig =
+                  ann[1] === "CassandraType.Name.DECIMAL" ? "77.77" : "edit-orig";
+                const nw =
+                  ann[1] === "CassandraType.Name.DECIMAL" ? "88.88" : "edit-new";
+                lines.push(
+                  `      cy.get(\`[data-cy="${fn}-add-key"]\`).type('${editKey}');`,
+                  `      cy.get(\`[data-cy="${fn}-add-value"]\`).type('${orig}');`,
+                  `      cy.get(\`[data-cy="${fn}-add-button"]\`).click();`,
+                  `      cy.get(\`[data-cy="${fn}-row-${editKey}-edit"]\`).click();`,
+                  `      cy.get('mat-dialog-container').should('be.visible');`,
+                  `      cy.get('[data-cy="dialog-edit-value"]').clear().type('${nw}');`,
+                  `      cy.get('[data-cy="dialog-save-button"]').click();`,
+                  `      cy.get('mat-dialog-container').should('not.exist');`,
+                );
+              }
+              lines.push(`    });`);
+              return lines.join("\n");
+            });
+
+            // (c.11) Per-widget Delete-row tests. Same shape as (c.10) but
+            // clicks the row's Delete button and asserts the row's hook no
+            // longer exists. Index-based for SET/MAP<BOOLEAN>, key-based for
+            // MAP<TEXT>/MAP<DECIMAL>. MAP<DAYJS> uses key-based row hooks
+            // (entry.key) so it can be tested even though edit can't.
+            const deleteTests = mapSetFields.map((f) => {
+              const fn = f.fieldName;
+              const ann = f.options?.customAnnotation || [];
+              const safe = fn.replace(/[^a-zA-Z0-9]/g, "");
+              const lines = [
+                `    it('should delete a row in the ${fn} widget', () => {`,
+              ];
+              if (ann[0] === "CassandraType.Name.SET") {
+                lines.push(
+                  `      cy.get(\`[data-cy="${fn}-add-value"]\`).type('delete-target');`,
+                  `      cy.get(\`[data-cy="${fn}-add-button"]\`).click();`,
+                  `      cy.get(\`[data-cy="${fn}-row-0-edit"]\`).should('exist');`,
+                  `      cy.get(\`[data-cy="${fn}-row-0-delete"]\`).click();`,
+                  `      cy.get(\`[data-cy="${fn}-row-0-edit"]\`).should('not.exist');`,
+                );
+              } else if (ann[1] === "CassandraType.Name.BOOLEAN") {
+                lines.push(
+                  `      cy.get(\`[data-cy="${fn}-add-key"]\`).type('del-${safe}-key');`,
+                  `      cy.get(\`[data-cy="${fn}-add-toggle"]\`).click();`,
+                  `      cy.get(\`[data-cy="${fn}-add-button"]\`).click();`,
+                  `      cy.get(\`[data-cy="${fn}-row-0-edit"]\`).should('exist');`,
+                  `      cy.get(\`[data-cy="${fn}-row-0-delete"]\`).click();`,
+                  `      cy.get(\`[data-cy="${fn}-row-0-edit"]\`).should('not.exist');`,
+                );
+              } else if (ann[1] === "CassandraType.Name.BIGINT") {
+                // MAP<DAYJS> — populate Add row via sub-input typing, then
+                // delete by key.
+                const delKey = `del-${safe}-key`;
+                lines.push(
+                  `      cy.get(\`[data-cy="${fn}-add-key"]\`).type('${delKey}');`,
+                  `      cy.get(\`[data-cy="${fn}-add-datetime-date"]\`).type('1/15/2030').blur();`,
+                  `      cy.get(\`[data-cy="${fn}-add-datetime-hours"]\`).clear().type('10');`,
+                  `      cy.get(\`[data-cy="${fn}-add-datetime-minutes"]\`).clear().type('30');`,
+                  `      cy.get(\`[data-cy="${fn}-add-datetime-ampm"]\`).click();`,
+                  `      cy.get('mat-option').contains('AM').click();`,
+                  `      cy.get(\`[data-cy="${fn}-add-button"]\`).click();`,
+                  `      cy.get(\`[data-cy="${fn}-row-${delKey}-edit"]\`).should('exist');`,
+                  `      cy.get(\`[data-cy="${fn}-row-${delKey}-delete"]\`).click();`,
+                  `      cy.get(\`[data-cy="${fn}-row-${delKey}-edit"]\`).should('not.exist');`,
+                );
+              } else {
+                const delKey = `del-${safe}-key`;
+                const val =
+                  ann[1] === "CassandraType.Name.DECIMAL" ? "66.66" : "delete-val";
+                lines.push(
+                  `      cy.get(\`[data-cy="${fn}-add-key"]\`).type('${delKey}');`,
+                  `      cy.get(\`[data-cy="${fn}-add-value"]\`).type('${val}');`,
+                  `      cy.get(\`[data-cy="${fn}-add-button"]\`).click();`,
+                  `      cy.get(\`[data-cy="${fn}-row-${delKey}-edit"]\`).should('exist');`,
+                  `      cy.get(\`[data-cy="${fn}-row-${delKey}-delete"]\`).click();`,
+                  `      cy.get(\`[data-cy="${fn}-row-${delKey}-edit"]\`).should('not.exist');`,
+                );
+              }
+              lines.push(`    });`);
+              return lines.join("\n");
+            });
+
+            const editDeleteTests = [...editTests, ...deleteTests];
+            if (editDeleteTests.length > 0) {
+              // Append AFTER all other tests in `new X page` describe block.
+              // Anchor: the closing `});` of the round-trip test if present,
+              // else of the create-instance test. We re-scan from the end so
+              // we land after whatever (c.9) just inserted.
+              const createAnchor = `it('should create an instance of ${entity.entityAngularName}', () => {`;
+              const createIdx2 = content.indexOf(createAnchor);
+              if (createIdx2 !== -1) {
+                // Find the LAST `});` in the new-page describe by scanning
+                // forward from create and stepping through each test boundary.
+                let cursor = createIdx2;
+                let lastEnd = -1;
+                while (true) {
+                  const next = content.indexOf("\n    });\n", cursor);
+                  if (next === -1) break;
+                  lastEnd = next + "\n    });".length;
+                  cursor = next + 1;
+                  // Stop when the next test opener moves into a different scope
+                  const nextIt = content.indexOf("\n    it(", cursor);
+                  const nextDescribe = content.indexOf("\n  describe(", cursor);
+                  if (
+                    nextIt === -1 ||
+                    (nextDescribe !== -1 && nextDescribe < nextIt)
+                  )
+                    break;
+                }
+                if (lastEnd !== -1) {
+                  content =
+                    content.slice(0, lastEnd) +
+                    "\n\n" +
+                    editDeleteTests.join("\n\n") +
+                    content.slice(lastEnd);
                 }
               }
             }

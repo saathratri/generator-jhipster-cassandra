@@ -18,12 +18,12 @@
     <!-- Action Buttons (10%) -->
     <div class="action-buttons">
       <!-- Edit Button -->
-      <button type="button" mat-icon-button (click)="openEditStringDialog(entry.key, entry.value)">
+      <button type="button" mat-icon-button (click)="openEditStringDialog(entry.key, entry.value)" [attr.data-cy]="fieldName + '-row-' + entry.key + '-edit'">
         <mat-icon>edit</mat-icon>
       </button>
 
       <!-- Delete Button -->
-      <button type="button" mat-icon-button (click)="deleteRow(entry.key)">
+      <button type="button" mat-icon-button (click)="deleteRow(entry.key)" [attr.data-cy]="fieldName + '-row-' + entry.key + '-delete'">
         <mat-icon>close</mat-icon>
       </button>
     </div>

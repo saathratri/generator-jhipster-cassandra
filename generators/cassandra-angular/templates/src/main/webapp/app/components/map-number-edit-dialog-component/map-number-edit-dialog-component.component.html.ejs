@@ -9,7 +9,7 @@
 
     <mat-form-field appearance="outline" class="full-width">
       <mat-label>Value</mat-label>
-      <input matInput type="number" formControlName="value" />
+      <input matInput type="number" formControlName="value" [attr.data-cy]="'dialog-edit-value'" />
       @if (form.controls['value'].invalid && form.controls['value'].touched) { <mat-error>
         Please enter a valid number
       </mat-error> }
@@ -19,5 +19,5 @@
 
 <mat-dialog-actions align="end" class="dialog-actions">
   <button mat-button (click)="onCancel()">Cancel</button>
-  <button mat-raised-button color="primary" [disabled]="form.invalid" (click)="onSave()">Save Changes</button>
+  <button mat-raised-button color="primary" [disabled]="form.invalid" (click)="onSave()" [attr.data-cy]="'dialog-save-button'">Save Changes</button>
 </mat-dialog-actions>

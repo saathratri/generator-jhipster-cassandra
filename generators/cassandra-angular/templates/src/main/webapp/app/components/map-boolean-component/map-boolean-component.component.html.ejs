@@ -20,10 +20,10 @@
 
       <!-- Action Buttons -->
       <div class="action-buttons">
-        <button type="button" mat-icon-button (click)="openEditBooleanDialog(i)">
+        <button type="button" mat-icon-button (click)="openEditBooleanDialog(i)" [attr.data-cy]="fieldName + '-row-' + i + '-edit'">
           <mat-icon>edit</mat-icon>
         </button>
-        <button type="button" mat-icon-button (click)="deleteRow(i)">
+        <button type="button" mat-icon-button (click)="deleteRow(i)" [attr.data-cy]="fieldName + '-row-' + i + '-delete'">
           <mat-icon>close</mat-icon>
         </button>
       </div>
