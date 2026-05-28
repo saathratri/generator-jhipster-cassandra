@@ -372,6 +372,18 @@ export default class extends BaseApplicationGenerator {
               "cy.wait('@entitiesRequestInternal', { timeout: 30000 })",
             );
 
+            // (d) Widen the `entitiesRequest` / `entitiesRequestInternal` intercept URL
+            // pattern. Upstream emits `'/services/<svc>/api/<entity>+(?*|)'` (matches the
+            // base path optionally followed by `?...`). The cassandra pagination overhaul
+            // moved the list GET to `/api/<entity>/slice?size=20`, so the upstream pattern
+            // never matches and the cy.wait times out even though the GET returned 200.
+            // Replace `+(?*|)` with `**` (minimatch globstar) so the pattern matches
+            // `/<entity>`, `/<entity>?...`, `/<entity>/slice`, and `/<entity>/slice?...`.
+            content = content.replace(
+              /('\/services\/[^']+?)\+\(\?\*\|\)'/g,
+              "$1**'",
+            );
+
             return content;
           });
         }
