@@ -312,6 +312,18 @@ export default class extends BaseApplicationGenerator {
           return content;
         });
 
+        // Force `npm test` to run one-shot. Upstream JHipster's Angular generator emits
+        // `"test": "ng test --coverage"` which, after the Karma→Vitest switch, defaults to
+        // WATCH mode and never exits. The neighbouring `"test:watch"` script (which adds
+        // `--watch` back) proves the intent was one-shot — upstream just forgot the flag.
+        // Becomes a no-op once upstream ships the fix (regex won't match the new value).
+        this.editFile(packageJsonPath, (content) =>
+          content.replace(
+            '"test": "ng test --coverage",',
+            '"test": "ng test --coverage --watch=false",',
+          ),
+        );
+
         // Patch webpack.microfrontend.js to share @angular/core/rxjs-interop as singleton.
         // Without this, microfrontend signal change detection breaks (e.g., isLoading spinner
         // never stops) because the host and remote get different Angular core instances.

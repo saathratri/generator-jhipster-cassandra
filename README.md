@@ -405,12 +405,17 @@ From the generated app directory (Node 22+):
 
 ```bash
 npm install
-npm test     # = pretest (eslint .) THEN ng test (Vitest)
+npm test            # = pretest (eslint .) THEN ng test (Vitest) — runs once and exits
+npm run test:watch  # same, but keeps Vitest in watch mode for iterative TDD
 ```
 
 `npm test` runs **`eslint .` first** — if lint fails, the Vitest run never starts — then
-the Angular unit tests on **Vitest**. The lint gate fails only on **errors** (not
-warnings). To run just one half: `npx eslint .` (lint only) or `npx ng test` (Vitest only).
+the Angular unit tests on **Vitest**, **one-shot**. (The blueprint patches the generated
+`package.json` to add `--watch=false`; upstream JHipster's `ng test --coverage` script
+defaults to watch mode after the Karma→Vitest switch and never exits.) The lint gate
+fails only on **errors** (not warnings). To run just one half:
+`npx eslint .` (lint only) or `npx ng test --watch=false` (Vitest only — `npx ng test`
+alone re-enters watch mode because Angular's `unit-test` builder defaults to watch).
 
 Expected: ESLint reports **0 problems** and Vitest passes all **~407** specs — the
 generated services, list/detail/update components, routing resolvers and the
