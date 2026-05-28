@@ -19,6 +19,40 @@ function buildCompositeKeyUrlSuffix(instanceVar, primaryKeySaathratri) {
     .join("/");
 }
 
+// Sample value for an entity field, used inside a TypeScript object literal — numbers stay
+// numeric, everything else is a `'sample-<fieldName>-1'` string. Mirrors the test-samples
+// template's sampleValue() so the cy.ts samples match what the model would accept.
+function sampleObjValue(field) {
+  const t = field.fieldType;
+  if (
+    t === "Long" ||
+    t === "Integer" ||
+    t === "Double" ||
+    t === "Float" ||
+    t === "BigDecimal"
+  ) {
+    return "1001";
+  }
+  if (t === "Boolean") return "true";
+  return `'sample-${field.fieldName}-1'`;
+}
+
+// Sample value as a quoted string suitable for cy.type() (which only accepts strings).
+function sampleTypeArg(field) {
+  const t = field.fieldType;
+  if (
+    t === "Long" ||
+    t === "Integer" ||
+    t === "Double" ||
+    t === "Float" ||
+    t === "BigDecimal"
+  ) {
+    return "'1001'";
+  }
+  if (t === "Boolean") return "'true'";
+  return `'sample-${field.fieldName}-1'`;
+}
+
 export default class extends BaseApplicationGenerator {
   constructor(args, opts, features) {
     super(args, opts, { ...features, sbsBlueprint: true });
@@ -211,6 +245,81 @@ export default class extends BaseApplicationGenerator {
               interceptRe,
               `${entity.entityApiUrl}/${stars}'`,
             );
+
+            return content;
+          });
+        }
+
+        // ---------------------------------------------------------------------------
+        // Additional patches for POST body + form-fill — separate iteration covers
+        // BOTH composite-key entities and single-key cassandra entities (the upstream
+        // template's generateTestEntity() and form-fill loop both skip JHipster id
+        // fields that are auto-generated, leaving the POST body without compositeId/id
+        // and the form without the required field, causing 500/400 errors and a
+        // permanently-disabled Save button).
+        // ---------------------------------------------------------------------------
+        for (const entity of entities) {
+          if (entity.builtIn || !entity.entityFileName) continue;
+
+          const specPath = `${cypressDir}e2e/entity/${entity.entityFileName}.cy.ts`;
+          if (!this.existsDestination(specPath)) continue;
+
+          const idField = entity.fields?.find((f) => f.id);
+          if (!idField) continue;
+
+          this.editFile(specPath, (content) => {
+            const sampleVar = `${entity.entityInstance}Sample`;
+
+            // (a) Sample body: inject `compositeId: {...}` (composite) or the id field
+            // (single-key). Idempotent — skip if already present.
+            if (entity.primaryKeySaathratri?.composite) {
+              if (!content.includes(`${sampleVar} = { compositeId:`)) {
+                const compositeIdLit = entity.primaryKeySaathratri.ids
+                  .map((f) => `${f.fieldName}: ${sampleObjValue(f)}`)
+                  .join(", ");
+                content = content.replace(
+                  `const ${sampleVar} = {`,
+                  `const ${sampleVar} = { compositeId: { ${compositeIdLit} },`,
+                );
+              }
+            } else {
+              const idPropRe = new RegExp(
+                `${escapeRegExp(sampleVar)}\\s*=\\s*\\{\\s*${escapeRegExp(idField.fieldName)}\\b`,
+              );
+              if (!idPropRe.test(content)) {
+                content = content.replace(
+                  `const ${sampleVar} = {`,
+                  `const ${sampleVar} = { ${idField.fieldName}: ${sampleObjValue(idField)},`,
+                );
+              }
+            }
+
+            // (b) Form fill in `should create an instance of <X>`: inject a `.type()` for
+            // the @Id-marked field if it isn't already typed. Upstream's form-fill loop
+            // excludes fields where `field.id && field.autoGenerate` — so UUID @Id fields
+            // (Tag.id, SaathratriEntity2.entityTypeId) are missing but String/Long @Id
+            // fields (Blog.category) are already there.
+            const formFillStart = `it('should create an instance of ${entity.entityAngularName}', () => {`;
+            const blockStart = content.indexOf(formFillStart);
+            if (blockStart !== -1) {
+              const saveClickIdx = content.indexOf(
+                "cy.get(entityCreateSaveButtonSelector)",
+                blockStart,
+              );
+              const block =
+                saveClickIdx > -1 ? content.slice(blockStart, saveClickIdx) : "";
+              const idSelectorMarker = `[data-cy="${idField.fieldName}"]`;
+
+              if (!block.includes(idSelectorMarker)) {
+                const injection =
+                  `\n      cy.get(\`[data-cy="${idField.fieldName}"]\`).type(${sampleTypeArg(idField)});\n` +
+                  `      cy.get(\`[data-cy="${idField.fieldName}"]\`).should('have.value', ${sampleTypeArg(idField)});\n`;
+                content = content.replace(
+                  formFillStart,
+                  formFillStart + injection,
+                );
+              }
+            }
 
             return content;
           });
