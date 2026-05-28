@@ -398,6 +398,55 @@ export default class extends BaseApplicationGenerator {
               content = content.replace(lineRe, "");
             }
 
+            // (c.6) UTC_DATETIME fields use a custom `<app-date-time>` component with a
+            // sibling "Generate" button (only rendered when @if (isNew)). The upstream
+            // form-fill's `cy.get('[data-cy="<field>"]').type(...)` fails because the
+            // datetime widget doesn't expose a single matching input. Strip those lines
+            // and instead click the Generate button — for composite-key UTC_DATETIME
+            // fields (e.g. Post.addedDateTime) this is REQUIRED so the form passes
+            // validation; for optional UTC_DATETIME fields it's harmless. Detection:
+            // `customAnnotation` array contains "UTC_DATETIME".
+            const dateTimeFields = (entity.fields ?? []).filter(
+              (f) =>
+                Array.isArray(f.options?.customAnnotation) &&
+                f.options.customAnnotation.includes("UTC_DATETIME"),
+            );
+            for (const f of dateTimeFields) {
+              const lineRe = new RegExp(
+                `^\\s*cy\\.get\\(\`\\[data-cy="${escapeRegExp(f.fieldName)}"\\]\`\\)[^;]+;\\s*\\n`,
+                "gm",
+              );
+              content = content.replace(lineRe, "");
+            }
+            if (dateTimeFields.length > 0) {
+              // Inject Generate-button clicks immediately before the Save button click
+              // in the `should create an instance of X` test. The Generate button is a
+              // sibling of <app-date-time fieldName="X">, so scope via parent().
+              const formFillStart = `it('should create an instance of ${entity.entityAngularName}', () => {`;
+              const blockStart = content.indexOf(formFillStart);
+              if (blockStart !== -1) {
+                const saveClickRe =
+                  /^([ \t]+)cy\.get\(entityCreateSaveButtonSelector\)\.click\(\);/m;
+                const block = content.slice(blockStart);
+                const saveMatch = block.match(saveClickRe);
+                if (saveMatch) {
+                  const indent = saveMatch[1];
+                  const generateLines = dateTimeFields
+                    .map(
+                      (f) =>
+                        `${indent}cy.get(\`app-date-time[fieldName="${f.fieldName}"]\`).parent().contains('button', 'Generate').click();`,
+                    )
+                    .join("\n");
+                  const saveClickIdx = blockStart + block.indexOf(saveMatch[0]);
+                  content =
+                    content.slice(0, saveClickIdx) +
+                    generateLines +
+                    "\n\n" +
+                    content.slice(saveClickIdx);
+                }
+              }
+            }
+
             // (d) Widen the `entitiesRequest` / `entitiesRequestInternal` intercept URL.
             // Upstream emits `'/services/<svc>/api/<entity>+(?*|)'` (matches the base path
             // optionally followed by `?...`). The cassandra pagination overhaul moved the
