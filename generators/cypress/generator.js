@@ -482,6 +482,92 @@ export default class extends BaseApplicationGenerator {
               }
             }
 
+            // (c.8) Emit per-widget smoke tests for SET<TEXT> and MAP<TEXT, *>
+            // custom Angular widgets. The wrappers all expose data-cy hooks of the
+            // form `<fieldName>-add-{key|value|toggle|button}`. Tests verify the
+            // Add-row inputs accept input and the Add button responds — narrow
+            // checks that catch data-cy regressions without trying to drive the
+            // full add/edit/delete cycle.
+            const widgetTestsForEntity = [];
+            for (const f of mapSetFields) {
+              const fn = f.fieldName;
+              const ann = f.options?.customAnnotation || [];
+              const mapInner = ann[1]; // CassandraType.Name.TEXT/DECIMAL/BOOLEAN/BIGINT
+              const isSet = ann[0] === "CassandraType.Name.SET";
+              const isMap = ann[0] === "CassandraType.Name.MAP";
+
+              if (isSet) {
+                widgetTestsForEntity.push(
+                  [
+                    `    it('should accept input on the ${fn} SET widget add row', () => {`,
+                    `      cy.get(\`[data-cy="${fn}-add-value"]\`).type('sample-${fn}-1');`,
+                    `      cy.get(\`[data-cy="${fn}-add-value"]\`).should('have.value', 'sample-${fn}-1');`,
+                    `      cy.get(\`[data-cy="${fn}-add-button"]\`).should('not.be.disabled');`,
+                    `    });`,
+                  ].join("\n"),
+                );
+              } else if (isMap && mapInner === "CassandraType.Name.BOOLEAN") {
+                widgetTestsForEntity.push(
+                  [
+                    `    it('should accept input on the ${fn} MAP<BOOLEAN> widget add row', () => {`,
+                    `      cy.get(\`[data-cy="${fn}-add-key"]\`).type('sample-key');`,
+                    `      cy.get(\`[data-cy="${fn}-add-key"]\`).should('have.value', 'sample-key');`,
+                    `      cy.get(\`[data-cy="${fn}-add-toggle"]\`).click();`,
+                    `      cy.get(\`[data-cy="${fn}-add-button"]\`).should('not.be.disabled');`,
+                    `    });`,
+                  ].join("\n"),
+                );
+              } else if (isMap && mapInner === "CassandraType.Name.BIGINT") {
+                // MAP<TEXT, BIGINT> with UTC_DATETIME uses a nested <app-date-time>
+                // for the value. We can verify the add-key + add-button hooks here;
+                // the nested date-time has its own smoke test pattern (c.7) if used
+                // elsewhere.
+                widgetTestsForEntity.push(
+                  [
+                    `    it('should accept input on the ${fn} MAP<BIGINT/DATETIME> widget add row', () => {`,
+                    `      cy.get(\`[data-cy="${fn}-add-key"]\`).type('sample-key');`,
+                    `      cy.get(\`[data-cy="${fn}-add-key"]\`).should('have.value', 'sample-key');`,
+                    `      cy.get(\`[data-cy="${fn}-add-button"]\`).should('exist');`,
+                    `    });`,
+                  ].join("\n"),
+                );
+              } else if (isMap) {
+                // MAP<TEXT, TEXT> and MAP<TEXT, DECIMAL>
+                const sampleValue =
+                  mapInner === "CassandraType.Name.DECIMAL"
+                    ? "1001"
+                    : "sample-value";
+                widgetTestsForEntity.push(
+                  [
+                    `    it('should accept input on the ${fn} MAP widget add row', () => {`,
+                    `      cy.get(\`[data-cy="${fn}-add-key"]\`).type('sample-key');`,
+                    `      cy.get(\`[data-cy="${fn}-add-key"]\`).should('have.value', 'sample-key');`,
+                    `      cy.get(\`[data-cy="${fn}-add-value"]\`).type('${sampleValue}');`,
+                    `      cy.get(\`[data-cy="${fn}-add-value"]\`).should('have.value', '${sampleValue}');`,
+                    `      cy.get(\`[data-cy="${fn}-add-button"]\`).should('not.be.disabled');`,
+                    `    });`,
+                  ].join("\n"),
+                );
+              }
+            }
+            if (widgetTestsForEntity.length > 0) {
+              const formFillStartForMap = `it('should create an instance of ${entity.entityAngularName}', () => {`;
+              const blockStartForMap = content.indexOf(formFillStartForMap);
+              const firstTestEndForMap = content.indexOf(
+                "\n    });\n",
+                blockStartForMap,
+              );
+              if (firstTestEndForMap !== -1) {
+                const insertAt =
+                  firstTestEndForMap + "\n    });".length;
+                content =
+                  content.slice(0, insertAt) +
+                  "\n\n" +
+                  widgetTestsForEntity.join("\n\n") +
+                  content.slice(insertAt);
+              }
+            }
+
             // (d) Widen the `entitiesRequest` / `entitiesRequestInternal` intercept URL.
             // Upstream emits `'/services/<svc>/api/<entity>+(?*|)'` (matches the base path
             // optionally followed by `?...`). The cassandra pagination overhaul moved the

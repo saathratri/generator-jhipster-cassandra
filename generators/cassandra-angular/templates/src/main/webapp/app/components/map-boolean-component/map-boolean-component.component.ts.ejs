@@ -36,6 +36,8 @@ import { MatDialog } from '@angular/material/dialog';
 })
 export class MapBooleanComponent implements OnInit, OnChanges {
   @Input() inputFields: Record<string, boolean> = {};
+
+  @Input() fieldName: string = '';
   @Output() dataChange = new EventEmitter<Record<string, boolean>>();
 
   mapDetails: Record<string, boolean> = {};

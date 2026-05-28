@@ -28,13 +28,13 @@
     <div class="input-row">
       <mat-form-field appearance="outline">
         <mat-label>New Value</mat-label>
-        <input matInput [formControl]="newFieldControl" />
+        <input matInput [formControl]="newFieldControl" [attr.data-cy]="fieldName + '-add-value'" />
         @if (newFieldControl.invalid && newFieldControl.touched) { <mat-error>
           Field is required
         </mat-error> }
       </mat-form-field>
 
-      <button type="button" mat-raised-button color="primary" [disabled]="newFieldControl.invalid" (click)="addNewField()" class="add-button">
+      <button type="button" mat-raised-button color="primary" [disabled]="newFieldControl.invalid" (click)="addNewField()" class="add-button" [attr.data-cy]="fieldName + '-add-button'">
         Add
       </button>
     </div>

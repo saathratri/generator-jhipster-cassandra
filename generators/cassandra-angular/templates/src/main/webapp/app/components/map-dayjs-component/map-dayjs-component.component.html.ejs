@@ -33,7 +33,7 @@
   <form [formGroup]="form" class="input-row">
     <mat-form-field appearance="outline" class="form-field">
       <mat-label>Key</mat-label>
-      <input matInput formControlName="newKey" (blur)="form.controls['newKey'].markAsTouched()" />
+      <input matInput formControlName="newKey" (blur)="form.controls['newKey'].markAsTouched()" [attr.data-cy]="fieldName + '-add-key'" />
       @if (form.controls['newKey'].invalid && form.controls['newKey'].touched) { <mat-error>
         Key is required
       </mat-error> }
@@ -46,10 +46,10 @@
       [isRequired]="true"
       (isValid)="onDateTimeValid('newValue', $event)"
       (dirtyStateChange)="updateDirtyState($event)"
-      class="form-field">
+      class="form-field" [attr.data-cy]="fieldName + '-add-datetime'">
     </app-date-time>
 
-    <button type="button" mat-raised-button color="primary" [disabled]="form.invalid" (click)="addNewRow()" class="add-button">
+    <button type="button" mat-raised-button color="primary" [disabled]="form.invalid" (click)="addNewRow()" class="add-button" [attr.data-cy]="fieldName + '-add-button'">
       Add
     </button>
   </form>

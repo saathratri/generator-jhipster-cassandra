@@ -27,6 +27,8 @@ import dayjs from 'dayjs/esm';
 })
 export class MapDayjsComponent implements OnChanges {
   @Input() inputFields: Record<string, dayjs.Dayjs> = {};
+
+  @Input() fieldName: string = '';
   @Output() dataChange = new EventEmitter<Record<string, dayjs.Dayjs>>();
 
   mapDetails: Record<string, dayjs.Dayjs> = {};

@@ -389,28 +389,33 @@ _%>
                     </div>
     <%_ } _%>
     <%_ if (field.fieldTypeSetSaathratri) { _%>
-            <app-set-string-component 
-                [inputFields]="inputFields<%= this._.upperFirst(field.fieldName) %>" 
+            <app-set-string-component
+                fieldName="<%= field.fieldName %>"
+                [inputFields]="inputFields<%= this._.upperFirst(field.fieldName) %>"
                 (dataChange)="handle<%= this._.upperFirst(field.fieldName) %>InputChange($event)">
             </app-set-string-component>
     <%_ } else if (field.fieldTypeMapBooleanSaathratri) { _%>
-            <app-map-boolean-component 
-                [inputFields]="inputFields<%= this._.upperFirst(field.fieldName) %>" 
+            <app-map-boolean-component
+                fieldName="<%= field.fieldName %>"
+                [inputFields]="inputFields<%= this._.upperFirst(field.fieldName) %>"
                 (dataChange)="handle<%= this._.upperFirst(field.fieldName) %>InputChange($event)">
             </app-map-boolean-component>
     <%_ } else if (field.fieldTypeMapNumberSaathratri) { _%>
-            <app-map-number-component 
-                [inputFields]="inputFields<%= this._.upperFirst(field.fieldName) %>" 
+            <app-map-number-component
+                fieldName="<%= field.fieldName %>"
+                [inputFields]="inputFields<%= this._.upperFirst(field.fieldName) %>"
                 (dataChange)="handle<%= this._.upperFirst(field.fieldName) %>InputChange($event)">
             </app-map-number-component>
     <%_ } else if (field.fieldTypeMapStringSaathratri) { _%>
-            <app-map-string-component 
-                [inputFields]="inputFields<%= this._.upperFirst(field.fieldName) %>" 
+            <app-map-string-component
+                fieldName="<%= field.fieldName %>"
+                [inputFields]="inputFields<%= this._.upperFirst(field.fieldName) %>"
                 (dataChange)="handle<%= this._.upperFirst(field.fieldName) %>InputChange($event)">
             </app-map-string-component>
     <%_ } else if (field.fieldTypeMapDayjsSaathratri) { _%>
-            <app-map-dayjs-component 
-                [inputFields]="inputFields<%= this._.upperFirst(field.fieldName) %>" 
+            <app-map-dayjs-component
+                fieldName="<%= field.fieldName %>"
+                [inputFields]="inputFields<%= this._.upperFirst(field.fieldName) %>"
                 (dataChange)="handle<%= this._.upperFirst(field.fieldName) %>InputChange($event)">
             </app-map-dayjs-component>
     <%_ } else if (field.fieldTypeLocalDate || field.fieldTypeLocalDateSaathratri) { _%>
