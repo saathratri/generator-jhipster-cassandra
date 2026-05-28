@@ -123,7 +123,33 @@ export default class extends BaseApplicationGenerator {
 
   get [BaseApplicationGenerator.POST_WRITING]() {
     return this.asPostWritingTaskGroup({
-      async postWritingTemplateTask() {},
+      async postWritingTemplateTask({ application }) {
+        // The cassandra-angular generator restructures the navbar from upstream JHipster's
+        // single `[data-cy="entity"]` flat dropdown into per-microfrontend dropdowns
+        // (e.g. `[data-cy="cassandrablogMenu"]`). The upstream Cypress
+        // `support/commands.ts` still declares `entityItemSelector = '[data-cy="entity"]'`,
+        // so `clickOnEntityMenuItem` (used by every entity spec's beforeEach) can't find
+        // the dropdown and all entity tests fail with
+        // "Expected to find element: `[data-cy=\"entity\"]`, but never found it."
+        //
+        // Patch this microservice's commands.ts to point entityItemSelector at its own
+        // microfrontend dropdown. Each microservice's Cypress suite runs against the
+        // gateway, so it needs to open *its own* named dropdown to see its entities.
+        const cypressDir = application.cypressDir;
+        if (!cypressDir) return;
+        if (!application.applicationTypeMicroservice) return;
+
+        const commandsPath = `${cypressDir}support/commands.ts`;
+        if (!this.existsDestination(commandsPath)) return;
+
+        this.editFile(commandsPath, (content) => {
+          if (content.includes(`"${application.baseName}Menu"`)) return content;
+          return content.replace(
+            `export const entityItemSelector = '[data-cy="entity"]';`,
+            `export const entityItemSelector = '[data-cy="${application.baseName}Menu"]';`,
+          );
+        });
+      },
     });
   }
 
