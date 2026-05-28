@@ -372,6 +372,32 @@ export default class extends BaseApplicationGenerator {
               "cy.wait('@entitiesRequestInternal', { timeout: 30000 })",
             );
 
+            // (c.5) Strip form-fill lines for MAP/SET fields. The cassandra blueprint
+            // generates custom Angular widgets for MAP<TEXT, TEXT/DECIMAL/BOOLEAN/BIGINT>
+            // and SET<TEXT> (key/value rows, toggles, date pickers) — these don't expose
+            // a single `<input data-cy="<fieldName>">`, so the upstream template's
+            // `cy.get('[data-cy="<map>"]').type(...)` times out with
+            // "Expected to find element: `[data-cy=\"addOnDetailsText\"]`, but never found it."
+            // MAP/SET columns aren't required in the JDL, so removing the fill lines
+            // entirely leaves the form valid for submit. Detection: first element of
+            // `customAnnotation` is `CassandraType.Name.MAP` or `CassandraType.Name.SET`.
+            const mapSetFields = (entity.fields ?? []).filter((f) => {
+              const ann = f.options?.customAnnotation?.[0];
+              return (
+                ann === "CassandraType.Name.MAP" ||
+                ann === "CassandraType.Name.SET"
+              );
+            });
+            for (const f of mapSetFields) {
+              // Remove any whole line that does `cy.get(`[data-cy="<fieldName>"]`).<anything>;`
+              // — covers .type/.should/.click/.invoke chains regardless of arguments.
+              const lineRe = new RegExp(
+                `^\\s*cy\\.get\\(\`\\[data-cy="${escapeRegExp(f.fieldName)}"\\]\`\\)[^;]+;\\s*\\n`,
+                "gm",
+              );
+              content = content.replace(lineRe, "");
+            }
+
             // (d) Widen the `entitiesRequest` / `entitiesRequestInternal` intercept URL.
             // Upstream emits `'/services/<svc>/api/<entity>+(?*|)'` (matches the base path
             // optionally followed by `?...`). The cassandra pagination overhaul moved the
