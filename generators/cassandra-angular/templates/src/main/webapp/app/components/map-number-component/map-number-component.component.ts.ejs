@@ -16,7 +16,7 @@ import { MatDialog } from '@angular/material/dialog';
 export class MapNumberComponent implements OnChanges {
   @Input() inputFields: Record<string, number> = {};
 
-  @Input() fieldName: string = '';
+  @Input() fieldName = '';
   @Output() dataChange = new EventEmitter<Record<string, number>>();
 
   mapDetails: Record<string, number> = {};

@@ -460,10 +460,12 @@ export default class extends BaseApplicationGenerator {
                     const fn = f.fieldName;
                     return [
                       `    it('should accept input on the ${fn} date-time widget sub-inputs', () => {`,
-                      `      cy.get(\`[data-cy="${fn}-hours"]\`).clear().type('10');`,
+                      `      cy.get(\`[data-cy="${fn}-hours"]\`).clear();`,
+                      `      cy.get(\`[data-cy="${fn}-hours"]\`).type('10');`,
                       `      cy.get(\`[data-cy="${fn}-hours"]\`).should('have.value', '10');`,
                       ``,
-                      `      cy.get(\`[data-cy="${fn}-minutes"]\`).clear().type('30');`,
+                      `      cy.get(\`[data-cy="${fn}-minutes"]\`).clear();`,
+                      `      cy.get(\`[data-cy="${fn}-minutes"]\`).type('30');`,
                       `      cy.get(\`[data-cy="${fn}-minutes"]\`).should('have.value', '30');`,
                       ``,
                       `      cy.get(\`[data-cy="${fn}-ampm"]\`).click();`,
@@ -617,9 +619,12 @@ export default class extends BaseApplicationGenerator {
                     // hooks become `<fn>-add-datetime-{date,hours,minutes,ampm}`.
                     return [
                       `      cy.get(\`[data-cy="${fn}-add-key"]\`).type('rt-${fn}-key');`,
-                      `      cy.get(\`[data-cy="${fn}-add-datetime-date"]\`).type('1/15/2030').blur();`,
-                      `      cy.get(\`[data-cy="${fn}-add-datetime-hours"]\`).clear().type('10');`,
-                      `      cy.get(\`[data-cy="${fn}-add-datetime-minutes"]\`).clear().type('30');`,
+                      `      cy.get(\`[data-cy="${fn}-add-datetime-date"]\`).type('1/15/2030');`,
+                      `      cy.get(\`[data-cy="${fn}-add-datetime-date"]\`).blur();`,
+                      `      cy.get(\`[data-cy="${fn}-add-datetime-hours"]\`).clear();`,
+                      `      cy.get(\`[data-cy="${fn}-add-datetime-hours"]\`).type('10');`,
+                      `      cy.get(\`[data-cy="${fn}-add-datetime-minutes"]\`).clear();`,
+                      `      cy.get(\`[data-cy="${fn}-add-datetime-minutes"]\`).type('30');`,
                       `      cy.get(\`[data-cy="${fn}-add-datetime-ampm"]\`).click();`,
                       `      cy.get('mat-option').contains('AM').click();`,
                       `      cy.get(\`[data-cy="${fn}-add-button"]\`).click();`,
@@ -718,7 +723,8 @@ export default class extends BaseApplicationGenerator {
                   `      cy.get(\`[data-cy="${fn}-add-button"]\`).click();`,
                   `      cy.get(\`[data-cy="${fn}-row-0-edit"]\`).click();`,
                   `      cy.get('mat-dialog-container').should('be.visible');`,
-                  `      cy.get('[data-cy="dialog-edit-value"]').clear().type('edit-new');`,
+                  `      cy.get('[data-cy="dialog-edit-value"]').clear();`,
+                  `      cy.get('[data-cy="dialog-edit-value"]').type('edit-new');`,
                   `      cy.get('[data-cy="dialog-save-button"]').click();`,
                   `      cy.get('mat-dialog-container').should('not.exist');`,
                 );
@@ -746,7 +752,8 @@ export default class extends BaseApplicationGenerator {
                   `      cy.get(\`[data-cy="${fn}-add-button"]\`).click();`,
                   `      cy.get(\`[data-cy="${fn}-row-${editKey}-edit"]\`).click();`,
                   `      cy.get('mat-dialog-container').should('be.visible');`,
-                  `      cy.get('[data-cy="dialog-edit-value"]').clear().type('${nw}');`,
+                  `      cy.get('[data-cy="dialog-edit-value"]').clear();`,
+                  `      cy.get('[data-cy="dialog-edit-value"]').type('${nw}');`,
                   `      cy.get('[data-cy="dialog-save-button"]').click();`,
                   `      cy.get('mat-dialog-container').should('not.exist');`,
                 );
@@ -790,9 +797,12 @@ export default class extends BaseApplicationGenerator {
                 const delKey = `del-${safe}-key`;
                 lines.push(
                   `      cy.get(\`[data-cy="${fn}-add-key"]\`).type('${delKey}');`,
-                  `      cy.get(\`[data-cy="${fn}-add-datetime-date"]\`).type('1/15/2030').blur();`,
-                  `      cy.get(\`[data-cy="${fn}-add-datetime-hours"]\`).clear().type('10');`,
-                  `      cy.get(\`[data-cy="${fn}-add-datetime-minutes"]\`).clear().type('30');`,
+                  `      cy.get(\`[data-cy="${fn}-add-datetime-date"]\`).type('1/15/2030');`,
+                  `      cy.get(\`[data-cy="${fn}-add-datetime-date"]\`).blur();`,
+                  `      cy.get(\`[data-cy="${fn}-add-datetime-hours"]\`).clear();`,
+                  `      cy.get(\`[data-cy="${fn}-add-datetime-hours"]\`).type('10');`,
+                  `      cy.get(\`[data-cy="${fn}-add-datetime-minutes"]\`).clear();`,
+                  `      cy.get(\`[data-cy="${fn}-add-datetime-minutes"]\`).type('30');`,
                   `      cy.get(\`[data-cy="${fn}-add-datetime-ampm"]\`).click();`,
                   `      cy.get('mat-option').contains('AM').click();`,
                   `      cy.get(\`[data-cy="${fn}-add-button"]\`).click();`,
