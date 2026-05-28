@@ -516,11 +516,18 @@ export default class extends BaseApplicationGenerator {
                   ].join("\n"),
                 );
               } else if (isMap && mapInner === "CassandraType.Name.BOOLEAN") {
+                // The MAP<BOOLEAN> Add-row's `newValue` formControl starts at `null`
+                // with `Validators.required` — `null` is invalid, but `false` is. The
+                // mat-slide-toggle's first click toggles the visual state but does not
+                // bind a non-null value to the form; a second click is needed for the
+                // ControlValueAccessor to commit either `true` or `false`. Without two
+                // clicks the form stays invalid and the Add button stays disabled.
                 widgetTestsForEntity.push(
                   [
                     `    it('should accept input on the ${fn} MAP<BOOLEAN> widget add row', () => {`,
                     `      cy.get(\`[data-cy="${fn}-add-key"]\`).type('sample-key');`,
                     `      cy.get(\`[data-cy="${fn}-add-key"]\`).should('have.value', 'sample-key');`,
+                    `      cy.get(\`[data-cy="${fn}-add-toggle"]\`).click({ force: true });`,
                     `      cy.get(\`[data-cy="${fn}-add-toggle"]\`).click({ force: true });`,
                     `      cy.get(\`[data-cy="${fn}-add-button"]\`).should('not.be.disabled');`,
                     `    });`,
@@ -616,6 +623,7 @@ export default class extends BaseApplicationGenerator {
                   if (ann[1] === "CassandraType.Name.BOOLEAN") {
                     return [
                       `      cy.get(\`[data-cy="${fn}-add-key"]\`).type('rt-${fn}-key');`,
+                      `      cy.get(\`[data-cy="${fn}-add-toggle"]\`).click({ force: true });`,
                       `      cy.get(\`[data-cy="${fn}-add-toggle"]\`).click({ force: true });`,
                       `      cy.get(\`[data-cy="${fn}-add-button"]\`).click();`,
                     ].join("\n");
@@ -739,6 +747,7 @@ export default class extends BaseApplicationGenerator {
                 lines.push(
                   `      cy.get(\`[data-cy="${fn}-add-key"]\`).type('edit-${safe}-key');`,
                   `      cy.get(\`[data-cy="${fn}-add-toggle"]\`).click({ force: true });`,
+                  `      cy.get(\`[data-cy="${fn}-add-toggle"]\`).click({ force: true });`,
                   `      cy.get(\`[data-cy="${fn}-add-button"]\`).click();`,
                   `      cy.get(\`[data-cy="${fn}-row-0-edit"]\`).click();`,
                   `      cy.get('mat-dialog-container').should('be.visible');`,
@@ -792,6 +801,7 @@ export default class extends BaseApplicationGenerator {
               } else if (ann[1] === "CassandraType.Name.BOOLEAN") {
                 lines.push(
                   `      cy.get(\`[data-cy="${fn}-add-key"]\`).type('del-${safe}-key');`,
+                  `      cy.get(\`[data-cy="${fn}-add-toggle"]\`).click({ force: true });`,
                   `      cy.get(\`[data-cy="${fn}-add-toggle"]\`).click({ force: true });`,
                   `      cy.get(\`[data-cy="${fn}-add-button"]\`).click();`,
                   `      cy.get(\`[data-cy="${fn}-row-0-edit"]\`).should('exist');`,
