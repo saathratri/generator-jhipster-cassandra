@@ -19,9 +19,18 @@ function buildCompositeKeyUrlSuffix(instanceVar, primaryKeySaathratri) {
     .join("/");
 }
 
+// A static v4-like UUID used as the sample value for UUID/TIMEUUID-typed fields. Jackson
+// requires a parseable UUID string for cassandra UUID columns — the test-samples
+// template's `'sample-<fieldName>-1'` strings are fine for in-memory Angular models but
+// fail the backend's `UUID.fromString()` with "Failed to read request" on the POST body.
+// TIMEUUID fields are server-overwritten via `Uuids.timeBased()` so the value here is
+// disposable; v4 vs v1 doesn't matter as long as it parses.
+const SAMPLE_UUID = "00000000-0000-4000-8000-000000000001";
+
 // Sample value for an entity field, used inside a TypeScript object literal — numbers stay
-// numeric, everything else is a `'sample-<fieldName>-1'` string. Mirrors the test-samples
-// template's sampleValue() so the cy.ts samples match what the model would accept.
+// numeric, UUIDs use a valid hex format, everything else is a `'sample-<fieldName>-1'`
+// string. Mirrors the test-samples template's sampleValue() with the UUID exception
+// needed for Cypress's real HTTP POSTs.
 function sampleObjValue(field) {
   const t = field.fieldType;
   if (
@@ -34,6 +43,7 @@ function sampleObjValue(field) {
     return "1001";
   }
   if (t === "Boolean") return "true";
+  if (t === "UUID") return `'${SAMPLE_UUID}'`;
   return `'sample-${field.fieldName}-1'`;
 }
 
@@ -50,6 +60,7 @@ function sampleTypeArg(field) {
     return "'1001'";
   }
   if (t === "Boolean") return "'true'";
+  if (t === "UUID") return `'${SAMPLE_UUID}'`;
   return `'sample-${field.fieldName}-1'`;
 }
 
