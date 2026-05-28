@@ -194,6 +194,27 @@ export default class extends BaseApplicationGenerator {
             `export const entityItemSelector = '[data-cy="${application.baseName}Menu"]';`,
           );
         });
+
+        // Bump the dropdown-item find timeout in clickOnEntityMenuItem.
+        // The per-microfrontend dropdowns are populated async via module federation —
+        // `loadMicrofrontendsEntities()` fires after login as an effect, fetches the
+        // remoteEntry.js, and only THEN does `cassandrablogEntityNavbarItems()` populate
+        // and `*ngFor` render the .dropdown-item links. In a real browser there's enough
+        // human-time elapsed for that to finish; in Cypress the click fires immediately
+        // and the default 4-second `.find` retry isn't enough on cold load, so every
+        // entity spec's first test fails with
+        // "Expected to find element: `.dropdown-item[href=\"/.../...\"]`, but never found it."
+        // Extend the timeout to 30s.
+        const navbarPath = `${cypressDir}support/navbar.ts`;
+        if (this.existsDestination(navbarPath)) {
+          this.editFile(navbarPath, (content) => {
+            if (content.includes("/* SAATHRATRI mf timeout */")) return content;
+            return content.replace(
+              "return cy.get(navbarSelector).find(entityItemSelector).find(`.dropdown-item[href=\"/${entityName}\"]`).click();",
+              "return cy.get(navbarSelector).find(entityItemSelector).find(`.dropdown-item[href=\"/${entityName}\"]`, /* SAATHRATRI mf timeout */ { timeout: 30000 }).click();",
+            );
+          });
+        }
       },
     });
   }
@@ -331,6 +352,20 @@ export default class extends BaseApplicationGenerator {
                 );
               }
             }
+
+            // (c) Bump `cy.wait('@entitiesRequest')` and `cy.wait('@entitiesRequestInternal')`
+            // timeouts from the default 5s to 30s. The lazy-loaded cassandrablog/cassandrastore
+            // microfrontend route only fires its GET after module federation registers the
+            // remote — in Cypress's cold-load this can exceed 5s and the wait times out
+            // "No request ever occurred." Works fine in a normal browser.
+            content = content.replace(
+              /cy\.wait\('@entitiesRequest'\)/g,
+              "cy.wait('@entitiesRequest', { timeout: 30000 })",
+            );
+            content = content.replace(
+              /cy\.wait\('@entitiesRequestInternal'\)/g,
+              "cy.wait('@entitiesRequestInternal', { timeout: 30000 })",
+            );
 
             return content;
           });
