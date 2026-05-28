@@ -10,12 +10,12 @@
         <!-- Date Picker -->
         <mat-form-field appearance="outline" class="wide-box">
           <mat-label>Select Date</mat-label>
-          <input matInput [matDatepicker]="picker" formControlName="date" />
+          <input matInput [matDatepicker]="picker" formControlName="date" [attr.data-cy]="fieldName + '-date'" />
           <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
           <mat-datepicker #picker></mat-datepicker>
           @if (editForm.get('date')?.invalid) { <mat-error>Date is required</mat-error> }
         </mat-form-field>
-  
+
         <!-- Hours -->
         <mat-form-field appearance="outline" class="wide-box">
           <mat-label>Hours (01-12)</mat-label>
@@ -27,12 +27,13 @@
             min="01"
             max="12"
             (input)="onInput($event, 'hours')"
+            [attr.data-cy]="fieldName + '-hours'"
           />
           @if (editForm.get('hours')?.hasError('required')) { <mat-error> Hours are required </mat-error> }
           @if (editForm.get('hours')?.hasError('min')) { <mat-error> Hours must be at least 1 </mat-error> }
           @if (editForm.get('hours')?.hasError('max')) { <mat-error> Hours cannot exceed 12 </mat-error> }
         </mat-form-field>
-  
+
         <!-- Minutes -->
         <mat-form-field appearance="outline" class="wide-box">
           <mat-label>Minutes (00-59)</mat-label>
@@ -44,16 +45,17 @@
             min="00"
             max="59"
             (input)="onInput($event, 'minutes')"
+            [attr.data-cy]="fieldName + '-minutes'"
           />
           @if (editForm.get('minutes')?.hasError('required')) { <mat-error> Minutes are required </mat-error> }
           @if (editForm.get('minutes')?.hasError('min')) { <mat-error> Minutes must be at least 0 </mat-error> }
           @if (editForm.get('minutes')?.hasError('max')) { <mat-error> Minutes cannot exceed 59 </mat-error> }
         </mat-form-field>
-  
+
         <!-- AM/PM Selector -->
         <mat-form-field appearance="outline" class="wide-box">
           <mat-label>AM/PM</mat-label>
-          <mat-select formControlName="amPm">
+          <mat-select formControlName="amPm" [attr.data-cy]="fieldName + '-ampm'">
             <mat-option value="AM">AM</mat-option>
             <mat-option value="PM">PM</mat-option>
           </mat-select>

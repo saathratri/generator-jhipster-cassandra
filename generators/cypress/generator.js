@@ -445,6 +445,41 @@ export default class extends BaseApplicationGenerator {
                     content.slice(saveClickIdx);
                 }
               }
+
+              // (c.7) Emit a second `… date-time widget inputs work` smoke test that
+              // verifies the data-cy hooks on the <app-date-time> sub-inputs are wired
+              // and accept input. This complements the Generate-shortcut test in
+              // (c.6): if the smoke test fails, the data-cy hooks regressed; if (c.6)
+              // fails, the Generate button regressed. Together they cover both code
+              // paths users actually hit. Smoke test doesn't Save — scalar field fills
+              // would be duplicated noise; we only assert the widget itself behaves.
+              const firstTestEnd = content.indexOf("\n    });\n", blockStart);
+              if (firstTestEnd !== -1) {
+                const widgetTests = dateTimeFields
+                  .map((f) => {
+                    const fn = f.fieldName;
+                    return [
+                      `    it('should accept input on the ${fn} date-time widget sub-inputs', () => {`,
+                      `      cy.get(\`[data-cy="${fn}-hours"]\`).clear().type('10');`,
+                      `      cy.get(\`[data-cy="${fn}-hours"]\`).should('have.value', '10');`,
+                      ``,
+                      `      cy.get(\`[data-cy="${fn}-minutes"]\`).clear().type('30');`,
+                      `      cy.get(\`[data-cy="${fn}-minutes"]\`).should('have.value', '30');`,
+                      ``,
+                      `      cy.get(\`[data-cy="${fn}-ampm"]\`).click();`,
+                      `      cy.get('mat-option').contains('AM').click();`,
+                      `      cy.get(\`[data-cy="${fn}-ampm"]\`).should('contain', 'AM');`,
+                      `    });`,
+                    ].join("\n");
+                  })
+                  .join("\n\n");
+                const insertAt = firstTestEnd + "\n    });".length;
+                content =
+                  content.slice(0, insertAt) +
+                  "\n\n" +
+                  widgetTests +
+                  content.slice(insertAt);
+              }
             }
 
             // (d) Widen the `entitiesRequest` / `entitiesRequestInternal` intercept URL.
