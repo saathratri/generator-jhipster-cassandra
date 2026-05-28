@@ -568,6 +568,116 @@ export default class extends BaseApplicationGenerator {
               }
             }
 
+            // (c.9) Round-trip test for MAP/SET widgets. Copies the scalar form
+            // fills from `should create an instance of X` (so we reuse whatever
+            // composite-key / required-field values that test sets), inserts
+            // widget Add-row interactions before the Save click, then asserts
+            // the POST response body includes the widget entries. This catches
+            // bugs in the widget → form `(dataChange)` → DTO → backend → DTO →
+            // JSON pipeline that smoke tests can't.
+            //
+            // MAP<DAYJS> is excluded — interacting with the nested <app-date-time>
+            // inside the Add row to populate a value requires either typing into
+            // sub-inputs with form-validation timing or clicking a Generate
+            // button that doesn't exist on the nested date-time. Deferred to a
+            // follow-up iteration.
+            const roundTripWidgets = mapSetFields.filter((f) => {
+              const ann = f.options?.customAnnotation || [];
+              const isMapDayjs =
+                ann[0] === "CassandraType.Name.MAP" &&
+                ann[1] === "CassandraType.Name.BIGINT";
+              return !isMapDayjs;
+            });
+            if (roundTripWidgets.length > 0) {
+              const createTestStart = `it('should create an instance of ${entity.entityAngularName}', () => {`;
+              const createIdx = content.indexOf(createTestStart);
+              const saveClickStr =
+                "cy.get(entityCreateSaveButtonSelector).click();";
+              const saveClickIdx = content.indexOf(saveClickStr, createIdx);
+              if (createIdx !== -1 && saveClickIdx !== -1) {
+                // Body = everything from after the opening `() => {` up to (but
+                // not including) the Save-button line. This is the scalar form
+                // fills we want to reuse verbatim.
+                const bodyStart = createIdx + createTestStart.length;
+                const scalarFills = content.slice(bodyStart, saveClickIdx);
+                // Build per-widget Add-row interaction blocks and assertions.
+                const widgetAddLines = (f) => {
+                  const fn = f.fieldName;
+                  const ann = f.options?.customAnnotation || [];
+                  if (ann[0] === "CassandraType.Name.SET") {
+                    return [
+                      `      cy.get(\`[data-cy="${fn}-add-value"]\`).type('rt-${fn}-value');`,
+                      `      cy.get(\`[data-cy="${fn}-add-button"]\`).click();`,
+                    ].join("\n");
+                  }
+                  if (ann[1] === "CassandraType.Name.BOOLEAN") {
+                    return [
+                      `      cy.get(\`[data-cy="${fn}-add-key"]\`).type('rt-${fn}-key');`,
+                      `      cy.get(\`[data-cy="${fn}-add-toggle"]\`).click();`,
+                      `      cy.get(\`[data-cy="${fn}-add-button"]\`).click();`,
+                    ].join("\n");
+                  }
+                  // MAP<TEXT> and MAP<DECIMAL>
+                  const value =
+                    ann[1] === "CassandraType.Name.DECIMAL"
+                      ? "99.99"
+                      : `rt-${fn}-value`;
+                  return [
+                    `      cy.get(\`[data-cy="${fn}-add-key"]\`).type('rt-${fn}-key');`,
+                    `      cy.get(\`[data-cy="${fn}-add-value"]\`).type('${value}');`,
+                    `      cy.get(\`[data-cy="${fn}-add-button"]\`).click();`,
+                  ].join("\n");
+                };
+                const widgetAssertion = (f) => {
+                  const fn = f.fieldName;
+                  const ann = f.options?.customAnnotation || [];
+                  if (ann[0] === "CassandraType.Name.SET") {
+                    return `        expect(response.body.${fn}, 'SET round-trip: ${fn}').to.include('rt-${fn}-value');`;
+                  }
+                  if (ann[1] === "CassandraType.Name.BOOLEAN") {
+                    return `        expect(response.body.${fn}, 'MAP<BOOLEAN> round-trip: ${fn}').to.have.property('rt-${fn}-key', true);`;
+                  }
+                  if (ann[1] === "CassandraType.Name.DECIMAL") {
+                    // backend may return string vs number depending on
+                    // serialization; just check key exists.
+                    return `        expect(response.body.${fn}, 'MAP<DECIMAL> round-trip: ${fn}').to.have.property('rt-${fn}-key');`;
+                  }
+                  return `        expect(response.body.${fn}, 'MAP<TEXT> round-trip: ${fn}').to.have.property('rt-${fn}-key', 'rt-${fn}-value');`;
+                };
+                const interactions = roundTripWidgets
+                  .map(widgetAddLines)
+                  .join("\n\n");
+                const assertions = roundTripWidgets
+                  .map(widgetAssertion)
+                  .join("\n");
+                const roundTripTest =
+                  `    it('should round-trip MAP/SET widget entries through POST', () => {` +
+                  scalarFills +
+                  `\n${interactions}\n\n` +
+                  `      cy.get(entityCreateSaveButtonSelector).click();\n\n` +
+                  `      cy.wait('@postEntityRequest').then(({ response }) => {\n` +
+                  `        expect(response?.statusCode).to.equal(201);\n` +
+                  `${assertions}\n` +
+                  `        ${entity.entityInstance} = response.body;\n` +
+                  `      });\n` +
+                  `    });`;
+                // Insert after the last existing test in the `new X page`
+                // describe block. Anchor: the closing `\n    });\n` of the
+                // create-instance test we just read from.
+                const insertAt = saveClickIdx; // We'll find the actual insertion point next
+                // Re-locate the create-instance test's closing `});` boundary.
+                const closing = content.indexOf("\n    });\n", saveClickIdx);
+                if (closing !== -1) {
+                  const realInsertAt = closing + "\n    });".length;
+                  content =
+                    content.slice(0, realInsertAt) +
+                    "\n\n" +
+                    roundTripTest +
+                    content.slice(realInsertAt);
+                }
+              }
+            }
+
             // (d) Widen the `entitiesRequest` / `entitiesRequestInternal` intercept URL.
             // Upstream emits `'/services/<svc>/api/<entity>+(?*|)'` (matches the base path
             // optionally followed by `?...`). The cassandra pagination overhaul moved the
