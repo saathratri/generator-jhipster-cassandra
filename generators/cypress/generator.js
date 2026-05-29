@@ -492,9 +492,12 @@ export default class extends BaseApplicationGenerator {
                       // Required UTC_DATETIME composite-key fields render a
                       // red-asterisk `<span class="mdc-floating-label--required">`
                       // that covers the <mat-select> until first focus — force the
-                      // open click. The mat-option selection itself is unconstrained.
+                      // open click. Force the option click too: for a widget low on the
+                      // page the CDK overlay opens with the option's center off-screen /
+                      // covered, so Cypress's actionability check ("center hidden from
+                      // view") blocks an unforced click.
                       `      cy.get(\`[data-cy="${fn}-ampm"]\`).click({ force: true });`,
-                      `      cy.get('mat-option').contains('AM').click();`,
+                      `      cy.get('mat-option').contains('AM').click({ force: true });`,
                       `      cy.get(\`[data-cy="${fn}-ampm"]\`).should('contain', 'AM');`,
                       `    });`,
                     ].join("\n");
