@@ -472,19 +472,25 @@ export default class extends BaseApplicationGenerator {
                     const fn = f.fieldName;
                     return [
                       `    it('should accept input on the ${fn} date-time widget sub-inputs', () => {`,
-                      // mat-form-field's floating <mat-label> covers the input until
-                      // first focus, and the Material datepicker hides the date
-                      // <input>'s actionability behind its toggle. Use { force: true }
-                      // on every sub-input interaction so Cypress doesn't fail on
-                      // actionability.
-                      `      cy.get(\`[data-cy="${fn}-hours"]\`).clear({ force: true });`,
-                      `      cy.get(\`[data-cy="${fn}-hours"]\`).type('10', { force: true });`,
+                      // hours/minutes have an `(input)` handler that runs padZero on
+                      // every keystroke, replacing the value mid-type — typing '10'
+                      // character-by-character lands as '01' because the FIRST '1'
+                      // becomes '01' before Cypress sends the '0', which then can't
+                      // land at the expected cursor position. Use `.invoke('val', …)`
+                      // to set the value atomically and `.trigger('input')` to fire
+                      // the listener once with the final value. This mirrors a paste,
+                      // exercises the same DOM path, and is the cypress idiom for
+                      // inputs with re-rendering handlers.
+                      `      cy.get(\`[data-cy="${fn}-hours"]\`).invoke('val', '10').trigger('input', { force: true });`,
                       `      cy.get(\`[data-cy="${fn}-hours"]\`).should('have.value', '10');`,
                       ``,
-                      `      cy.get(\`[data-cy="${fn}-minutes"]\`).clear({ force: true });`,
-                      `      cy.get(\`[data-cy="${fn}-minutes"]\`).type('30', { force: true });`,
+                      `      cy.get(\`[data-cy="${fn}-minutes"]\`).invoke('val', '30').trigger('input', { force: true });`,
                       `      cy.get(\`[data-cy="${fn}-minutes"]\`).should('have.value', '30');`,
                       ``,
+                      // Required UTC_DATETIME composite-key fields render a
+                      // red-asterisk `<span class="mdc-floating-label--required">`
+                      // that covers the <mat-select> until first focus — force the
+                      // open click. The mat-option selection itself is unconstrained.
                       `      cy.get(\`[data-cy="${fn}-ampm"]\`).click({ force: true });`,
                       `      cy.get('mat-option').contains('AM').click();`,
                       `      cy.get(\`[data-cy="${fn}-ampm"]\`).should('contain', 'AM');`,
@@ -672,7 +678,10 @@ export default class extends BaseApplicationGenerator {
                     return `        expect(response.body.${fn}, 'SET round-trip: ${fn}').to.include('rt-${fn}-value');`;
                   }
                   if (ann[1] === "CassandraType.Name.BOOLEAN") {
-                    return `        expect(response.body.${fn}, 'MAP<BOOLEAN> round-trip: ${fn}').to.have.property('rt-${fn}-key', true);`;
+                    // The (c.9) Add-row interaction clicks the slide-toggle TWICE
+                    // (null → on → off) to commit a non-null value to the form; the
+                    // committed value is `false`, not `true`. Assertion must match.
+                    return `        expect(response.body.${fn}, 'MAP<BOOLEAN> round-trip: ${fn}').to.have.property('rt-${fn}-key', false);`;
                   }
                   if (ann[1] === "CassandraType.Name.DECIMAL") {
                     // backend may return string vs number depending on
