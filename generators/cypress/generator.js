@@ -942,10 +942,14 @@ export default class extends BaseApplicationGenerator {
               content.includes("should toggle the Cassandra search form")
             )
               return content;
+            // Navigate straight to the entity list page via the spec's own *PageUrl
+            // constant (mf-prefixed, e.g. /cassandrablog/<entity>), mirroring the CRUD
+            // tests' beforeEach. Avoids the microfrontend navbar dropdown, whose
+            // clickOnEntityMenuItem looks for an un-prefixed /<entity> href that doesn't
+            // match the gateway's /<baseName>/<entity> route.
             const searchTest = `
   it('should toggle the Cassandra search form', () => {
-    cy.visit('/');
-    cy.clickOnEntityMenuItem('${entity.entityFileName}');
+    cy.visit(${entity.entityInstance}PageUrl);
     cy.get('[data-cy="searchFormToggle"]', { timeout: 30000 }).click();
     cy.get('[data-cy="searchButton"]').should('be.visible');
   });
