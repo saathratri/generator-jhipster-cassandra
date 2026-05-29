@@ -181,8 +181,8 @@ _%>
             <input type="<%= fieldInputType %>" class="form-control" name="<%= fieldName %>" id="field_<%= fieldName %>" data-cy="<%= fieldName %>"
                 formControlName="<%= fieldName %>"/>
             @if (isNew) {
-            <button type="button" class="btn btn-primary" (click)="generateUUID('<%= primaryKeySaathratri.name %>.<%= fieldName %>')">Generate</button>
-            <button type="button" class="btn btn-danger" (click)="reset('<%= primaryKeySaathratri.name %>.<%= fieldName %>')" [disabled]="isResetDisabled['<%= primaryKeySaathratri.name %>.<%= fieldName %>']">
+            <button type="button" class="btn btn-primary" data-cy="<%= fieldName %>-generate" (click)="generateUUID('<%= primaryKeySaathratri.name %>.<%= fieldName %>')">Generate</button>
+            <button type="button" class="btn btn-danger" data-cy="<%= fieldName %>-reset" (click)="reset('<%= primaryKeySaathratri.name %>.<%= fieldName %>')" [disabled]="isResetDisabled['<%= primaryKeySaathratri.name %>.<%= fieldName %>']">
                 Reset
             </button>
             }
@@ -190,10 +190,11 @@ _%>
             <input type="<%= fieldInputType %>" class="form-control" name="<%= fieldName %>" id="field_<%= fieldName %>" data-cy="<%= fieldName %>"
                 formControlName="<%= fieldName %>"/>
             @if (isNew) {
-            <button type="button" class="btn btn-primary" (click)="generateTimeUUID('<%= primaryKeySaathratri.name %>.<%= fieldName %>')">Generate</button>
+            <button type="button" class="btn btn-primary" data-cy="<%= fieldName %>-generate" (click)="generateTimeUUID('<%= primaryKeySaathratri.name %>.<%= fieldName %>')">Generate</button>
             <button
                 type="button"
                 class="btn btn-danger"
+                data-cy="<%= fieldName %>-reset"
                 (click)="reset('<%= primaryKeySaathratri.name %>.<%= fieldName %>')"
                 [disabled]="isResetDisabled['<%= primaryKeySaathratri.name %>.<%= fieldName %>']">
                 Reset
@@ -329,10 +330,11 @@ _%>
             <input type="<%= fieldInputType %>" class="form-control" name="<%= fieldName %>" id="field_<%= fieldName %>" data-cy="<%= fieldName %>"
                 formControlName="<%= fieldName %>"/>
             @if (isNew) {
-            <button type="button" class="btn btn-primary" (click)="generateTimeUUID('<%= fieldName %>')">Generate</button>
+            <button type="button" class="btn btn-primary" data-cy="<%= fieldName %>-generate" (click)="generateTimeUUID('<%= fieldName %>')">Generate</button>
             <button
                 type="button"
                 class="btn btn-danger"
+                data-cy="<%= fieldName %>-reset"
                 (click)="reset('<%= fieldName %>')"
                 [disabled]="isResetDisabled['<%= fieldName %>']">
                 Reset
@@ -342,8 +344,8 @@ _%>
             <input type="<%= fieldInputType %>" class="form-control" name="<%= fieldName %>" id="field_<%= fieldName %>" data-cy="<%= fieldName %>"
                 formControlName="<%= fieldName %>"/>
             @if (isNew) {
-            <button type="button" class="btn btn-primary" (click)="generateUUID('<%= fieldName %>')">Generate</button>
-            <button type="button" class="btn btn-danger" (click)="reset('<%= fieldName %>')" [disabled]="isResetDisabled['<%= fieldName %>']">
+            <button type="button" class="btn btn-primary" data-cy="<%= fieldName %>-generate" (click)="generateUUID('<%= fieldName %>')">Generate</button>
+            <button type="button" class="btn btn-danger" data-cy="<%= fieldName %>-reset" (click)="reset('<%= fieldName %>')" [disabled]="isResetDisabled['<%= fieldName %>']">
                 Reset
             </button>
             }

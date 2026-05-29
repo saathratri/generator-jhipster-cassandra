@@ -967,6 +967,54 @@ export default class extends BaseApplicationGenerator {
             `[cypress] Added Cassandra search-form e2e smoke test to ${specPath}`,
           );
         }
+
+        // ---------------------------------------------------------------------------
+        // UUID / TIMEUUID key fields render a "Generate" + "Reset" button next to the
+        // input (data-cy "<field>-generate" / "<field>-reset", emitted by the
+        // cassandra-angular update template). Append an e2e test that drives them:
+        // Generate fills a valid UUID, Reset clears it back. Only runs when Cypress is
+        // enabled. Picks the first such key field per entity.
+        // ---------------------------------------------------------------------------
+        for (const entity of entities) {
+          if (entity.builtIn || !entity.entityFileName) continue;
+          const uuidField = (entity.fields ?? []).find(
+            (f) => f.fieldTypeUuidSaathratri || f.fieldTypeTimeUuidSaathratri,
+          );
+          if (!uuidField) continue;
+
+          const specPath = `${cypressDir}e2e/entity/${entity.entityFileName}.cy.ts`;
+          if (!this.existsDestination(specPath)) continue;
+
+          this.editFile(specPath, (content) => {
+            if (
+              typeof content !== "string" ||
+              content.includes("should generate and reset a UUID")
+            )
+              return content;
+            const fn = uuidField.fieldName;
+            const uuidTest = `
+  it('should generate and reset a UUID via the form buttons', () => {
+    cy.visit('/');
+    cy.clickOnEntityMenuItem(${entity.entityInstance}PageUrl.substring(1));
+    cy.get(entityCreateButtonSelector, { timeout: 30000 }).click();
+    // Generate fills a fresh UUID via the component's generateUUID()/generateTimeUUID().
+    cy.get(\`[data-cy="${fn}-generate"]\`).click();
+    cy.get(\`[data-cy="${fn}"]\`)
+      .invoke('val')
+      .should('match', /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+    // Reset restores the (empty) saved value, clearing the field.
+    cy.get(\`[data-cy="${fn}-reset"]\`).click();
+    cy.get(\`[data-cy="${fn}"]\`).should('have.value', '');
+  });
+`;
+            const idx = content.lastIndexOf("});");
+            if (idx === -1) return content;
+            return content.slice(0, idx) + uuidTest + content.slice(idx);
+          });
+          this.log.info(
+            `[cypress] Added UUID generate/reset e2e test to ${specPath}`,
+          );
+        }
       },
     });
   }

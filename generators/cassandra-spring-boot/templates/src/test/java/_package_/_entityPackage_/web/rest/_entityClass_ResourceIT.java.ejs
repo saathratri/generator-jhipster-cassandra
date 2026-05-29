@@ -2124,5 +2124,17 @@ _%>
             .andExpect(jsonPath("$").isArray())
             .andExpect(jsonPath("$.length()").value(0));
     }
+
+    @Test
+    void <%= vf.fieldName %>RoundTripsThroughTheVectorColumn() {
+        // Verify a CqlVector<Float> written to the vector<float, <%= vf.vectorDimensionSaathratri %>> column
+        // reads back intact (the Cassandra vector type mapping, independent of ANN search).
+        CqlVector<Float> embedding = sampleCqlVectorSaathratri(<%= vf.vectorDimensionSaathratri %>);
+        <%= persistInstance %>.set<%= vf.fieldNameCapitalized %>(embedding);
+        <%= entityInstance %>Repository.<%= saveMethod %>(<%= persistInstance %>)<%= callBlock %>;
+
+        <%= persistClass %> persisted = getPersisted<%= persistClass %>(<%= persistInstance %>);
+        assertThat(persisted.get<%= vf.fieldNameCapitalized %>()).isEqualTo(embedding);
+    }
 <%_ } _%>
 }

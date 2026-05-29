@@ -106,6 +106,12 @@ describe('<%= entityAngularName %> Management Component', () => {
       expect(comp.isSearchFormCollapsed).toBe(initial);
     });
 
+    it('should report the form invalid and inactive until a partition key is entered', () => {
+      // A fresh form has no partition-key criteria, so it is neither valid to submit nor active.
+      expect(comp.isSearchFormValid()).toBe(false);
+      expect(comp.hasActiveSearch()).toBe(false);
+    });
+
     it('should not run a search while the form is invalid (no partition key set)', () => {
       const loadSpy = vitest.spyOn(comp, 'load');
 

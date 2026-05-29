@@ -70,6 +70,8 @@ public interface <%= entityClass %>Mapper extends EntityMapper<<%= dtoClass %>, 
     <%_ for (const vf of vectorFieldsForMapper) { _%>
       @Mapping(target = "<%= vf.fieldName %>", ignore = true)
     <%_ } _%>
+    @Named("partialUpdate")
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void partialUpdate(@MappingTarget <%= persistClass %> entity, <%= dtoClass %> dto);
     <%_ } _%>
 
