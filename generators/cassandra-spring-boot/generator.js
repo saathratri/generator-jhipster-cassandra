@@ -218,6 +218,10 @@ export default class extends BaseApplicationGenerator {
                     "config/EmbeddingConfiguration.java",
                   ],
                 },
+                {
+                  ...javaTestPackageTemplatesBlock(),
+                  templates: ["service/embedding/EmbeddingServiceTest.java"],
+                },
               ],
             },
             context: application,

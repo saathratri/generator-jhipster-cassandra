@@ -344,7 +344,9 @@ export default class extends BaseApplicationGenerator {
                 blockStart,
               );
               const block =
-                saveClickIdx > -1 ? content.slice(blockStart, saveClickIdx) : "";
+                saveClickIdx > -1
+                  ? content.slice(blockStart, saveClickIdx)
+                  : "";
               const idSelectorMarker = `[data-cy="${idField.fieldName}"]`;
 
               if (!block.includes(idSelectorMarker)) {
@@ -594,8 +596,7 @@ export default class extends BaseApplicationGenerator {
                 blockStartForMap,
               );
               if (firstTestEndForMap !== -1) {
-                const insertAt =
-                  firstTestEndForMap + "\n    });".length;
+                const insertAt = firstTestEndForMap + "\n    });".length;
                 content =
                   content.slice(0, insertAt) +
                   "\n\n" +
@@ -777,9 +778,13 @@ export default class extends BaseApplicationGenerator {
                 // MAP<TEXT> / MAP<DECIMAL>
                 const editKey = `edit-${safe}-key`;
                 const orig =
-                  ann[1] === "CassandraType.Name.DECIMAL" ? "77.77" : "edit-orig";
+                  ann[1] === "CassandraType.Name.DECIMAL"
+                    ? "77.77"
+                    : "edit-orig";
                 const nw =
-                  ann[1] === "CassandraType.Name.DECIMAL" ? "88.88" : "edit-new";
+                  ann[1] === "CassandraType.Name.DECIMAL"
+                    ? "88.88"
+                    : "edit-new";
                 lines.push(
                   `      cy.get(\`[data-cy="${fn}-add-key"]\`).type('${editKey}');`,
                   `      cy.get(\`[data-cy="${fn}-add-value"]\`).type('${orig}');`,
@@ -842,7 +847,9 @@ export default class extends BaseApplicationGenerator {
               } else {
                 const delKey = `del-${safe}-key`;
                 const val =
-                  ann[1] === "CassandraType.Name.DECIMAL" ? "66.66" : "delete-val";
+                  ann[1] === "CassandraType.Name.DECIMAL"
+                    ? "66.66"
+                    : "delete-val";
                 lines.push(
                   `      cy.get(\`[data-cy="${fn}-add-key"]\`).type('${delKey}');`,
                   `      cy.get(\`[data-cy="${fn}-add-value"]\`).type('${val}');`,
@@ -913,6 +920,43 @@ export default class extends BaseApplicationGenerator {
 
             return content;
           });
+        }
+
+        // ---------------------------------------------------------------------------
+        // Composite-key entities render a partition/clustering-key search form (the
+        // blueprint's headline list feature). Append an e2e smoke test that opens the
+        // form and confirms the Search button surfaces. The form's data-cy hooks
+        // (searchFormToggle / searchButton) are emitted by the cassandra-angular list
+        // template. Only runs for apps that enable Cypress (testFrameworks cypress).
+        // ---------------------------------------------------------------------------
+        for (const entity of entities) {
+          if (entity.builtIn || !entity.entityFileName) continue;
+          if (!entity.primaryKeySaathratri?.composite) continue;
+
+          const specPath = `${cypressDir}e2e/entity/${entity.entityFileName}.cy.ts`;
+          if (!this.existsDestination(specPath)) continue;
+
+          this.editFile(specPath, (content) => {
+            if (
+              typeof content !== "string" ||
+              content.includes("should toggle the Cassandra search form")
+            )
+              return content;
+            const searchTest = `
+  it('should toggle the Cassandra search form', () => {
+    cy.visit('/');
+    cy.clickOnEntityMenuItem('${entity.entityFileName}');
+    cy.get('[data-cy="searchFormToggle"]', { timeout: 30000 }).click();
+    cy.get('[data-cy="searchButton"]').should('be.visible');
+  });
+`;
+            const idx = content.lastIndexOf("});");
+            if (idx === -1) return content;
+            return content.slice(0, idx) + searchTest + content.slice(idx);
+          });
+          this.log.info(
+            `[cypress] Added Cassandra search-form e2e smoke test to ${specPath}`,
+          );
         }
       },
     });

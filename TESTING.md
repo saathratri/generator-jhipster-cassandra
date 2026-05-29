@@ -224,20 +224,20 @@ Generated apps ship the upstream JHipster Cypress suite (account / admin / per-e
 `POST_WRITING_ENTITIES` (via `editFile`). Passes are labelled (a) – (d); each addresses a real
 failure mode observed against the example apps.
 
-| Pass | Purpose |
-|---|---|
-| (a) | Inject `compositeId: {…}` into the sample body so composite-key POSTs return 201 instead of 500 (`getCompositeId() is null`). |
-| (b) | Inject the single `id` UUID field into single-key sample bodies (avoids 400 `error.idinvalid`). |
-| (c) | Inject `cy.get(\`[data-cy="<id>"]\`).type(…)` into `should create an instance of X` for UUID `@Id` fields so the Save button isn't disabled. |
-| (c.5) | **Strip** upstream `cy.get(\`[data-cy="<mapOrSetField>"]\`)…` form-fills for MAP/SET columns — they target a non-existent input. MAP/SET aren't required, so removing them leaves the form valid. |
-| (c.6) | **Replace** upstream form-fill for UTC_DATETIME with a click on the entity-update's "Generate" button (`cy.get(\`app-date-time[fieldName="X"]\`).parent().contains('button','Generate').click()`). For composite-key UTC_DATETIME (e.g. `Post.addedDateTime`) this is required for form validity. |
-| (c.7) | Emit `should accept input on the <field> date-time widget sub-inputs` smoke test — covers the data-cy hooks on `<app-date-time>` (`-date`, `-hours`, `-minutes`, `-ampm`). Complements (c.6): if (c.6) fails, the Generate button regressed; if this fails, the data-cy hooks regressed. |
-| (c.8) | Per-widget smoke tests for SET<TEXT> / MAP<TEXT, *> / MAP<TEXT, BOOLEAN> / MAP<TEXT, BIGINT> Add-row hooks (`<field>-add-{key,value,toggle,button}`). |
-| (c.9) | **Round-trip test** — copy the scalar form fills from `should create an instance of X`, drive every MAP/SET widget via its Add-row hooks, click Save, then `expect(response.body.<field>).to.…` for each widget. Covers the full Angular → DTO → backend → DTO → JSON pipeline. **MAP<DAYJS> is included** via the nested `<app-date-time>` sub-inputs (the Add row binds `[fieldName]="fieldName + '-add-datetime'"` so date/hours/minutes/ampm are addressable). |
-| (c.10) | **Per-widget Edit-dialog test** — add a row, click its `<field>-row-<key\|i>-edit` hook, assert `mat-dialog-container` is visible, modify the dialog's `dialog-edit-value` (or `dialog-edit-toggle`), click `dialog-save-button`, assert the dialog dismissed. MAP<DAYJS> dialog is skipped (no scalar value input). |
-| (c.11) | **Per-widget Delete-row test** — add a row, click `<field>-row-<key\|i>-delete`, assert the row's edit hook no longer exists. Index-based for SET / MAP<BOOLEAN>, key-based for MAP<TEXT> / MAP<DECIMAL> / MAP<DAYJS>. |
-| (d) | **Composite-key DELETE cleanup URL.** Composite keys nest under `compositeId` and the REST endpoint takes one path segment per key field. Upstream's `afterEach` cleanup deletes via `/${entity.<oneField>}` → it hits `/.../undefined`. The patch rewrites it to `/${entity.compositeId.k1}/${entity.compositeId.k2}/…`. Single-key (non-composite) entities are left untouched. |
-| (d) | **DELETE intercept glob.** Widened from `'…/<apiUrl>/*'` to one `*` per key field, and the `entitiesRequest` / `entitiesRequestInternal` intercepts are converted from a minimatch glob to a regex literal (`/^\/services\/<svc>\/api\/<entity>\b/`) so the pagination overhaul's `/slice` segment doesn't break the wildcard. |
+| Pass   | Purpose                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| (a)    | Inject `compositeId: {…}` into the sample body so composite-key POSTs return 201 instead of 500 (`getCompositeId() is null`).                                                                                                                                                                                                                                                                                                                                      |
+| (b)    | Inject the single `id` UUID field into single-key sample bodies (avoids 400 `error.idinvalid`).                                                                                                                                                                                                                                                                                                                                                                    |
+| (c)    | Inject `cy.get(\`[data-cy="<id>"]\`).type(…)`into`should create an instance of X`for UUID`@Id` fields so the Save button isn't disabled.                                                                                                                                                                                                                                                                                                                           |
+| (c.5)  | **Strip** upstream `cy.get(\`[data-cy="<mapOrSetField>"]\`)…` form-fills for MAP/SET columns — they target a non-existent input. MAP/SET aren't required, so removing them leaves the form valid.                                                                                                                                                                                                                                                                  |
+| (c.6)  | **Replace** upstream form-fill for UTC_DATETIME with a click on the entity-update's "Generate" button (`cy.get(\`app-date-time[fieldName="X"]\`).parent().contains('button','Generate').click()`). For composite-key UTC_DATETIME (e.g. `Post.addedDateTime`) this is required for form validity.                                                                                                                                                                  |
+| (c.7)  | Emit `should accept input on the <field> date-time widget sub-inputs` smoke test — covers the data-cy hooks on `<app-date-time>` (`-date`, `-hours`, `-minutes`, `-ampm`). Complements (c.6): if (c.6) fails, the Generate button regressed; if this fails, the data-cy hooks regressed.                                                                                                                                                                           |
+| (c.8)  | Per-widget smoke tests for SET<TEXT> / MAP<TEXT, \*> / MAP<TEXT, BOOLEAN> / MAP<TEXT, BIGINT> Add-row hooks (`<field>-add-{key,value,toggle,button}`).                                                                                                                                                                                                                                                                                                             |
+| (c.9)  | **Round-trip test** — copy the scalar form fills from `should create an instance of X`, drive every MAP/SET widget via its Add-row hooks, click Save, then `expect(response.body.<field>).to.…` for each widget. Covers the full Angular → DTO → backend → DTO → JSON pipeline. **MAP<DAYJS> is included** via the nested `<app-date-time>` sub-inputs (the Add row binds `[fieldName]="fieldName + '-add-datetime'"` so date/hours/minutes/ampm are addressable). |
+| (c.10) | **Per-widget Edit-dialog test** — add a row, click its `<field>-row-<key\|i>-edit` hook, assert `mat-dialog-container` is visible, modify the dialog's `dialog-edit-value` (or `dialog-edit-toggle`), click `dialog-save-button`, assert the dialog dismissed. MAP<DAYJS> dialog is skipped (no scalar value input).                                                                                                                                               |
+| (c.11) | **Per-widget Delete-row test** — add a row, click `<field>-row-<key\|i>-delete`, assert the row's edit hook no longer exists. Index-based for SET / MAP<BOOLEAN>, key-based for MAP<TEXT> / MAP<DECIMAL> / MAP<DAYJS>.                                                                                                                                                                                                                                             |
+| (d)    | **Composite-key DELETE cleanup URL.** Composite keys nest under `compositeId` and the REST endpoint takes one path segment per key field. Upstream's `afterEach` cleanup deletes via `/${entity.<oneField>}` → it hits `/.../undefined`. The patch rewrites it to `/${entity.compositeId.k1}/${entity.compositeId.k2}/…`. Single-key (non-composite) entities are left untouched.                                                                                  |
+| (d)    | **DELETE intercept glob.** Widened from `'…/<apiUrl>/*'` to one `*` per key field, and the `entitiesRequest` / `entitiesRequestInternal` intercepts are converted from a minimatch glob to a regex literal (`/^\/services\/<svc>\/api\/<entity>\b/`) so the pagination overhaul's `/slice` segment doesn't break the wildcard.                                                                                                                                     |
 
 The composite-key patches key off `entity.primaryKeySaathratri` (set by
 `cassandra-spring-boot-utils.setSaathratriPrimaryKeyAttributesOnEntityAndFields`); the no-op
@@ -272,6 +272,24 @@ lists every `compositeId.<field>` and the DELETE intercept has one `*` per key f
 (e.g. `set-entity-by-organization.cy.ts`) stays flat and unchanged.
 
 ---
+
+## 5.3 Vector / AI-search test coverage (Saathratri)
+
+The blueprint generates a vector stack on Cassandra (`vector<float, N>` columns + SAI indexes, a
+`CqlVector<Float>` field, `EmbeddingService`, `findSimilarBy*` ANN repository queries, an `aiSearch`
+service method, and a `GET /api/<entities>/ai-search` endpoint). That code is now exercised by generated
+tests, so the bundled `sample.jdl` gives `Product` a vector field (`@customAnnotation("VECTOR")
+@customAnnotation("1536") titleEmbedding Blob`).
+
+| Layer             | What's covered                                                                                                                                                                                                                                                                                                                             | Where (template)                                                                                                               |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| Backend unit      | `EmbeddingService`: generate / null-blank guard / disabled-model (NPE swallowed) / model-throws. `EmbeddingModel.embed()` is **mocked** so it runs with no `OPENAI_API_KEY`.                                                                                                                                                               | `cassandra-spring-boot/.../service/embedding/EmbeddingServiceTest.java.ejs` (written in the `hasVectorFieldsSaathratri` block) |
+| Backend IT        | `/ai-search` end-to-end: stores a row whose vector equals the (mocked) query embedding and asserts the **ANN** query returns it (runs against the real Cassandra 5 Testcontainer); blank query → empty. Gated on `!reactive && !serviceNo` (the endpoint needs the service layer). Vector fields are already excluded from `fieldsToTest`. | `cassandra-spring-boot/.../web/rest/_entityClass_ResourceIT.java.ejs`                                                          |
+| Frontend (Vitest) | Composite-key entities render a partition/clustering-key search form: `toggleSearchForm` flips the collapsed state, `performSearch` is a no-op while the form is invalid, `clearSearch` reloads. Gated on `primaryKeySaathratri.composite`.                                                                                                | `cassandra-angular/entity-templates/.../list/_entityFile_.spec.ts.ejs`                                                         |
+| E2E (Cypress)     | `should toggle the Cassandra search form` — opens the form via `[data-cy="searchFormToggle"]` and asserts `[data-cy="searchButton"]` surfaces. Emitted only when the app enables Cypress (`testFrameworks cypress`); the bundled sample keeps it off, so this is verified against gateway runs, not the sample.                            | `cypress/generator.js` `POST_WRITING_ENTITIES` (composite-gated)                                                               |
+
+Fast inner loop for the backend additions:
+`./mvnw -ntp -Dskip.npm -Dtest=EmbeddingServiceTest -Dit.test=ProductResourceIT verify -DfailIfNoTests=false`.
 
 ## 6. Cross-cutting debugging techniques
 
@@ -344,7 +362,7 @@ java.lang.IllegalArgumentException: Could not parse type name vector<float, 1536
 ```
 
 Tests still pass (Driver 4.x is the actual runtime driver), but the warning is noisy and
-will silently *mask* metadata problems for any future vector-dependent IT.
+will silently _mask_ metadata problems for any future vector-dependent IT.
 
 **Root cause:** upstream JHipster's customizer factory pulls the local DC and cluster name via
 the legacy `CassandraContainer.getCluster().getMetadata()...` chain. `getCluster()` returns a
@@ -357,12 +375,18 @@ keyspace. Driver 3.x predates the CQL `vector` type and trips on any `vector<flo
 
 ```js
 // in POST_WRITING, gated on application.databaseTypeCassandra
-editFile(`src/test/java/${application.packageFolder}/config/CassandraTestContainersSpringContextCustomizerFactory.java`, content =>
-  content
-    .replace(/cassandraBean\.getCassandraContainer\(\)\.getCluster\(\)[\s\S]*?\.getDatacenter\(\)/g,
-             "cassandraBean.getCassandraContainer().getLocalDatacenter()")
-    .replace(/cassandraBean\.getCassandraContainer\(\)\.getCluster\(\)[\s\S]*?\.getClusterName\(\)/g,
-             '"Test Cluster"')
+editFile(
+  `src/test/java/${application.packageFolder}/config/CassandraTestContainersSpringContextCustomizerFactory.java`,
+  (content) =>
+    content
+      .replace(
+        /cassandraBean\.getCassandraContainer\(\)\.getCluster\(\)[\s\S]*?\.getDatacenter\(\)/g,
+        "cassandraBean.getCassandraContainer().getLocalDatacenter()",
+      )
+      .replace(
+        /cassandraBean\.getCassandraContainer\(\)\.getCluster\(\)[\s\S]*?\.getClusterName\(\)/g,
+        '"Test Cluster"',
+      ),
 );
 ```
 

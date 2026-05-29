@@ -42,6 +42,7 @@ entity Product {
   @customAnnotation("") @customAnnotation("CassandraType.Name.DECIMAL") @customAnnotation("") @customAnnotation("") price BigDecimal required min(0)
   @customAnnotation("") @customAnnotation("CassandraType.Name.BLOB") @customAnnotation("image") @customAnnotation("") image ImageBlob
   @customAnnotation("") @customAnnotation("CassandraType.Name.BIGINT") @customAnnotation("UTC_DATE") @customAnnotation("") addedDate Long required
+  @customAnnotation("VECTOR") @customAnnotation("1536") titleEmbedding Blob
 }
 
 // Composite Primary Key with TIMEUUID clustered key, multiple partitioned + clustered keys.

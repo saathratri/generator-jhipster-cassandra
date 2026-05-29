@@ -61,9 +61,15 @@ if (databaseTypeSql && !reactive) {
 
 // Composite Primary Key Code
 let compositePrimaryKeyServerUrl = '';
-if (primaryKeySaathratri.composite) { 
+if (primaryKeySaathratri.composite) {
   compositePrimaryKeyServerUrl = getCompositePrimaryKeyServerUrl(entityInstance, primaryKeySaathratri);
-} 
+}
+/* Saathratri modification - AI-search (ANN over vector<float, N>) integration tests.
+   Vector fields are already excluded from fieldsToTest above; everything the AI-search test
+   needs is self-contained in the block appended at the end of the class. The endpoint requires
+   the service layer (viaService), so the test is only emitted for serviceImpl entities. */
+const vectorFieldsSaathratri = fields.filter(f => f.fieldTypeVectorSaathratri);
+const hasVectorTestsSaathratri = vectorFieldsSaathratri.length > 0 && !reactive && !serviceNo;
 _%>
 <%_ if (entityAbsolutePackage !== packageName) { _%>
 import <%= packageName %>.web.rest.TestUtil;
@@ -231,6 +237,14 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 <%_ } _%>
 <%_ if (searchEngineElasticsearch || implementsEagerLoadApis) { _%>
 import static org.mockito.Mockito.*;
+<%_ } _%>
+<%_ /* Saathratri modification - imports for the AI-search integration test */ _%>
+<%_ if (hasVectorTestsSaathratri) { _%>
+import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.anyString;
+import com.datastax.oss.driver.api.core.data.CqlVector;
+import org.springframework.ai.embedding.EmbeddingModel;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 <%_ } _%>
 <%_ if (!reactive) { _%>
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -2061,4 +2075,54 @@ _%>
         assert<%- persistClass %>AllUpdatablePropertiesEquals(expected<%- persistClass %>, getPersisted<%- persistClass %>(expected<%- persistClass %>));
 <%_ } _%>
     }
+<%_ /* Saathratri modification - AI-search (ANN over vector<float, N>) integration tests */ _%>
+<%_ if (hasVectorTestsSaathratri) {
+      const vf = vectorFieldsSaathratri[0]; _%>
+
+    // ==================== AI-search (ANN vector similarity) integration test (Saathratri) ====================
+
+    @MockitoBean
+    private EmbeddingModel embeddingModelSaathratriMock;
+
+    /** Deterministic, non-zero embedding so the stored row and the mocked query embed to the same vector. */
+    private static float[] sampleFloatsSaathratri(int dimension) {
+        float[] vector = new float[dimension];
+        for (int i = 0; i < dimension; i++) {
+            vector[i] = 0.10f + ((i % 8) * 0.01f);
+        }
+        return vector;
+    }
+
+    private static CqlVector<Float> sampleCqlVectorSaathratri(int dimension) {
+        float[] floats = sampleFloatsSaathratri(dimension);
+        java.util.List<Float> values = new java.util.ArrayList<>(dimension);
+        for (float f : floats) {
+            values.add(f);
+        }
+        return CqlVector.newInstance(values);
+    }
+
+    @Test
+    void aiSearchReturnsSemanticMatchesWhenEmbeddingModelIsAvailable() throws Exception {
+        // Store a row whose <%= vf.fieldName %> equals the query vector (ANN distance 0 -> top hit).
+        <%= persistInstance %>.set<%= vf.fieldNameCapitalized %>(sampleCqlVectorSaathratri(<%= vf.vectorDimensionSaathratri %>));
+        <%= entityInstance %>Repository.<%= saveMethod %>(<%= persistInstance %>)<%= callBlock %>;
+        when(embeddingModelSaathratriMock.embed(anyString())).thenReturn(sampleFloatsSaathratri(<%= vf.vectorDimensionSaathratri %>));
+
+        rest<%= entityClass %>MockMvc
+            .perform(get(ENTITY_API_URL + "/ai-search").param("query", "find similar rows").param("limit", "10"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$").isArray())
+            .andExpect(jsonPath("$.[*].<%= primaryKey.name %>").value(hasItem(<%= idValue %>)));
+    }
+
+    @Test
+    void aiSearchReturnsEmptyForBlankQuery() throws Exception {
+        rest<%= entityClass %>MockMvc
+            .perform(get(ENTITY_API_URL + "/ai-search").param("query", "  ").param("limit", "10"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$").isArray())
+            .andExpect(jsonPath("$.length()").value(0));
+    }
+<%_ } _%>
 }
