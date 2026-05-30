@@ -227,12 +227,6 @@ export default class extends BaseApplicationGenerator {
   get [BaseApplicationGenerator.POST_WRITING_ENTITIES]() {
     return this.asPostWritingEntitiesTaskGroup({
       async postWritingEntitiesTemplateTask({ application, entities }) {
-        try {
-          require("fs").appendFileSync(
-            require("path").join(require("os").tmpdir(), "saathratri-diag.txt"),
-            `TASK baseName=${application.baseName} cypressDir=${application.cypressDir} entityCount=${entities.length} entities=${entities.map((e) => e.entityFileName).join(",")}\n`,
-          );
-        } catch (e) {}
         // Upstream's Cypress entity spec assumes a single primary-key path segment for the
         // DELETE cleanup and intercept. For Cassandra composite keys the REST endpoint and
         // the Angular service use one path segment per key field
@@ -305,24 +299,6 @@ export default class extends BaseApplicationGenerator {
           if (entity.builtIn || !entity.entityFileName) continue;
 
           const specPath = `${cypressDir}e2e/entity/${entity.entityFileName}.cy.ts`;
-          try {
-            const _os = require("os"),
-              _p = require("path").join(_os.tmpdir(), "saathratri-diag.txt");
-            require("fs").appendFileSync(
-              _p,
-              `patchloop baseName=${this.jhipsterConfig?.baseName} entity=${entity.entityFileName} exists=${this.existsDestination(specPath)}\n`,
-            );
-          } catch (e) {
-            try {
-              require("fs").appendFileSync(
-                require("path").join(
-                  require("os").tmpdir(),
-                  "saathratri-diag-err.txt",
-                ),
-                String(e) + "\n",
-              );
-            } catch (e2) {}
-          }
           if (!this.existsDestination(specPath)) continue;
 
           const idField = entity.fields?.find((f) => f.id);
