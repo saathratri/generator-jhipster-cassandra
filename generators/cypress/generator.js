@@ -246,7 +246,11 @@ export default class extends BaseApplicationGenerator {
             );
           }
         }
-        if (compositeByApiUrl.size === 0) return;
+        // NOTE: do NOT early-return when there are no composite-key entities. Single-key-only
+        // apps (e.g. cassandrastore: product, report) still need the (c) timeout-bump and
+        // (d) intercept-widen patches in the loop further below to survive microfrontend
+        // cold-load. The composite-specific loop right below is already per-entity guarded,
+        // so it harmlessly no-ops when nothing is composite.
 
         for (const entity of entities) {
           if (!entity.primaryKeySaathratri?.composite) continue;
