@@ -290,14 +290,14 @@ The detail/view page renders all MAP fields with their key-value pairs.
 Every custom Angular widget the blueprint ships exposes `data-cy` hooks so the
 generated Cypress specs can drive them without DOM gymnastics:
 
-| Widget | Add-row hooks | Per-row hooks | Dialog hooks |
-|---|---|---|---|
-| `set-string-component` | `<field>-add-value`, `<field>-add-button` | `<field>-row-<i>-edit`, `<field>-row-<i>-delete` | `dialog-edit-value`, `dialog-save-button` |
-| `map-string-component` | `<field>-add-key`, `-add-value`, `-add-button` | `<field>-row-<key>-edit`, `-delete` | `dialog-edit-value`, `dialog-save-button` |
-| `map-number-component` | same as map-string | same as map-string | same |
-| `map-boolean-component` | `<field>-add-key`, `-add-toggle`, `-add-button` | `<field>-row-<i>-edit`, `-delete` | `dialog-edit-toggle`, `dialog-save-button` |
-| `map-dayjs-component` | `<field>-add-key`, `-add-datetime-{date,hours,minutes,ampm}`, `-add-button` | `<field>-row-<key>-edit`, `-delete` | `dialog-save-button` |
-| `app-date-time` | `<field>-{date,hours,minutes,ampm}` | n/a | n/a |
+| Widget                  | Add-row hooks                                                               | Per-row hooks                                    | Dialog hooks                               |
+| ----------------------- | --------------------------------------------------------------------------- | ------------------------------------------------ | ------------------------------------------ |
+| `set-string-component`  | `<field>-add-value`, `<field>-add-button`                                   | `<field>-row-<i>-edit`, `<field>-row-<i>-delete` | `dialog-edit-value`, `dialog-save-button`  |
+| `map-string-component`  | `<field>-add-key`, `-add-value`, `-add-button`                              | `<field>-row-<key>-edit`, `-delete`              | `dialog-edit-value`, `dialog-save-button`  |
+| `map-number-component`  | same as map-string                                                          | same as map-string                               | same                                       |
+| `map-boolean-component` | `<field>-add-key`, `-add-toggle`, `-add-button`                             | `<field>-row-<i>-edit`, `-delete`                | `dialog-edit-toggle`, `dialog-save-button` |
+| `map-dayjs-component`   | `<field>-add-key`, `-add-datetime-{date,hours,minutes,ampm}`, `-add-button` | `<field>-row-<key>-edit`, `-delete`              | `dialog-save-button`                       |
+| `app-date-time`         | `<field>-{date,hours,minutes,ampm}`                                         | n/a                                              | n/a                                        |
 
 The cypress generator (`generators/cypress/generator.js`) post-processes the
 generated entity specs in `POST_WRITING_ENTITIES` and emits:

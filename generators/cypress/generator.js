@@ -227,6 +227,12 @@ export default class extends BaseApplicationGenerator {
   get [BaseApplicationGenerator.POST_WRITING_ENTITIES]() {
     return this.asPostWritingEntitiesTaskGroup({
       async postWritingEntitiesTemplateTask({ application, entities }) {
+        try {
+          require("fs").appendFileSync(
+            require("path").join(require("os").tmpdir(), "saathratri-diag.txt"),
+            `TASK baseName=${application.baseName} cypressDir=${application.cypressDir} entityCount=${entities.length} entities=${entities.map((e) => e.entityFileName).join(",")}\n`,
+          );
+        } catch (e) {}
         // Upstream's Cypress entity spec assumes a single primary-key path segment for the
         // DELETE cleanup and intercept. For Cassandra composite keys the REST endpoint and
         // the Angular service use one path segment per key field
@@ -299,10 +305,32 @@ export default class extends BaseApplicationGenerator {
           if (entity.builtIn || !entity.entityFileName) continue;
 
           const specPath = `${cypressDir}e2e/entity/${entity.entityFileName}.cy.ts`;
+          try {
+            const _os = require("os"),
+              _p = require("path").join(_os.tmpdir(), "saathratri-diag.txt");
+            require("fs").appendFileSync(
+              _p,
+              `patchloop baseName=${this.jhipsterConfig?.baseName} entity=${entity.entityFileName} exists=${this.existsDestination(specPath)}\n`,
+            );
+          } catch (e) {
+            try {
+              require("fs").appendFileSync(
+                require("path").join(
+                  require("os").tmpdir(),
+                  "saathratri-diag-err.txt",
+                ),
+                String(e) + "\n",
+              );
+            } catch (e2) {}
+          }
           if (!this.existsDestination(specPath)) continue;
 
           const idField = entity.fields?.find((f) => f.id);
-          if (!idField) continue;
+          // NOTE: do NOT `continue` when idField is missing. Single-key Cassandra entities
+          // whose PK is not an @Id-annotated entity field (e.g. Product, Report) have no
+          // idField, but they still need the (c) timeout bump + (d) intercept-widen patches
+          // below to survive microfrontend cold-load. Only the id-dependent (a)/(b) blocks
+          // are guarded on idField.
 
           this.editFile(specPath, (content) => {
             const sampleVar = `${entity.entityInstance}Sample`;
@@ -319,7 +347,7 @@ export default class extends BaseApplicationGenerator {
                   `const ${sampleVar} = { compositeId: { ${compositeIdLit} },`,
                 );
               }
-            } else {
+            } else if (idField) {
               const idPropRe = new RegExp(
                 `${escapeRegExp(sampleVar)}\\s*=\\s*\\{\\s*${escapeRegExp(idField.fieldName)}\\b`,
               );
@@ -337,7 +365,7 @@ export default class extends BaseApplicationGenerator {
             // (Tag.id, SaathratriEntity2.entityTypeId) are missing but String/Long @Id
             // fields (Blog.category) are already there.
             const formFillStart = `it('should create an instance of ${entity.entityAngularName}', () => {`;
-            const blockStart = content.indexOf(formFillStart);
+            const blockStart = idField ? content.indexOf(formFillStart) : -1;
             if (blockStart !== -1) {
               const saveClickIdx = content.indexOf(
                 "cy.get(entityCreateSaveButtonSelector)",
