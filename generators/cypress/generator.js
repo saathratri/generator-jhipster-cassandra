@@ -460,11 +460,9 @@ export default class extends BaseApplicationGenerator {
                     )
                     .join("\n");
                   const saveClickIdx = blockStart + block.indexOf(saveMatch[0]);
-                  content =
-                    content.slice(0, saveClickIdx) +
-                    generateLines +
-                    "\n\n" +
-                    content.slice(saveClickIdx);
+                  content = `${
+                    content.slice(0, saveClickIdx) + generateLines
+                  }\n\n${content.slice(saveClickIdx)}`;
                 }
               }
 
@@ -512,11 +510,9 @@ export default class extends BaseApplicationGenerator {
                   })
                   .join("\n\n");
                 const insertAt = firstTestEnd + "\n    });".length;
-                content =
-                  content.slice(0, insertAt) +
-                  "\n\n" +
-                  widgetTests +
-                  content.slice(insertAt);
+                content = `${content.slice(0, insertAt)}\n\n${
+                  widgetTests
+                }${content.slice(insertAt)}`;
               }
             }
 
@@ -608,11 +604,12 @@ export default class extends BaseApplicationGenerator {
               );
               if (firstTestEndForMap !== -1) {
                 const insertAt = firstTestEndForMap + "\n    });".length;
-                content =
-                  content.slice(0, insertAt) +
-                  "\n\n" +
-                  widgetTestsForEntity.join("\n\n") +
-                  content.slice(insertAt);
+                content = `${content.slice(
+                  0,
+                  insertAt,
+                )}\n\n${widgetTestsForEntity.join(
+                  "\n\n",
+                )}${content.slice(insertAt)}`;
               }
             }
 
@@ -714,9 +711,9 @@ export default class extends BaseApplicationGenerator {
                   .map(widgetAssertion)
                   .join("\n");
                 const roundTripTest =
-                  `    it('should round-trip MAP/SET widget entries through POST', () => {` +
-                  scalarFills +
-                  `\n${interactions}\n\n` +
+                  `    it('should round-trip MAP/SET widget entries through POST', () => {${
+                    scalarFills
+                  }\n${interactions}\n\n` +
                   `      cy.get(entityCreateSaveButtonSelector).click();\n\n` +
                   `      cy.wait('@postEntityRequest').then(({ response }) => {\n` +
                   `        expect(response?.statusCode).to.equal(201);\n` +
@@ -732,11 +729,9 @@ export default class extends BaseApplicationGenerator {
                 const closing = content.indexOf("\n    });\n", saveClickIdx);
                 if (closing !== -1) {
                   const realInsertAt = closing + "\n    });".length;
-                  content =
-                    content.slice(0, realInsertAt) +
-                    "\n\n" +
-                    roundTripTest +
-                    content.slice(realInsertAt);
+                  content = `${content.slice(0, realInsertAt)}\n\n${
+                    roundTripTest
+                  }${content.slice(realInsertAt)}`;
                 }
               }
             }
@@ -902,11 +897,12 @@ export default class extends BaseApplicationGenerator {
                     break;
                 }
                 if (lastEnd !== -1) {
-                  content =
-                    content.slice(0, lastEnd) +
-                    "\n\n" +
-                    editDeleteTests.join("\n\n") +
-                    content.slice(lastEnd);
+                  content = `${content.slice(
+                    0,
+                    lastEnd,
+                  )}\n\n${editDeleteTests.join(
+                    "\n\n",
+                  )}${content.slice(lastEnd)}`;
                 }
               }
             }
