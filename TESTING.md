@@ -165,6 +165,27 @@ it might involve data filtering … use ALLOW FILTERING` → **500**. But the ge
 > tables, a performance footgun on large ones. With this in place, the IT asserts **200 for every
 > endpoint**, partial-partition included.
 
+**⚠️ Production guidance — `ALLOW FILTERING` is a scale footgun, not a free feature.** The annotation
+makes the partial-partition search _work_, but the query it enables is a **cross-partition scan**:
+the coordinator contacts (potentially) every node, reads, and filters in memory. Cost grows with the
+**whole table**, not the result set — the opposite of how Cassandra is supposed to be queried. It is
+acceptable for:
+
+- low-cardinality / bounded tables (lookup/config data),
+- admin or back-office search screens with low QPS and an operator who tolerates latency,
+- dev/test and demos.
+
+It is **not** acceptable as a hot read path on a table that grows unbounded (messages, events,
+reservations, …): expect rising p99s, tombstone/timeout errors, and coordinator pressure under load.
+
+**The Cassandra-idiomatic fix when one of these searches becomes a real access pattern:** don't filter
+— **model for it**. Add a purpose-built denormalized table whose _partition key is what you actually
+query by_ (e.g. `..._by_organization` keyed on `organization_id`), written alongside the primary table,
+and point that progressive-search branch at the new table's full-partition query instead of the
+`@AllowFiltering` one. A secondary index (or SAI) is a lighter middle ground for low-cardinality, but a
+denormalized query table is the durable answer. Treat the generated `@AllowFiltering` endpoints as a
+**working default + a TODO marker**, not a finished design, for any table expected to grow.
+
 The matching **frontend** coverage lives in `_entityFile_.service.spec.ts.ejs`: a
 `composite-key search methods` describe block tests every generated `findAllBy…Pageable` /
 comparison / `findBy…` service method issues the expected GET (mocked `HttpTestingController`).
