@@ -330,17 +330,11 @@ export default class extends BaseApplicationGenerator {
             // Add Spring AI OpenAI starter to the main <dependencies> section
             // Match the top-level </dependencies> (4-space indent) to avoid hitting dependencyManagement or profile ones
             if (!content.includes("spring-ai-openai")) {
-              // Pin the version on the dependency itself (not only via the BOM below). In the
-              // orchestrator's assembled composition this editFile can run BEFORE <dependencyManagement>
-              // is finalized, so the BOM insertion can miss its anchor and the version would be unresolved
-              // ("'dependencies.dependency.version' for org.springframework.ai:spring-ai-openai is missing").
-              // An explicit version is robust to ordering and harmless when the BOM is also present.
               content = content.replace(
                 /^( {4})<\/dependencies>/m,
                 `$1    <dependency>
 $1        <groupId>org.springframework.ai</groupId>
 $1        <artifactId>spring-ai-openai</artifactId>
-$1        <version>2.0.0-M7</version>
 $1    </dependency>
 $1</dependencies>`,
               );
