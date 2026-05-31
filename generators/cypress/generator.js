@@ -227,6 +227,14 @@ export default class extends BaseApplicationGenerator {
   get [BaseApplicationGenerator.POST_WRITING_ENTITIES]() {
     return this.asPostWritingEntitiesTaskGroup({
       async postWritingEntitiesTemplateTask({ application, entities }) {
+        // These entity-spec patches are Cassandra-specific (composite-key URLs, MAP/SET/date-time
+        // widgets, the search form) and read the Cassandra-only `entity.primaryKeySaathratri`
+        // metadata. In the standalone cassandra example every app is Cassandra so this guard is a
+        // no-op; it matters once this generator is copied into the *orchestrator*, which also has
+        // SQL services — there it prevents mis-patching SQL entity specs (the DB-agnostic navbar
+        // fix in POST_WRITING still runs for every app). SQL services get their own patches from
+        // the ai-postgresql cypress generator.
+        if (!application.databaseTypeCassandra) return;
         // Upstream's Cypress entity spec assumes a single primary-key path segment for the
         // DELETE cleanup and intercept. For Cassandra composite keys the REST endpoint and
         // the Angular service use one path segment per key field
