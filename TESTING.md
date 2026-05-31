@@ -136,6 +136,38 @@ MAVEN_OPTS="-Djavax.net.ssl.trustStoreType=Windows-ROOT" \
 Key idea: **the live `cassandrablog`/`cassandrastore` depend on the Resource's public API, so we fixed
 the _tests_ to match the Resource — not vice-versa.**
 
+### 4.2 Composite-key search-endpoint coverage
+
+The blueprint emits a ladder of composite-key search endpoints per entity (built by
+`generatePrimaryKeyMethods` in `cassandra-spring-data-cassandra-utils.js`): partial-key
+`findAllBy<prefix>` + cursor-paged `…Pageable`, clustering-column comparison operators
+(`…LessThan/LessThanEqual/GreaterThan/GreaterThanEqual` for Long/TimeUUID, plain + `…Pageable`),
+the full-key `findBy<…>`, `findLatestBy<…>` (TimeUUID keys), and `/slice`. These are exercised by a
+single generated `getAll<Entity>sByCompositeKeySearches` IT method, emitted by
+`generateCompositeKeySearchResourceITTests(...)` in that same utils file and wired into
+`_entityClass_ResourceIT.java.ejs` (gated on `primaryKeySaathratri.composite`). It persists one row,
+hits every endpoint, and asserts **HTTP 200** — which verifies the derived CQL + parameter binding
+runs against the real Cassandra Testcontainer (body shape is already covered by `get`/`getAll`). The
+generator mirrors `generatePrimaryKeyMethods`' own iteration so the test set stays in lockstep with
+the endpoints as the key shape changes.
+
+> **The partition-key rule (why some endpoints are deliberately _not_ asserted).** Cassandra rejects
+> any query that restricts only **part of the partition key** — `Cannot execute this query as it
+might involve data filtering … use ALLOW FILTERING` → the endpoint returns **500**. So the test
+> asserts 200 only for prefixes that cover the **full** partition key (then 0+ clustering columns, in
+> order); it computes `partitionCount = ids.filter(id => !id.isClusteredKeySaathratri).length` and
+> skips any `findAllBy` whose param prefix is shorter. **Consequence worth noting:** the blueprint
+> still _generates_ the partial-partition-key endpoints (e.g. `findAllByCompositeIdOrganizationId`
+> when the partition key is `(organizationId, entityType, entityId)`), and those are **non-functional
+> at runtime** (500). They are left unasserted here rather than masked; deciding whether to stop
+> generating them or annotate the repository with `@AllowFiltering` is a separate call.
+
+The matching **frontend** coverage lives in `_entityFile_.service.spec.ts.ejs`: a
+`composite-key search methods` describe block tests every generated `findAllBy…Pageable` /
+comparison / `findBy…` service method issues the expected GET. Those use mocked HTTP
+(`HttpTestingController`), so — unlike the backend ITs — they are **not** subject to the
+partition-key rule and cover the partial-partition methods too.
+
 ---
 
 ## 5. Layer 3 — generated **frontend** (Angular) tests

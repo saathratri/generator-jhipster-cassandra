@@ -1054,6 +1054,13 @@ _%>
   <%_ } _%>
   <%_ } _%>;
     }
+<%_ /* Saathratri modification - exercise every generated composite-key search endpoint
+      (partial partition-key list + cursor-paged variants, clustering comparison operators,
+      full-key findBy, findLatestBy, and /slice). Generated in lockstep with the endpoints
+      themselves via generatePrimaryKeyMethods' shared iteration. */ _%>
+<%_ if (primaryKeySaathratri.composite) { _%>
+<%- generateCompositeKeySearchResourceITTests(entityClass, entityInstance, persistInstance, saveMethod, callBlock, primaryKeySaathratri, transactionalAnnotation) %>
+<%_ } _%>
 <%_ if (jpaMetamodelFiltering) {  %>
 
     @Test<%= transactionalAnnotation %>

