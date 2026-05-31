@@ -31,6 +31,13 @@ export const springDataCassandraSaathratriUtils = {
 
     const findLastComponents = { ...methodComponents };
     const totalIds = primaryKey.ids.length;
+    // Number of leading partition-key columns. A findAllBy that restricts only a PREFIX of the
+    // partition key (paramCount < partitionCount) is illegal in Cassandra without ALLOW FILTERING,
+    // so those repository methods get @AllowFiltering — the list search-form drives progressive
+    // prefix search and would otherwise 500 on a partial-partition query.
+    const partitionCount = primaryKey.ids.filter(
+      (pk) => !pk.isClusteredKeySaathratri,
+    ).length;
 
     primaryKey.ids.forEach((id, index) => {
       const {
@@ -81,6 +88,8 @@ export const springDataCassandraSaathratriUtils = {
             "findAllBy",
             methodComponents,
             fileType,
+            // partial partition key (prefix shorter than the full partition) → ALLOW FILTERING
+            index + 1 < partitionCount,
           );
         }
       }
@@ -141,7 +150,14 @@ export const springDataCassandraSaathratriUtils = {
     methodType,
     components,
     fileType,
+    allowFiltering = false,
   ) {
+    // Spring Data Cassandra adds the CQL `ALLOW FILTERING` clause to a derived query method
+    // annotated with @AllowFiltering — required when the method restricts only part of the
+    // partition key. Use the fully-qualified name to avoid managing an import in the template.
+    const allowFilteringAnnotation = allowFiltering
+      ? "@org.springframework.data.cassandra.repository.AllowFiltering\n"
+      : "";
     // EXISTING: Generate non-paginated methods
     if (fileType === "Service") {
       methodsCode.push(
@@ -155,7 +171,7 @@ export const springDataCassandraSaathratriUtils = {
       );
     } else if (fileType === "Repository") {
       methodsCode.push(
-        `${this.getPrimaryKeyRepositoryMethodSignature(
+        `${allowFilteringAnnotation}${this.getPrimaryKeyRepositoryMethodSignature(
           entityClass,
           entityInstanceSnakeCase,
           methodType,
@@ -197,7 +213,7 @@ export const springDataCassandraSaathratriUtils = {
     if (methodType === "findAllBy") {
       if (fileType === "Repository") {
         methodsCode.push(
-          `${this.getPaginatedRepositoryMethodSignature(
+          `${allowFilteringAnnotation}${this.getPaginatedRepositoryMethodSignature(
             entityClass,
             methodType,
             components.name,
@@ -619,36 +635,27 @@ export const springDataCassandraSaathratriUtils = {
     const performAndOk = (url, paramCount, extra = "") =>
       `        ${mockMvc}.perform(get(ENTITY_API_URL + "/${this.getCompositePrimaryKeyGetMappingUrl(url)}")${paramChain(paramCount)}${extra}).andExpect(status().isOk());\n`;
 
-    // Cassandra rejects any query that restricts only PART of the partition key (it needs ALLOW
-    // FILTERING). A query is valid only once every partition column is restricted, after which
-    // clustering columns may be added in order. So we only assert 200 for endpoints whose param
-    // prefix covers the full partition key; the partial-partition-key endpoints the blueprint also
-    // emits would 500 here and are deliberately left unasserted (see note in the generated test).
-    const partitionCount = ids.filter(
-      (id) => !id.isClusteredKeySaathratri,
-    ).length;
-
+    // Every search endpoint is now a valid runtime query: partial-partition-key findAllBy methods
+    // carry @AllowFiltering (see generatePrimaryKeyMethods), and full-partition / clustering /
+    // findBy queries are valid without it. So we assert 200 for ALL of them.
     const lines = [];
     let name = "";
     ids.forEach((id, index) => {
       name += `${name ? "And" : ""}${keyCap}${_.upperFirst(id.fieldName)}`;
       const paramCount = index + 1;
-      const fullPartition = paramCount >= partitionCount;
       if (index === totalIds - 1) {
-        // Full composite key: findBy<...> (returns the single entity) — always a valid query.
+        // Full composite key: findBy<...> (returns the single entity).
         lines.push(performAndOk(`findBy${name}`, paramCount));
-      } else if (fullPartition) {
-        // Full partition key (+ optional clustering prefix): list + cursor-paged variants.
+      } else {
+        // Partition/clustering key prefix: list + cursor-paged variants.
         lines.push(performAndOk(`findAllBy${name}`, paramCount));
         lines.push(
           performAndOk(`findAllBy${name}Pageable`, paramCount, '.param("size", "20")'),
         );
       }
       // Comparison operators are generated for clustering keys of type Long / TimeUUID (a plain and
-      // a -pageable variant per operator). They restrict a clustering column, so the partition key
-      // is already complete and the query is valid.
+      // a -pageable variant per operator).
       if (
-        fullPartition &&
         id.isClusteredKeySaathratri &&
         (id.fieldType === "Long" || id.fieldTypeTimeUuidSaathratri)
       ) {
@@ -663,9 +670,8 @@ export const springDataCassandraSaathratriUtils = {
       }
     });
 
-    // findLatestBy<all-but-last-field> exists when the key has a TimeUUID clustering column. Its
-    // last field is clustering, so all-but-last still covers the full partition key → valid query.
-    if (primaryKey.hasTimeUUID && totalIds > 1 && totalIds - 1 >= partitionCount) {
+    // findLatestBy<all-but-last-field> exists when the key has a TimeUUID clustering column.
+    if (primaryKey.hasTimeUUID && totalIds > 1) {
       let latestName = "";
       ids.slice(0, totalIds - 1).forEach((id) => {
         latestName += `${latestName ? "And" : ""}${keyCap}${_.upperFirst(id.fieldName)}`;
@@ -682,11 +688,10 @@ export const springDataCassandraSaathratriUtils = {
     out += `    void getAll${entityClass}sByCompositeKeySearches() throws Exception {\n`;
     out += `        // Initialize the database\n`;
     out += `        ${entityInstance}Repository.${saveMethod}(${persistInstance})${callBlock};\n\n`;
-    out += `        // Exercise the composite-key search endpoints whose query restricts the full\n`;
-    out += `        // partition key (+ clustering prefixes / comparisons), plus findBy and /slice. A 200\n`;
-    out += `        // confirms the derived CQL + parameter binding executes against real Cassandra; body\n`;
-    out += `        // shape is covered by the get()/getAll() tests above. Partial-partition-key endpoints\n`;
-    out += `        // are intentionally not asserted — Cassandra rejects them without ALLOW FILTERING.\n`;
+    out += `        // Exercise every generated composite-key search endpoint (partial-partition findAllBy\n`;
+    out += `        // carry @AllowFiltering, clustering/comparison/findBy are plain valid queries), plus\n`;
+    out += `        // /slice. A 200 confirms the derived CQL + parameter binding executes against real\n`;
+    out += `        // Cassandra; body shape is covered by the get()/getAll() tests above.\n`;
     out += lines.join("");
     out += `    }\n`;
     return out;

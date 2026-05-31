@@ -151,22 +151,23 @@ runs against the real Cassandra Testcontainer (body shape is already covered by 
 generator mirrors `generatePrimaryKeyMethods`' own iteration so the test set stays in lockstep with
 the endpoints as the key shape changes.
 
-> **The partition-key rule (why some endpoints are deliberately _not_ asserted).** Cassandra rejects
-> any query that restricts only **part of the partition key** — `Cannot execute this query as it
-might involve data filtering … use ALLOW FILTERING` → the endpoint returns **500**. So the test
-> asserts 200 only for prefixes that cover the **full** partition key (then 0+ clustering columns, in
-> order); it computes `partitionCount = ids.filter(id => !id.isClusteredKeySaathratri).length` and
-> skips any `findAllBy` whose param prefix is shorter. **Consequence worth noting:** the blueprint
-> still _generates_ the partial-partition-key endpoints (e.g. `findAllByCompositeIdOrganizationId`
-> when the partition key is `(organizationId, entityType, entityId)`), and those are **non-functional
-> at runtime** (500). They are left unasserted here rather than masked; deciding whether to stop
-> generating them or annotate the repository with `@AllowFiltering` is a separate call.
+> **The partition-key rule (and why partial-partition methods carry `@AllowFiltering`).** Cassandra
+> rejects any query that restricts only **part of the partition key** — `Cannot execute this query as
+it might involve data filtering … use ALLOW FILTERING` → **500**. But the generated list search-form
+> drives _progressive prefix search_ (it calls `findAllByCompositeIdOrganizationIdPageable`,
+> `…AndEntityTypePageable`, … as the user fills fewer/more fields), so those partial-partition methods
+> are a real feature, not dead code. The fix: `generatePrimaryKeyMethods` computes
+> `partitionCount = ids.filter(id => !id.isClusteredKeySaathratri).length` and annotates **only** the
+> partial-partition `findAllBy` repository methods (param prefix shorter than `partitionCount`, both
+> the `List` and `Slice` overloads) with `@org.springframework.data.cassandra.repository.AllowFiltering`
+> (FQN, so no template import). Full-partition / clustering / `findBy` queries are valid without it and
+> stay unannotated. ⚠️ ALLOW FILTERING scans across partitions — fine for admin/search UIs and small
+> tables, a performance footgun on large ones. With this in place, the IT asserts **200 for every
+> endpoint**, partial-partition included.
 
 The matching **frontend** coverage lives in `_entityFile_.service.spec.ts.ejs`: a
 `composite-key search methods` describe block tests every generated `findAllBy…Pageable` /
-comparison / `findBy…` service method issues the expected GET. Those use mocked HTTP
-(`HttpTestingController`), so — unlike the backend ITs — they are **not** subject to the
-partition-key rule and cover the partial-partition methods too.
+comparison / `findBy…` service method issues the expected GET (mocked `HttpTestingController`).
 
 ---
 
