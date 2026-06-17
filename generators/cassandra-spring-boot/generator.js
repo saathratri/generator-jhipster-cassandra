@@ -330,11 +330,19 @@ export default class extends BaseApplicationGenerator {
             // Add Spring AI OpenAI starter to the main <dependencies> section
             // Match the top-level </dependencies> (4-space indent) to avoid hitting dependencyManagement or profile ones
             if (!content.includes("spring-ai-openai")) {
+              // Spring AI 2.0.0 GA's spring-ai-openai brings only openai-java-core; the okhttp
+              // transport (com.openai.client.okhttp.OpenAIOkHttpClient, used by EmbeddingConfiguration)
+              // must be declared explicitly. Pin to the 4.39.1 line spring-ai-openai:2.0.0 manages.
               content = content.replace(
                 /^( {4})<\/dependencies>/m,
                 `$1    <dependency>
 $1        <groupId>org.springframework.ai</groupId>
 $1        <artifactId>spring-ai-openai</artifactId>
+$1    </dependency>
+$1    <dependency>
+$1        <groupId>com.openai</groupId>
+$1        <artifactId>openai-java-client-okhttp</artifactId>
+$1        <version>4.39.1</version>
 $1    </dependency>
 $1</dependencies>`,
               );
@@ -347,7 +355,7 @@ $1</dependencies>`,
                 `    <dependency>
                 <groupId>org.springframework.ai</groupId>
                 <artifactId>spring-ai-bom</artifactId>
-                <version>2.0.0-M7</version>
+                <version>2.0.0</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
