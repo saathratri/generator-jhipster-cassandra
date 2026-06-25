@@ -25,7 +25,6 @@ const command = {
       type: String,
     },
   },
-  options: {},
   import: ['app'],
 };
 
