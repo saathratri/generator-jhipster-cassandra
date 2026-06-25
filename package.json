@@ -40,7 +40,8 @@
     "vitest": "vitest"
   },
   "dependencies": {
-    "generator-jhipster": "9.0.0"
+    "generator-jhipster": "9.1.0",
+    "lodash": "4.17.21"
   },
   "devDependencies": {
     "@eslint/js": "9.39.2",

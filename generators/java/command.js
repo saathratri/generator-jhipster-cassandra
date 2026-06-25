@@ -3,7 +3,7 @@
  */
 const command = {
   options: {},
-  import: ["jhipster:java:domain"],
+  import: ['jhipster:java:domain'],
 };
 
 export default command;

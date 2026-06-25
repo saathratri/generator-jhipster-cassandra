@@ -678,29 +678,17 @@ export interface IUserProfile {
 **Generated Angular Component (for SET field):**
 
 ```html
-<app-set-string-component
-  [data]="userProfile.interests || []"
-  (dataChange)="userProfile.interests = $event"
-  [label]="'Interests'"
->
+<app-set-string-component [data]="userProfile.interests || []" (dataChange)="userProfile.interests = $event" [label]="'Interests'">
 </app-set-string-component>
 ```
 
 **Generated Angular Component (for MAP fields):**
 
 ```html
-<app-map-string-component
-  [data]="userProfile.preferences || {}"
-  (dataChange)="userProfile.preferences = $event"
-  [label]="'Preferences'"
->
+<app-map-string-component [data]="userProfile.preferences || {}" (dataChange)="userProfile.preferences = $event" [label]="'Preferences'">
 </app-map-string-component>
 
-<app-map-boolean-component
-  [data]="userProfile.settings || {}"
-  (dataChange)="userProfile.settings = $event"
-  [label]="'Settings'"
->
+<app-map-boolean-component [data]="userProfile.settings || {}" (dataChange)="userProfile.settings = $event" [label]="'Settings'">
 </app-map-boolean-component>
 ```
 

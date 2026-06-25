@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import BaseApplicationGenerator from "generator-jhipster/generators/base-application";
+import BaseApplicationGenerator from 'generator-jhipster/generators/base-application';
 
 export default class extends BaseApplicationGenerator {
   constructor(args, opts, features) {
@@ -76,11 +76,9 @@ export default class extends BaseApplicationGenerator {
   get [BaseApplicationGenerator.COMPOSING]() {
     return this.asComposingTaskGroup({
       async composeTask() {
-        if (
-          ["cassandra"].includes(this.jhipsterConfigWithDefaults.databaseType)
-        ) {
+        if (['cassandra'].includes(this.jhipsterConfigWithDefaults.databaseType)) {
           // Delegate to the cassandra-java generator.
-          await this.composeWithJHipster("jhipster-cassandra:cassandra-java");
+          await this.composeWithJHipster('jhipster-cassandra:cassandra-java');
         }
       },
     });
@@ -145,7 +143,7 @@ export default class extends BaseApplicationGenerator {
       async writingTemplateTask({ application }) {
         await this.writeFiles({
           sections: {
-            files: [{ templates: ["template-file-java"] }],
+            files: [{ templates: ['template-file-java'] }],
           },
           context: application,
         });

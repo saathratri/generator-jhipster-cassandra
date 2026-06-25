@@ -1,4 +1,4 @@
-import BaseApplicationGenerator from "generator-jhipster/generators/base-application";
+import BaseApplicationGenerator from 'generator-jhipster/generators/base-application';
 
 export default class extends BaseApplicationGenerator {
   constructor(args, opts, features) {
@@ -27,14 +27,10 @@ export default class extends BaseApplicationGenerator {
     return this.asComposingTaskGroup({
       async composeTask() {
         if (
-          ["cassandra"].includes(
-            this.jhipsterConfigWithDefaults.databaseType,
-          ) ||
-          "gateway" === this.jhipsterConfigWithDefaults.applicationType
+          ['cassandra'].includes(this.jhipsterConfigWithDefaults.databaseType) ||
+          'gateway' === this.jhipsterConfigWithDefaults.applicationType
         ) {
-          await this.composeWithJHipster(
-            "jhipster-cassandra:cassandra-angular",
-          );
+          await this.composeWithJHipster('jhipster-cassandra:cassandra-angular');
         }
       },
     });
@@ -99,7 +95,7 @@ export default class extends BaseApplicationGenerator {
       async writingTemplateTask({ application }) {
         await this.writeFiles({
           sections: {
-            files: [{ templates: ["template-file-cassandra-angular"] }],
+            files: [{ templates: ['template-file-cassandra-angular'] }],
           },
           context: application,
         });

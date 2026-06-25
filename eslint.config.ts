@@ -1,8 +1,8 @@
-import globals from "globals";
-import jhipster from "generator-jhipster/eslint";
+import globals from 'globals';
+import jhipster from 'generator-jhipster/eslint';
 
 export default [
-  { ignores: ["coverage/**"] },
+  { ignores: ['coverage/**'] },
   jhipster.recommended,
   {
     // The blueprint's generator/cli code is plain Node.js (.js/.cjs); ensure Node

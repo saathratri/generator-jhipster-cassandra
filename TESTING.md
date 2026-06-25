@@ -429,18 +429,13 @@ keyspace. Driver 3.x predates the CQL `vector` type and trips on any `vector<flo
 
 ```js
 // in POST_WRITING, gated on application.databaseTypeCassandra
-editFile(
-  `src/test/java/${application.packageFolder}/config/CassandraTestContainersSpringContextCustomizerFactory.java`,
-  (content) =>
-    content
-      .replace(
-        /cassandraBean\.getCassandraContainer\(\)\.getCluster\(\)[\s\S]*?\.getDatacenter\(\)/g,
-        "cassandraBean.getCassandraContainer().getLocalDatacenter()",
-      )
-      .replace(
-        /cassandraBean\.getCassandraContainer\(\)\.getCluster\(\)[\s\S]*?\.getClusterName\(\)/g,
-        '"Test Cluster"',
-      ),
+editFile(`src/test/java/${application.packageFolder}/config/CassandraTestContainersSpringContextCustomizerFactory.java`, content =>
+  content
+    .replace(
+      /cassandraBean\.getCassandraContainer\(\)\.getCluster\(\)[\s\S]*?\.getDatacenter\(\)/g,
+      'cassandraBean.getCassandraContainer().getLocalDatacenter()',
+    )
+    .replace(/cassandraBean\.getCassandraContainer\(\)\.getCluster\(\)[\s\S]*?\.getClusterName\(\)/g, '"Test Cluster"'),
 );
 ```
 
