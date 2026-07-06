@@ -323,18 +323,32 @@ catalogue (a → c.11 → d) and run instructions.
 
 ### AI Search Setup
 
-To enable AI-powered semantic search, set your OpenAI API key:
+To enable AI-powered semantic search, supply your OpenAI API key in any of these ways (checked in this order):
 
-```bash
-export OPENAI_API_KEY=sk-your-api-key-here
-```
+1. **`application-dev.yml`** in the microservice:
 
-Or add to `application-dev.yml`:
+   ```yaml
+   spring:
+     ai:
+       openai:
+         api-key: sk-your-api-key-here
+   ```
 
-```yaml
-openai:
-  api-key: sk-your-api-key-here
-```
+2. **Environment variable**, set before running the application:
+
+   ```bash
+   export OPENAI_API_KEY=sk-your-api-key-here
+   ```
+
+3. **A `.env` file** in the app root. The blueprint generates a checked-in `.env.example` next to each vector-enabled app — copy it to `.env` and fill in the key:
+
+   ```bash
+   cp .env.example .env    # then edit: OPENAI_API_KEY=sk-your-api-key-here
+   ```
+
+   The generated `.gitignore` ignores `.env`, so the key can never be committed. Only `.env.example` (with an empty value) is checked in.
+
+**Offline/e2e alternative — fake embedding model.** Set `openai.embedding.fake=true` (or the `OPENAI_EMBEDDING_FAKE=true` environment variable) to replace the OpenAI model with a deterministic offline one: the same text always embeds to the same unit vector, so exact-text semantic search works with no key and no API cost. The generated Cypress suite includes an embedding-lifecycle e2e (`should generate embeddings on create and regenerate on update`) that requires this mode (it skips itself unless `CYPRESS_fakeEmbeddings=true`); the example's `saathratri-run-all-tests.sh` enables both automatically.
 
 **Requirements:** Cassandra 5.0+ (for SAI vector index support).
 
