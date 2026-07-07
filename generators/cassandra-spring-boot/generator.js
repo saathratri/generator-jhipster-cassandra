@@ -290,9 +290,7 @@ export default class extends BaseApplicationGenerator {
 
         // Keep the local .env (OpenAI API key; see .env.example) out of version control.
         this.editFile('.gitignore', content =>
-          /^\.env$/m.test(content)
-            ? content
-            : content + '\n# Local secrets (OpenAI API key) — see .env.example; never commit\n.env\n'
+          /^\.env$/m.test(content) ? content : `${content}\n# Local secrets (OpenAI API key) — see .env.example; never commit\n.env\n`,
         );
 
         // Add Spring AI BOM and OpenAI dependency to pom.xml
