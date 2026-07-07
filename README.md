@@ -1,6 +1,6 @@
 # generator-jhipster-cassandra
 
-> A JHipster blueprint for Cassandra with advanced support for composite primary keys, sets, and maps. Compatible with JHipster v9.0.0.
+> A JHipster blueprint for Cassandra with advanced support for composite primary keys, sets, and maps. Compatible with JHipster v9.1.0.
 
 ## Introduction
 
@@ -348,7 +348,7 @@ To enable AI-powered semantic search, supply your OpenAI API key in any of these
 
    The generated `.gitignore` ignores `.env`, so the key can never be committed. Only `.env.example` (with an empty value) is checked in.
 
-**Offline/e2e alternative — fake embedding model.** Set `openai.embedding.fake=true` (or the `OPENAI_EMBEDDING_FAKE=true` environment variable) to replace the OpenAI model with a deterministic offline one: the same text always embeds to the same unit vector, so exact-text semantic search works with no key and no API cost. The generated Cypress suite includes an embedding-lifecycle e2e (`should generate embeddings on create and regenerate on update`) that requires this mode (it skips itself unless `CYPRESS_fakeEmbeddings=true`); the example's `saathratri-run-all-tests.sh` enables both automatically.
+**Offline/e2e alternative — fake embedding model.** Set `openai.embedding.fake=true` (or the `OPENAI_EMBEDDING_FAKE=true` environment variable) to replace the OpenAI model with a deterministic offline one: the same text always embeds to the same unit vector, so exact-text semantic search works with no key and no API cost. The generated Cypress suite includes an embedding-lifecycle e2e (`should generate embeddings on create and regenerate on update`) that requires this mode (it skips itself unless `CYPRESS_fakeEmbeddings=true`); the example's `saathratri-run-all-tests.sh` (or `saathratri-run-all-tests.bat` on Windows) enables both automatically.
 
 **Requirements:** Cassandra 5.0+ (for SAI vector index support).
 
@@ -361,7 +361,7 @@ To enable AI-powered semantic search, supply your OpenAI API key in any of these
 - Java 21+
 - Node.js 20+
 - Docker Desktop
-- JHipster 9.0.0
+- JHipster 9.1.0
 
 ### Installation
 
@@ -387,7 +387,8 @@ jhipster --blueprints cassandra
 ```bash
 git clone https://github.com/amarpatel-xx/jhipster-cassandra-example.git
 cd jhipster-cassandra-example
-sh saathratri-generate-code-dev-cassandra.sh
+sh saathratri-generate-code-dev-cassandra.sh          # Linux/macOS
+.\saathratri-generate-code-dev-cassandra.bat          # Windows
 ```
 
 ---

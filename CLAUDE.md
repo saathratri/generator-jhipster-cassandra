@@ -11,10 +11,10 @@ This is a **JHipster Side-by-Side (SBS) blueprint** that extends JHipster to pro
 - **Custom Angular UI components** for Cassandra-specific data types
 - **AI-powered semantic vector search** using Cassandra 5.0+ SAI with ANN queries and OpenAI embeddings
 
-**Version:** 1.0.16
+**Version:** 1.0.19
 **Author:** Amar Premsaran Patel
 **License:** MIT
-**JHipster Base Version:** 9.0.0
+**JHipster Base Version:** 9.1.0
 
 ## What Problem Does This Solve?
 
@@ -46,7 +46,7 @@ jhipster --blueprints cassandra
 - **Java:** 21+
 - **Node.js:** 20+
 - **Docker Desktop:** For running Cassandra instances
-- **JHipster:** 9.0.0
+- **JHipster:** 9.1.0
 
 ## Cassandra Composite Key Concepts
 
@@ -217,19 +217,25 @@ generator-jhipster-cassandra/
 │   ├── cassandra-angular/                           # Angular frontend for Cassandra
 │   │   ├── generator.js
 │   │   ├── cassandra-angular-utils.js               # Angular utilities
-│   │   └── templates/
-│   │       ├── _entityFolder_/                      # Entity components
-│   │       │   ├── _entityFile_.model.ts.ejs
-│   │       │   ├── list/_entityFile_.component.html.ejs
-│   │       │   ├── detail/_entityFile_-detail.component.html.ejs
-│   │       │   └── update/_entityFile_-update.component.html.ejs
-│   │       └── saathratri/                          # Custom Cassandra UI components
+│   │   ├── entity-templates/                        # Entity components
+│   │   │   └── src/main/webapp/app/entities/_entityFolder_/
+│   │   │       ├── _entityFile_.model.ts.ejs
+│   │   │       ├── _entityFile_.routes.ts.ejs
+│   │   │       ├── _entityFile_.test-samples.ts.ejs
+│   │   │       ├── list/_entityFile_.html.ejs
+│   │   │       ├── detail/_entityFile_-detail.html.ejs
+│   │   │       ├── update/_entityFile_-update.html.ejs
+│   │   │       ├── delete/_entityFile_-delete-dialog.html.ejs
+│   │   │       ├── route/_entityFile_-routing-resolve.service.ts.ejs
+│   │   │       └── service/_entityFile_.service.ts.ejs
+│   │   └── templates/                               # Custom Cassandra UI components
+│   │       └── src/main/webapp/app/components/
 │   │           ├── date-time/
-│   │           ├── map-boolean/
-│   │           ├── map-dayjs/
-│   │           ├── map-number/
-│   │           ├── map-string/
-│   │           └── set-string/
+│   │           ├── map-boolean-component/
+│   │           ├── map-dayjs-component/
+│   │           ├── map-number-component/
+│   │           ├── map-string-component/
+│   │           └── set-string-component/
 │   ├── cassandra-docker/                            # Docker configuration
 │   │   ├── generator.js
 │   │   └── templates/
@@ -357,14 +363,14 @@ The blueprint generates sophisticated UI components for Cassandra-specific types
 
 - Custom date/time picker integrated with Dayjs
 - Converts between Long (epoch millis) and user-friendly dates
-- Located in: `src/main/webapp/app/saathratri/date-time/`
+- Located in: `src/main/webapp/app/components/date-time/`
 
 **SET Editor:**
 
 - Add/remove string values
 - Displays as chips/tags
 - Edit dialog for managing set contents
-- Located in: `src/main/webapp/app/saathratri/set-string/`
+- Located in: `src/main/webapp/app/components/set-string-component/`
 
 **MAP Editors (4 types):**
 
@@ -378,7 +384,7 @@ Each MAP editor includes:
 - List view showing all entries
 - Add/Edit/Delete functionality
 - Dialog-based editing with Angular Material
-- Located in: `src/main/webapp/app/saathratri/map-*/`
+- Located in: `src/main/webapp/app/components/map-*-component/`
 
 **MAP UI Component Screenshots (AddOnsAvailableByOrganization entity):**
 
@@ -800,8 +806,17 @@ npm run update-snapshot
 # Lint code
 npm run lint
 
+# Lint EJS templates
+npm run ejslint
+
+# Lint and auto-fix (runs ejslint then eslint --fix)
+npm run lint-fix
+
+# Check formatting without writing changes
+npm run prettier-check
+
 # Format code
-npm run prettier:format
+npm run prettier-format
 ```
 
 ### Debugging
@@ -936,7 +951,7 @@ jhipster jdl blog.jdl
 - `src/main/webapp/app/entities/blog-post/list/` - List component
 - `src/main/webapp/app/entities/blog-post/detail/` - Detail component
 - `src/main/webapp/app/entities/blog-post/update/` - Update form
-- `src/main/webapp/app/saathratri/` - Custom UI components
+- `src/main/webapp/app/components/` - Custom UI components
 
 **Tests:**
 
@@ -1199,7 +1214,11 @@ MIT License - See LICENSE file for details
 
 ## Version History
 
-**1.0.16** (Current)
+**1.0.19** (Current)
+
+- Version bump; JHipster 9.1.0
+
+**1.0.16**
 
 - Clean up templates: remove dead code, add search partials, fix link stubs
 - Fix refresh button spinner animation and missing gateway icons

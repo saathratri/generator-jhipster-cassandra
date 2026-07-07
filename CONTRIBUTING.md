@@ -33,7 +33,7 @@ start there whenever a generated-app test fails.
 
 - Node.js 22+
 - Java 21 and Docker Desktop (for the generated-app backend/integration tests)
-- JHipster 9.0.0
+- JHipster 9.1.0
 
 Behind a TLS-intercepting proxy, point the toolchains at the OS trust store:
 `export NODE_OPTIONS=--use-system-ca` and
