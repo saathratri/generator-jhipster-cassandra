@@ -11,7 +11,7 @@ This is a **JHipster Side-by-Side (SBS) blueprint** that extends JHipster to pro
 - **Custom Angular UI components** for Cassandra-specific data types
 - **AI-powered semantic vector search** using Cassandra 5.0+ SAI with ANN queries and OpenAI embeddings
 
-**Version:** 1.0.20
+**Version:** 1.0.21
 **Author:** Amar Premsaran Patel
 **License:** MIT
 **JHipster Base Version:** 9.1.0
@@ -1214,7 +1214,11 @@ MIT License - See LICENSE file for details
 
 ## Version History
 
-**1.0.20** (Current)
+**1.0.21** (Current)
+
+- Fix stale microfrontends after gateway redeploy: cache-bust remoteEntry.js fetches in core/microfrontend/index.ts
+
+**1.0.20**
 
 - Documentation fixes: script names, Windows variants, project-structure paths
 
