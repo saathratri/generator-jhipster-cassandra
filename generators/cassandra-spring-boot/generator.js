@@ -269,6 +269,13 @@ export default class extends BaseApplicationGenerator {
   get [BaseApplicationGenerator.POST_WRITING]() {
     return this.asPostWritingTaskGroup({
       async postWritingTemplateTask({ application }) {
+        // Logback 1.5 deprecated conversionRule's [converterClass] attribute in favor of
+        // [class]; the upstream template still emits the old name, so every service boot
+        // logs a logback WARN. Rename it (idempotent).
+        this.editFile('src/main/resources/logback-spring.xml', { ignoreNonExisting: true }, content =>
+          content.replace(/(<conversionRule\s[^>]*?)converterClass=/g, '$1class='),
+        );
+
         // Replace the legacy Driver-3 Cluster API calls in the upstream-generated
         // CassandraTestContainersSpringContextCustomizerFactory with Testcontainers'
         // direct accessors. The Driver-3 metadata parse trips on CQL vector<float, N>
