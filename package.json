@@ -1,7 +1,7 @@
 {
   "name": "generator-jhipster-cassandra",
   "version": "1.0.22",
-  "description": "Description for Cassandra Composite Primary Keys",
+  "description": "JHipster 9 blueprint for Apache Cassandra with composite primary keys, native paging-state pagination, and SAI/ANN vector search",
   "keywords": [
     "yeoman-generator",
     "jhipster-blueprint",
@@ -9,7 +9,11 @@
     "cassandra",
     "jhipster-8"
   ],
-  "author": "Amar Premsaran Patel",
+  "author": {
+    "name": "Amar P. Patel",
+    "email": "amarppatel1@gmail.com",
+    "url": "https://amarppatel.com"
+  },
   "license": "MIT",
   "repository": {
     "type": "git",
