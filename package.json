@@ -7,7 +7,10 @@
     "jhipster-blueprint",
     "composite primary keys",
     "cassandra",
-    "jhipster-8"
+    "vector-search",
+    "jhipster-9",
+    "jhipster",
+    "saathratri"
   ],
   "author": {
     "name": "Amar P. Patel",
