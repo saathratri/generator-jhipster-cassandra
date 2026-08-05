@@ -831,7 +831,7 @@ DEBUG=* jhipster --blueprints cassandra
 
 A complete working example is available:
 
-- **Repository:** https://github.com/amarpatel-xx/jhipster-cassandra-example
+- **Repository:** https://github.com/saathratri/jhipster-cassandra-example
 - **Includes:** Sample entities with all data types
 - **Features:** Composite keys, collections, temporal data
 - **Scripts:** Generation and build scripts
@@ -1205,7 +1205,7 @@ Contributions are welcome! To contribute:
 
 ### Example Projects
 
-- **Full Example:** https://github.com/amarpatel-xx/jhipster-cassandra-example
+- **Full Example:** https://github.com/saathratri/jhipster-cassandra-example
 - **Author's Projects:** Check repository for additional examples
 
 ## License

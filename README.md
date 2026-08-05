@@ -382,12 +382,12 @@ jhipster --blueprints cassandra
 ## 🎡 Example Project
 
 - Full example repo with Cassandra composite key entities and JDL:
-  👉 [https://github.com/amarpatel-xx/jhipster-cassandra-example](https://github.com/amarpatel-xx/jhipster-cassandra-example)
+  👉 [https://github.com/saathratri/jhipster-cassandra-example](https://github.com/saathratri/jhipster-cassandra-example)
 
 ### Generate Code
 
 ```bash
-git clone https://github.com/amarpatel-xx/jhipster-cassandra-example.git
+git clone https://github.com/saathratri/jhipster-cassandra-example.git
 cd jhipster-cassandra-example
 sh saathratri-generate-code-dev-cassandra.sh          # Linux/macOS
 .\saathratri-generate-code-dev-cassandra.bat          # Windows

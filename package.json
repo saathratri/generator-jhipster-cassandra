@@ -20,12 +20,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/amarpatel-xx/generator-jhipster-cassandra.git"
+    "url": "git+https://github.com/saathratri/generator-jhipster-cassandra.git"
   },
   "bugs": {
-    "url": "https://github.com/amarpatel-xx/generator-jhipster-cassandra/issues"
+    "url": "https://github.com/saathratri/generator-jhipster-cassandra/issues"
   },
-  "homepage": "https://github.com/amarpatel-xx/generator-jhipster-cassandra#readme",
+  "homepage": "https://github.com/saathratri/generator-jhipster-cassandra#readme",
   "type": "module",
   "bin": {
     "jhipster-cassandra": "cli/cli.cjs"
