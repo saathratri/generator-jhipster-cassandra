@@ -2,7 +2,7 @@
 
 > A JHipster blueprint for Cassandra with advanced support for composite primary keys, sets, and maps. Compatible with JHipster v9.1.0.
 
-Built and maintained by [Amar P. Patel](https://amarppatel.com), architect of the Saathratri platform, whose microservices are generated with this blueprint.
+Built and maintained by [Saathratri, LLC](https://www.saathratri.com), whose hospitality platform microservices are generated with this blueprint.
 
 ## Introduction
 
@@ -518,11 +518,18 @@ Huge thanks to:
 
 ---
 
-## About the author
+## About
 
-Amar P. Patel is a Florida-based software engineer and founder with 24+ years building enterprise Java/Spring systems, microservices, and AI-powered platforms — architect of Saathratri, author of three npm-published JHipster blueprints, holder of two U.S. patents, and operator in a family hospitality portfolio.
+Published and maintained by **Saathratri, LLC**, a Florida-based software company building
+hospitality software for hotels, motels, inns, restaurants, and cafes. The microservices behind the
+Saathratri platform are generated with this blueprint.
 
-- Website: [amarppatel.com](https://amarppatel.com)
-- GitHub: [github.com/amarpatel-xx](https://github.com/amarpatel-xx)
-- npm: [npmjs.com/~amarppatel](https://www.npmjs.com/~amarppatel)
-- LinkedIn: [linkedin.com/in/amar-p-patel](https://www.linkedin.com/in/amar-p-patel/)
+- Website: [saathratri.com](https://www.saathratri.com)
+- GitHub: [github.com/saathratri](https://github.com/saathratri)
+- npm: [npmjs.com/~saathratri](https://www.npmjs.com/~saathratri)
+- LinkedIn: [linkedin.com/company/saathratri](https://www.linkedin.com/company/saathratri/)
+
+Authored by [Amar P. Patel](https://amarppatel.com), founder of Saathratri, LLC — 24+ years
+building enterprise Java/Spring systems, microservices, and AI-powered platforms, and holder of two
+U.S. patents. [github.com/amarpatel-xx](https://github.com/amarpatel-xx) ·
+[linkedin.com/in/amar-p-patel](https://www.linkedin.com/in/amar-p-patel/)
