@@ -1,6 +1,6 @@
 {
   "name": "generator-jhipster-cassandra",
-  "version": "1.0.24",
+  "version": "1.0.25",
   "description": "JHipster 9 blueprint for Apache Cassandra with composite primary keys, native paging-state pagination, and SAI/ANN vector search",
   "keywords": [
     "yeoman-generator",
@@ -17,7 +17,7 @@
     "email": "amarppatel1@gmail.com",
     "url": "https://amarppatel.com"
   },
-  "license": "MIT",
+  "license": "UNLICENSED",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/saathratri/generator-jhipster-cassandra.git"
@@ -69,5 +69,6 @@
   },
   "cacheDirectories": [
     "node_modules"
-  ]
+  ],
+  "private": true
 }
