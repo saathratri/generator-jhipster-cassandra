@@ -526,7 +526,7 @@ Saathratri platform are generated with this blueprint.
 
 - Website: [saathratri.com](https://www.saathratri.com)
 - GitHub: [github.com/saathratri](https://github.com/saathratri)
-- npm: [npmjs.com/~saathratri](https://www.npmjs.com/~saathratri)
+- npm: [npmjs.com/~amarppatel](https://www.npmjs.com/~amarppatel)
 - LinkedIn: [linkedin.com/company/saathratri](https://www.linkedin.com/company/saathratri/)
 
 Authored by [Amar P. Patel](https://amarppatel.com), founder of Saathratri, LLC — 24+ years
