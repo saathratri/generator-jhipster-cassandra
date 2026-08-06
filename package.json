@@ -1,6 +1,6 @@
 {
   "name": "generator-jhipster-cassandra",
-  "version": "1.0.25",
+  "version": "1.0.26",
   "description": "JHipster 9 blueprint for Apache Cassandra with composite primary keys, native paging-state pagination, and SAI/ANN vector search",
   "keywords": [
     "yeoman-generator",
