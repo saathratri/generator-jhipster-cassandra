@@ -1,6 +1,6 @@
 # generator-jhipster-cassandra
 
-> A JHipster blueprint for Cassandra with advanced support for composite primary keys, sets, and maps. Compatible with JHipster v9.1.0.
+> A JHipster blueprint for Cassandra with advanced support for composite primary keys, sets, and maps. Compatible with JHipster v9.2.0.
 
 Built and maintained by [Saathratri, LLC](https://www.saathratri.com), whose hospitality platform microservices are generated with this blueprint.
 
@@ -363,7 +363,7 @@ To enable AI-powered semantic search, supply your OpenAI API key in any of these
 - Java 21+
 - Node.js 20+
 - Docker Desktop
-- JHipster 9.1.0
+- JHipster 9.2.0
 
 ### Installation
 

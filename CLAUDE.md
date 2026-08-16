@@ -11,10 +11,10 @@ This is a **JHipster Side-by-Side (SBS) blueprint** that extends JHipster to pro
 - **Custom Angular UI components** for Cassandra-specific data types
 - **AI-powered semantic vector search** using Cassandra 5.0+ SAI with ANN queries and OpenAI embeddings
 
-**Version:** 1.0.22
+**Version:** 1.0.28
 **Author:** Amar Premsaran Patel
 **License:** MIT
-**JHipster Base Version:** 9.1.0
+**JHipster Base Version:** 9.2.0
 
 ## What Problem Does This Solve?
 
@@ -46,7 +46,7 @@ jhipster --blueprints cassandra
 - **Java:** 21+
 - **Node.js:** 20+
 - **Docker Desktop:** For running Cassandra instances
-- **JHipster:** 9.1.0
+- **JHipster:** 9.2.0
 
 ## Cassandra Composite Key Concepts
 
@@ -1214,7 +1214,16 @@ MIT License - See LICENSE file for details
 
 ## Version History
 
-**1.0.22** (Current)
+**1.0.28** (Current)
+
+- Upgrade to JHipster 9.2.0 (Spring Boot 4.0.7, Spring Cloud 2025.1.2, Angular 21.2.17)
+- Snapshot churn: upstream renamed `translation.module.ts` → `translation.provider.ts`
+- Fix `@angular/material`/`@angular/cdk` injection: pin `~major.minor.0` instead of the exact
+  `@angular/core` patch (core 21.2.17 has no matching Material/CDK release)
+- Fix ngx-translate 18 compatibility in entity templates: `TranslateModule` was removed —
+  components now use `TranslateDirective`/`TranslatePipe`, specs use `provideTranslateService()`
+
+**1.0.22**
 
 - Fix navbar overflow on gateways with many menus: let navbar-nav flex-wrap onto extra rows instead of clipping at the viewport edge
 
