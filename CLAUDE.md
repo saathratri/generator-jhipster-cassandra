@@ -11,7 +11,7 @@ This is a **JHipster Side-by-Side (SBS) blueprint** that extends JHipster to pro
 - **Custom Angular UI components** for Cassandra-specific data types
 - **AI-powered semantic vector search** using Cassandra 5.0+ SAI with ANN queries and OpenAI embeddings
 
-**Version:** 1.0.28
+**Version:** 2.0.0
 **Author:** Amar Premsaran Patel
 **License:** MIT
 **JHipster Base Version:** 9.2.0
@@ -1214,7 +1214,13 @@ MIT License - See LICENSE file for details
 
 ## Version History
 
-**1.0.28** (Current)
+**2.0.0** (Current)
+
+- Upgrade to JHipster 9.4.0 (Spring Boot 4.1.1, Spring Cloud 2025.1.3, Angular 22); the CassandraTestContainers customizer patch is deleted (upstream no longer generates the class)
+- Spring AI 2.0.1 (+ openai-java-client-okhttp 4.49.0)
+- Fix: resetForm disables a user-supplied key when it is present (was inverted)
+
+**1.0.28**
 
 - Upgrade to JHipster 9.2.0 (Spring Boot 4.0.7, Spring Cloud 2025.1.2, Angular 21.2.17)
 - Snapshot churn: upstream renamed `translation.module.ts` → `translation.provider.ts`
