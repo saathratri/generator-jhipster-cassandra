@@ -53,9 +53,6 @@ exports[`SubGenerator app of cassandra JHipster blueprint > run > should succeed
   "build-plugins/i18n-esbuild.ts": {
     "stateCleared": "modified",
   },
-  "build-plugins/package.json": {
-    "stateCleared": "modified",
-  },
   "checkstyle.xml": {
     "stateCleared": "modified",
   },
@@ -159,9 +156,6 @@ exports[`SubGenerator app of cassandra JHipster blueprint > run > should succeed
     "stateCleared": "modified",
   },
   "src/main/java/com/mycompany/myapp/config/DateTimeFormatConfiguration.java": {
-    "stateCleared": "modified",
-  },
-  "src/main/java/com/mycompany/myapp/config/JacksonConfiguration.java": {
     "stateCleared": "modified",
   },
   "src/main/java/com/mycompany/myapp/config/JacksonHibernateConfiguration.java": {
@@ -686,7 +680,13 @@ exports[`SubGenerator app of cassandra JHipster blueprint > run > should succeed
   "src/main/webapp/app/config/dayjs.ts": {
     "stateCleared": "modified",
   },
+  "src/main/webapp/app/config/endpoint.constants.ts": {
+    "stateCleared": "modified",
+  },
   "src/main/webapp/app/config/font-awesome-icons.ts": {
+    "stateCleared": "modified",
+  },
+  "src/main/webapp/app/config/index.ts": {
     "stateCleared": "modified",
   },
   "src/main/webapp/app/config/input.constants.ts": {
@@ -719,16 +719,16 @@ exports[`SubGenerator app of cassandra JHipster blueprint > run > should succeed
   "src/main/webapp/app/core/auth/auth-jwt.service.ts": {
     "stateCleared": "modified",
   },
+  "src/main/webapp/app/core/auth/index.ts": {
+    "stateCleared": "modified",
+  },
+  "src/main/webapp/app/core/auth/login.model.ts": {
+    "stateCleared": "modified",
+  },
   "src/main/webapp/app/core/auth/state-storage.service.ts": {
     "stateCleared": "modified",
   },
   "src/main/webapp/app/core/auth/user-route-access.service.ts": {
-    "stateCleared": "modified",
-  },
-  "src/main/webapp/app/core/config/application-config.service.spec.ts": {
-    "stateCleared": "modified",
-  },
-  "src/main/webapp/app/core/config/application-config.service.ts": {
     "stateCleared": "modified",
   },
   "src/main/webapp/app/core/interceptor/auth-expired.interceptor.ts": {
@@ -741,6 +741,9 @@ exports[`SubGenerator app of cassandra JHipster blueprint > run > should succeed
     "stateCleared": "modified",
   },
   "src/main/webapp/app/core/interceptor/notification.interceptor.ts": {
+    "stateCleared": "modified",
+  },
+  "src/main/webapp/app/core/request/index.ts": {
     "stateCleared": "modified",
   },
   "src/main/webapp/app/core/request/request-util.ts": {
@@ -765,6 +768,9 @@ exports[`SubGenerator app of cassandra JHipster blueprint > run > should succeed
     "stateCleared": "modified",
   },
   "src/main/webapp/app/core/util/event-manager.service.ts": {
+    "stateCleared": "modified",
+  },
+  "src/main/webapp/app/core/util/index.ts": {
     "stateCleared": "modified",
   },
   "src/main/webapp/app/core/util/operators.spec.ts": {
@@ -881,6 +887,12 @@ exports[`SubGenerator app of cassandra JHipster blueprint > run > should succeed
   "src/main/webapp/app/entities/admin/user-management/service/user-management.service.ts": {
     "stateCleared": "modified",
   },
+  "src/main/webapp/app/entities/admin/user-management/update/user-management-form.service.spec.ts": {
+    "stateCleared": "modified",
+  },
+  "src/main/webapp/app/entities/admin/user-management/update/user-management-form.service.ts": {
+    "stateCleared": "modified",
+  },
   "src/main/webapp/app/entities/admin/user-management/update/user-management-update.html": {
     "stateCleared": "modified",
   },
@@ -894,6 +906,9 @@ exports[`SubGenerator app of cassandra JHipster blueprint > run > should succeed
     "stateCleared": "modified",
   },
   "src/main/webapp/app/entities/admin/user-management/user-management.routes.ts": {
+    "stateCleared": "modified",
+  },
+  "src/main/webapp/app/entities/admin/user-management/user-management.test-samples.ts": {
     "stateCleared": "modified",
   },
   "src/main/webapp/app/entities/entity.routes.ts": {
@@ -983,9 +998,6 @@ exports[`SubGenerator app of cassandra JHipster blueprint > run > should succeed
   "src/main/webapp/app/login/login.html": {
     "stateCleared": "modified",
   },
-  "src/main/webapp/app/login/login.model.ts": {
-    "stateCleared": "modified",
-  },
   "src/main/webapp/app/login/login.service.ts": {
     "stateCleared": "modified",
   },
@@ -1016,10 +1028,16 @@ exports[`SubGenerator app of cassandra JHipster blueprint > run > should succeed
   "src/main/webapp/app/shared/alert/alert.ts": {
     "stateCleared": "modified",
   },
+  "src/main/webapp/app/shared/alert/index.ts": {
+    "stateCleared": "modified",
+  },
   "src/main/webapp/app/shared/auth/has-any-authority.directive.spec.ts": {
     "stateCleared": "modified",
   },
   "src/main/webapp/app/shared/auth/has-any-authority.directive.ts": {
+    "stateCleared": "modified",
+  },
+  "src/main/webapp/app/shared/auth/index.ts": {
     "stateCleared": "modified",
   },
   "src/main/webapp/app/shared/date/duration.pipe.ts": {
@@ -1281,6 +1299,9 @@ exports[`SubGenerator app of cassandra JHipster blueprint > run > should succeed
     "stateCleared": "modified",
   },
   "src/test/java/com/mycompany/myapp/TechnicalStructureTest.java": {
+    "stateCleared": "modified",
+  },
+  "src/test/java/com/mycompany/myapp/aop/logging/LoggingAspectTest.java": {
     "stateCleared": "modified",
   },
   "src/test/java/com/mycompany/myapp/config/AsyncSyncConfiguration.java": {

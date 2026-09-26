@@ -404,46 +404,15 @@ idempotent (re-running on already-patched content is a no-op).
 
 Current list:
 
-### 7.1 `CassandraTestContainersSpringContextCustomizerFactory` — Driver 3 vector-type crash
+### 7.1 (retired) `CassandraTestContainersSpringContextCustomizerFactory` — Driver 3 vector-type crash
 
-**Symptom (in a generated app's `mvnw verify`):**
-
-```
-ERROR ... com.datastax.driver.core.SchemaParser : Error parsing schema for table
-cassandratestkeyspace.tag: Cluster.getMetadata().getKeyspace("cassandratestkeyspace")
-.getTable("tag") will be missing or incomplete
-java.lang.IllegalArgumentException: Could not parse type name vector<float, 1536>
-```
-
-Tests still pass (Driver 4.x is the actual runtime driver), but the warning is noisy and
-will silently _mask_ metadata problems for any future vector-dependent IT.
-
-**Root cause:** upstream JHipster's customizer factory pulls the local DC and cluster name via
-the legacy `CassandraContainer.getCluster().getMetadata()...` chain. `getCluster()` returns a
-Driver 3.x `Cluster`, which on first connect tries to parse the **full schema** of every
-keyspace. Driver 3.x predates the CQL `vector` type and trips on any `vector<float, N>` column
-(e.g. the `tag` table when the blueprint's vector-embedding support is in use).
-
-**Fix:** `generators/cassandra-spring-boot/generator.js` POST_WRITING task replaces the two
-`getCluster().getMetadata()` chains with Testcontainers' direct accessors:
-
-```js
-// in POST_WRITING, gated on application.databaseTypeCassandra
-editFile(`src/test/java/${application.packageFolder}/config/CassandraTestContainersSpringContextCustomizerFactory.java`, content =>
-  content
-    .replace(
-      /cassandraBean\.getCassandraContainer\(\)\.getCluster\(\)[\s\S]*?\.getDatacenter\(\)/g,
-      'cassandraBean.getCassandraContainer().getLocalDatacenter()',
-    )
-    .replace(/cassandraBean\.getCassandraContainer\(\)\.getCluster\(\)[\s\S]*?\.getClusterName\(\)/g, '"Test Cluster"'),
-);
-```
-
-Driver 3.x stays on the test classpath (Testcontainers transitively depends on it) but is
-no longer invoked, so no schema parse happens.
-
-**If upstream JHipster ever fixes this:** the regex will silently no-op (no harm), and you can
-delete the editFile block on the next blueprint cleanup pass.
+Until JHipster 9.2 the upstream customizer factory read the local DC and cluster name through the
+legacy Driver 3 `CassandraContainer.getCluster().getMetadata()` chain, which parsed every keyspace
+schema and tripped on `vector<float, N>` columns (`Could not parse type name vector<float, 1536>`);
+this blueprint rewrote those calls in `POST_WRITING`. JHipster 9.3.0 replaced the factory with a
+ServiceConnection-based `CassandraTestContainer` that calls `getLocalDatacenter()` directly, so the
+file — and the patch — are gone (removed in the 9.4.0 upgrade; the `editFile` would otherwise fail
+the generation with `Unable to find ...CassandraTestContainersSpringContextCustomizerFactory.java`).
 
 ---
 
