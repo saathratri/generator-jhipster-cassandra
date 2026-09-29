@@ -1723,6 +1723,74 @@ _%>
         );
     }
 
+  <%_ /* Saathratri modification - RFC 7386 merge-patch: an explicit null clears (docs: ) */ _%>
+  <%_
+    const clearableFieldsForMergePatch = reactive ? [] : fieldsToTest.filter(f => !f.id && !f.isCompositePrimaryKeyField
+      && !f.fieldValidationRequired && !f.transient && !f.fieldTypeBinary && f.fieldTypeVectorSaathratri !== true);
+  _%>
+  <%_ if (clearableFieldsForMergePatch.length > 0) { const clearField = clearableFieldsForMergePatch[0]; _%>
+    @Test<%= transactionalAnnotation %>
+    void mergePatch<%= entityClass %>WithAnExplicitNull_clearsThatField() throws Exception {
+        // RFC 7386: in application/merge-patch+json a key sent as null CLEARS the field
+  <%_ if(primaryKeySaathratri.composite) { _%>
+    <%_ for (field of primaryKeySaathratri.ids.filter(f => !f.autoGenerateByRepository)) { _%>
+        <%= persistInstance %>.get<%= primaryKeySaathratri.nameCapitalized %>().set<%= field.fieldNameCapitalized %>(<%- field.fieldJavaValueGenerator %>);
+    <%_ } _%>
+  <%_ } else { _%>
+    <%_ for (field of primaryKey.fields.filter(f => !f.autoGenerateByRepository)) { _%>
+        <%= persistInstance %>.set<%= field.fieldNameCapitalized %>(<%- field.fieldJavaValueGenerator %>);
+    <%_ } _%>
+  <%_ } _%>
+        <%= entityInstance %>Repository.<%= saveMethod %>(<%= persistInstance %>)<%= callBlock %>;
+
+        // what a caller holds - the whole record - with the one field it wants cleared sent as null
+        @SuppressWarnings("unchecked")
+        java.util.Map<String, Object> patch = om.convertValue(<%= persistInstance %>, java.util.LinkedHashMap.class);
+        patch.put("<%= clearField.fieldName %>", null);
+<%_ if (primaryKeySaathratri.composite) { _%>
+        rest<%= entityClass %>MockMvc.perform(patch(ENTITY_API_URL + "/<%= primaryKeySaathratri.ids.map(f => '{' + f.fieldName + '}').join('/') %>"<%_ for (field of primaryKeySaathratri.ids) { _%>, <%= persistInstance %>.get<%= primaryKeySaathratri.nameCapitalized %>().get<%= field.fieldNameCapitalized %>()<%_ } _%>)<% if (authenticationUsesCsrf) { %>.with(csrf())<% }%>
+<%_ } else { _%>
+        rest<%= entityClass %>MockMvc.perform(patch(ENTITY_API_URL_ID, <%= persistInstance %>.get<%= primaryKey.nameCapitalized %>())<% if (authenticationUsesCsrf) { %>.with(csrf())<% }%>
+<%_ } _%>
+            .contentType("application/merge-patch+json")
+            .content(om.writeValueAsBytes(patch)))
+            .andExpect(status().isOk());
+
+        assertThat(getPersisted<%- persistClass %>(<%= persistInstance %>).get<%= clearField.fieldInJavaBeanMethod %>()).isNull();
+    }
+
+    @Test<%= transactionalAnnotation %>
+    void jsonPatch<%= entityClass %>WithANull_leavesThatField() throws Exception {
+        // application/json keeps the old rule for callers that send a whole DTO: a null is ignored
+  <%_ if(primaryKeySaathratri.composite) { _%>
+    <%_ for (field of primaryKeySaathratri.ids.filter(f => !f.autoGenerateByRepository)) { _%>
+        <%= persistInstance %>.get<%= primaryKeySaathratri.nameCapitalized %>().set<%= field.fieldNameCapitalized %>(<%- field.fieldJavaValueGenerator %>);
+    <%_ } _%>
+  <%_ } else { _%>
+    <%_ for (field of primaryKey.fields.filter(f => !f.autoGenerateByRepository)) { _%>
+        <%= persistInstance %>.set<%= field.fieldNameCapitalized %>(<%- field.fieldJavaValueGenerator %>);
+    <%_ } _%>
+  <%_ } _%>
+        <%= entityInstance %>Repository.<%= saveMethod %>(<%= persistInstance %>)<%= callBlock %>;
+
+        // what a caller holds - the whole record - with the one field it wants cleared sent as null
+        @SuppressWarnings("unchecked")
+        java.util.Map<String, Object> patch = om.convertValue(<%= persistInstance %>, java.util.LinkedHashMap.class);
+        patch.put("<%= clearField.fieldName %>", null);
+<%_ if (primaryKeySaathratri.composite) { _%>
+        rest<%= entityClass %>MockMvc.perform(patch(ENTITY_API_URL + "/<%= primaryKeySaathratri.ids.map(f => '{' + f.fieldName + '}').join('/') %>"<%_ for (field of primaryKeySaathratri.ids) { _%>, <%= persistInstance %>.get<%= primaryKeySaathratri.nameCapitalized %>().get<%= field.fieldNameCapitalized %>()<%_ } _%>)<% if (authenticationUsesCsrf) { %>.with(csrf())<% }%>
+<%_ } else { _%>
+        rest<%= entityClass %>MockMvc.perform(patch(ENTITY_API_URL_ID, <%= persistInstance %>.get<%= primaryKey.nameCapitalized %>())<% if (authenticationUsesCsrf) { %>.with(csrf())<% }%>
+<%_ } _%>
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(om.writeValueAsBytes(patch)))
+            .andExpect(status().isOk());
+
+        assertThat(getPersisted<%- persistClass %>(<%= persistInstance %>).get<%= clearField.fieldInJavaBeanMethod %>()).isNotNull();
+    }
+
+  <%_ } _%>
+  <%_ /* End Saathratri modification */ _%>
     @Test<%= transactionalAnnotation %>
     void patchNonExisting<%= entityClass %>() throws Exception {
         long databaseSizeBeforeUpdate = getRepositoryCount();
