@@ -1222,7 +1222,11 @@ MIT License - See LICENSE file for details
 
 ## Version History
 
-**2.0.0** (Current)
+**2.1.1** (Current)
+
+- Comments, sample JDL, TESTING.md and CLAUDE.md name no downstream application
+
+**2.0.0**
 
 - Upgrade to JHipster 9.4.0 (Spring Boot 4.1.1, Spring Cloud 2025.1.3, Angular 22); the CassandraTestContainers customizer patch is deleted (upstream no longer generates the class)
 - Spring AI 2.0.1 (+ openai-java-client-okhttp 4.49.0)

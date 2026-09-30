@@ -16,7 +16,7 @@ application {
   entities Post, Product, SaathratriEntity2, SaathratriEntity3, SaathratriEntity4, AddOnsAvailableByOrganization, AddOnsSelectedByOrganization
 }
 
-// This blueprint is designed for DTOs + a service layer (matches the saathratri config).
+// This blueprint is designed for DTOs + a service layer (a typical microservices setup).
 dto * with mapstruct
 service * with serviceImpl
 
