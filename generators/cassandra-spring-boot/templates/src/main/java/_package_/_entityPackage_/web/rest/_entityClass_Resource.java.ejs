@@ -484,7 +484,7 @@ public class <%= entityClass %>Resource {
         <% if (anyPropertyHasValidation) { %>@NotNull <% } %>@RequestBody tools.jackson.databind.JsonNode patchBody,
         @RequestHeader(value = "Content-Type", required = false) String contentType
     ) throws URISyntaxException {
-        // Saathratri (RFC 7386, ): in application/merge-patch+json a key sent as null CLEARS that field and an absent
+        // Saathratri (RFC 7386): in application/merge-patch+json a key sent as null CLEARS that field and an absent
         // key is left alone; application/json keeps the old rule (a null is ignored) for callers that send a whole DTO.
         <%= instanceType %> <%= instanceName %>;
         try {
