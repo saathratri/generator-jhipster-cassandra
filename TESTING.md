@@ -133,7 +133,7 @@ MAVEN_OPTS="-Djavax.net.ssl.trustStoreType=Windows-ROOT" \
 | `deleteX` INSERT fails: "Invalid null value for `<datecol>`" | test did `new XId()` then set only non-generated keys → null partition key                    | override key fields on the **existing** `compositeId` from `createEntity()`, don't replace it                                                        |
 | `Map`/`Set` value assertions: `expected:<1> but was:<1>`     | jsonPath number/BigDecimal type mismatch                                                      | assert **presence** (`$.field` exists) in get/get-all — exact contents are already checked by the Java-`equals` `assertPersistedX…` in create/update |
 
-Key idea: **the live `cassandrablog`/`cassandrastore` depend on the Resource's public API, so we fixed
+Key idea: **the generated services in production depend on the Resource's public API, so we fixed
 the _tests_ to match the Resource — not vice-versa.**
 
 ### 4.2 Composite-key search-endpoint coverage
