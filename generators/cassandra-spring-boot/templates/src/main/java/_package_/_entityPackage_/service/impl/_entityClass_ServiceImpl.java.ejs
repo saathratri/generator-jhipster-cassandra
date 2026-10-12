@@ -31,6 +31,10 @@ const entityToDto = 'toDto';
 const entityToDtoReference = mapper + '::'+ 'toDto';
 const repository = entityInstance  + 'Repository';
 const searchRepository = entityInstance  + 'SearchRepository';
+// @sensitive(writeOnly): never sent to a client, so an update arrives without it and must keep the stored value.
+const writeOnlyFields = fields.filter(field => field.fieldWriteOnly);
+const keepsWriteOnlyFields = dtoMapstruct && !reactive && writeOnlyFields.length > 0;
+const storedIdGetter = primaryKeySaathratri.composite ? `get${primaryKeySaathratri.nameCapitalized}()` : `get${primaryKey.nameCapitalized}()`;
 
 _%>
 <%_ if (serviceImpl) { _%>
@@ -432,4 +436,18 @@ _%>
 %>
 <%- methodsOutput %>
 <% } %>
+<%_ if (keepsWriteOnlyFields && updatableEntity) { _%>
+
+    /**
+     * Write-only fields are never sent to a client, so an update arrives without them: every write-only field the
+     * update left empty keeps its stored value.
+     */
+    private void keepStoredWriteOnlyFields(<%= persistClass %> <%= entityInstance %>, <%= instanceType %> <%= instanceName %>) {
+  <%_ for (const field of writeOnlyFields) { _%>
+        if (<%= instanceName %>.get<%= field.fieldInJavaBeanMethod %>() == null || <%= instanceName %>.get<%= field.fieldInJavaBeanMethod %>().isEmpty()) {
+            <%= repository %>.findById(<%= entityInstance %>.<%- storedIdGetter %>).map(<%= persistClass %>::get<%= field.fieldInJavaBeanMethod %>).ifPresent(<%= entityInstance %>::set<%= field.fieldInJavaBeanMethod %>);
+        }
+  <%_ } _%>
+    }
+<%_ } _%>
 }

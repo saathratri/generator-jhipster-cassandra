@@ -91,6 +91,20 @@ Expected: `All matched files use Prettier code style!`, `0 problems`, **12 test 
 
 ---
 
+## 3a. Sensitive fields (`@sensitive`)
+
+| Layer                          | What's covered                                                                                                                                                                                                                     | Where                                                                                          |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Generator unit                 | the masked `toString` (entity + DTO), `WRITE_ONLY` + `<field>IsSet`, the update keeping a write-only value, the generated tests below, the refusals                                                                                | `cassandra-spring-boot/sensitive-fields.spec.js`, `cassandra-angular/sensitive-fields.spec.js` |
+| Backend IT (single-value keys) | `sensitiveFieldsNeverReachTheLog` (app loggers at DEBUG, every log event captured over create / get / list / update), write-only absent from every GET, stored value = value sent, `updateWithoutWriteOnlyFieldsKeepsStoredValues` | `_entityClass_ResourceIT.java.ejs`                                                             |
+| Frontend (Vitest)              | masked by default, no copy until revealed, eye reveals / hide masks, copy writes the value, an emptied write-only input sends no value, Set / Not set                                                                              | `shared/sensitive-value/*.spec.ts.ejs`                                                         |
+
+Known (unrelated to this feature): a sample generated straight from this blueprint has a `LiquibaseConfiguration`
+whose `LiquibaseProperties` bean Spring Boot 4.1 does not create for a Cassandra-only app, so every `*ResourceIT` fails
+at context load; delete that class in the sample to run the integration tests.
+
+---
+
 ## 4. Layer 2 — generated **backend** (Java) tests
 
 From the sample dir:

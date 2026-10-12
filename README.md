@@ -34,6 +34,10 @@ The `generator-jhipster-cassandra` blueprint provides powerful schema modeling t
   - Powered by Spring AI with OpenAI embeddings (text-embedding-3-small model, 1536 dimensions).
   - Auto-generates `EmbeddingService`, `EmbeddingConfiguration`, repository ANN query methods, and REST endpoints.
 
+- **Sensitive Fields (`@sensitive`, `@sensitive(writeOnly)`)**
+  - A secret is never printed (`toString` says `set` / `missing`), masked on screen behind eye / hide / copy buttons,
+    and - write-only - never returned by the API. See [Sensitive fields](#-sensitive-fields-sensitive).
+
 - **Custom Annotations**
   - Annotations like `@customAnnotation("UTC_DATE")` or `@customAnnotation("TIMEUUID")` support consistent metadata across entity fields.
 
@@ -228,6 +232,63 @@ When an entity has vector fields, the blueprint automatically generates:
 - `EmbeddingService` and `EmbeddingConfiguration` for OpenAI integration
 
 ---
+
+## 🔒 Sensitive fields (`@sensitive`)
+
+Mark a field that holds a secret - an API key, a token, a password or PIN hash - with `@sensitive`, and the
+generated code keeps its value out of every log line and off the screen until someone asks to see it. It goes
+alongside the field's four `@customAnnotation` values:
+
+```jdl
+entity Vault {
+  @Id @customAnnotation("PrimaryKeyType.PARTITIONED") @customAnnotation("CassandraType.Name.UUID") @customAnnotation("") @customAnnotation("") id UUID
+  @customAnnotation("") @customAnnotation("CassandraType.Name.TEXT") @customAnnotation("") @customAnnotation("") label String required
+  @sensitive @customAnnotation("") @customAnnotation("CassandraType.Name.TEXT") @customAnnotation("") @customAnnotation("") apiKey String
+  @sensitive(writeOnly) @customAnnotation("") @customAnnotation("CassandraType.Name.TEXT") @customAnnotation("") @customAnnotation("") secretHash String
+}
+```
+
+**`@sensitive`** - a value people need to read back now and then (a key they copy into another system):
+
+- **Never printed.** The entity's and the DTO's `toString()` print `apiKey=set` or `apiKey=missing`, never the value,
+  so no generated log line (they all print records through `toString()`) carries it.
+- **Masked on screen.** The list and detail pages show `••••••••` (the same length for every value) with an **eye**
+  button. The eye reveals the value, the **hide** button masks it again, and a **copy** button - there only while the
+  value is revealed - copies it to the clipboard. The edit form uses a password-style input with the same three
+  buttons. A sensitive column is never a sort key.
+- **Proven by a test** (single-value primary keys): the generated `VaultResourceIT` gets
+  `sensitiveFieldsNeverReachTheLog`, which turns the application's loggers to DEBUG, captures every log event while it
+  creates, reads, lists and updates a record, and fails if any line contains a sensitive value.
+
+**`@sensitive(writeOnly)`** - a value nobody needs to read back (a hash, a device token): everything above, and the
+value never leaves the server:
+
+- **Never returned.** The DTO field is `@JsonProperty(access = WRITE_ONLY)`: accepted on create and update, never
+  serialized. The DTO reports only a read-only `secretHashIsSet` (`true` / `false`).
+- **An update without it keeps it.** The generated `update` keeps the stored value of every write-only field the
+  update left empty. A merge-patch that sends the field as an explicit `null` still clears it.
+- **On screen** the list and detail pages show only **Set** / **Not set**; the edit form shows an empty password-style
+  input ("Set - leave blank to keep the stored value.").
+- **Tested.** `VaultResourceIT` asserts the field is absent from every GET response, that the stored value is the one
+  sent, and (single-value primary keys) `updateWithoutWriteOnlyFieldsKeepsStoredValues`.
+
+**What the generator refuses** (the run stops with a message naming the field):
+
+| Combination                                                | Why                                              |
+| ---------------------------------------------------------- | ------------------------------------------------ |
+| `@sensitive` on a field that is not `String` or `TextBlob` | the masking is for text values                   |
+| `@sensitive` on a primary key, or on a `VECTOR` field      | an id and an embedding are not secrets to mask   |
+| `@sensitive(writeOnly)` with `required`                    | an update never carries the value                |
+| `@sensitive(writeOnly)` without `dto mapstruct`            | the DTO is what keeps the value out of responses |
+| `@sensitive(writeOnly)` in a reactive application          | not supported yet                                |
+
+What the annotation does **not** cover: code you write by hand. Hand-written code that logs a sensitive value still
+needs its own care and its own test.
+
+The screens use two components written into `src/main/webapp/app/shared/sensitive-value/` when an entity has a
+sensitive field: `SensitiveValue` (display) and `SensitiveInput` (a form control), both with specs. The
+[generator-jhipster-ai-postgresql](https://github.com/saathratri/generator-jhipster-ai-postgresql) blueprint supports
+the same annotation for SQL entities (and there, also keeps sensitive fields out of the criteria filters).
 
 ## MAP Data Type UI Components
 
