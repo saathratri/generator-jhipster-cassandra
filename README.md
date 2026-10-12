@@ -286,7 +286,10 @@ What the annotation does **not** cover: code you write by hand. Hand-written cod
 needs its own care and its own test.
 
 The screens use two components written into `src/main/webapp/app/shared/sensitive-value/` when an entity has a
-sensitive field: `SensitiveValue` (display) and `SensitiveInput` (a form control), both with specs. The
+sensitive field: `SensitiveValue` (display) and `SensitiveInput` (a form control), both with specs. Which values a screen
+may show plainly (a generic settings column holding a time zone in one row and an API key in the next) is one rule,
+`SENSITIVE_DISPLAY_RULE` in `shared/sensitive-value/sensitive-display.ts` - given the entity's class name, the field and
+the record; as generated it shows nothing plainly, and an application replaces the file with its own rule. The
 [generator-jhipster-ai-postgresql](https://github.com/saathratri/generator-jhipster-ai-postgresql) blueprint supports
 the same annotation for SQL entities (and there, also keeps sensitive fields out of the criteria filters).
 
