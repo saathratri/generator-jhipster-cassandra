@@ -39,7 +39,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { <%= entityAngularName %>FormService, <%= entityAngularName %>FormGroup } from './<%= entityFileName %>-form.service';
 <%_ if (anyFieldIsDateDerived || anyFieldIsDateDerivedSaathratri) { _%>
 import dayjs from 'dayjs/esm';
-import { DATE_FORMAT, DATE_TIME_FORMAT } from 'app/config/input.constants';
+import { DATE_FORMAT, DATE_TIME_FORMAT } from 'app/config';
 import { dateLongToFormattedString, datetimeLongToFormattedString } from '../../../../shared/date/saathratri-local-dayjs-and-utc-unix-utils';
 <%_ } _%>
 <%_ if (anyFieldIsTimeDerived || anyFieldIsTimeDerivedSaathratri) { _%>

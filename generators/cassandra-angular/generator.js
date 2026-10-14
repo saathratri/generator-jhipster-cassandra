@@ -465,6 +465,30 @@ Infinite Scroll Styles
             }
             return content.replace(anchor, "'dayjs/esm/plugin/relativeTime', 'dayjs/esm/plugin/utc']");
           });
+
+          // The map editors use Angular Material, whose form controls import '@angular/forms/signals'. The unused
+          // dependencies scan does not follow an import made inside a library, so that entry point was not shared and
+          // every entity page stopped on the gateway's error page ("Unable to resolve specifier '@angular/forms/signals'").
+          // Share every @angular/forms entry point, the way JHipster shares every @angular/core one.
+          this.editFile('federation.config.ts', { ignoreNonExisting: true }, content => {
+            if (content.includes("'@angular/forms': {")) {
+              return content;
+            }
+            const core =
+              /^( *)'@angular\/core': \{ singleton: true, strictVersion: true, requiredVersion: 'auto', includeSecondaries: \{ keepAll: true \} \},\n/m;
+            const match = content.match(core);
+            if (!match) {
+              throw new Error(
+                "cassandra-angular: federation.config.ts no longer overrides @angular/core as expected - share every @angular/forms entry point (Angular Material imports '@angular/forms/signals') another way",
+              );
+            }
+            const indent = match[1];
+            return content.replace(
+              core,
+              `${match[0]}${indent}// Angular Material (the map editors) imports @angular/forms/signals, which the unused dependencies scan does not see.\n` +
+                `${indent}'@angular/forms': { singleton: true, strictVersion: true, requiredVersion: 'auto', includeSecondaries: { keepAll: true } },\n`,
+            );
+          });
         }
 
         // Replace display="dynamic" (Popper.js) with display="static" (CSS) on ALL

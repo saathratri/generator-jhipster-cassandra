@@ -44,10 +44,7 @@ import { catchError } from 'rxjs/operators';
 import dayjs from 'dayjs/esm';
 <%_ } _%>
 
-<%_ if (anyFieldIsLocalDate) { _%>
-import { DATE_FORMAT } from 'app/config/input.constants';
-<%_ } _%>
-import { <%- (applicationTypeGateway || applicationTypeMicroservice) && locals.microserviceName ? 'microserviceContextPath, ' : '' %>serverApiUrl } from 'app/config';
+import { <%- (applicationTypeGateway || applicationTypeMicroservice) && locals.microserviceName ? 'microserviceContextPath, ' : '' %>serverApiUrl<%- anyFieldIsLocalDate ? ', DATE_FORMAT' : '' %> } from 'app/config';
 import { createRequestOption } from 'app/core/request/request-util';
 <%_ if (searchEngineAny) { _%>
 import { <%= searchType %> } from 'app/core/request/request.model';

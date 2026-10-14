@@ -83,24 +83,20 @@ import { FormsModule } from '@angular/forms';
     // Saathratri: Single-value Primary Key Code
 import { I<%= entityAngularName %> } from '../<%= entityFileName %>.model';
 <%_ } // Saathratri _%>
-<%_ if (!paginationNo) { %>
 import {
+<%_ if (!paginationNo) { _%>
   ITEMS_PER_PAGE,
-<%_ if (paginationPagination) { _%>
+  <%_ if (paginationPagination) { _%>
   PAGE_HEADER,
-<%_ } _%>
-<%_ if (paginationPagination) { _%>
   TOTAL_COUNT_RESPONSE_HEADER,
+  <%_ } _%>
 <%_ } _%>
-} from 'app/config/pagination.constants';
-<%_ } _%>
-import {
   SORT,
 <%_ if (!readOnly) { _%>
   ITEM_DELETED_EVENT,
 <%_ } _%>
   DEFAULT_SORT_DATA
-} from 'app/config/navigation.constants';
+} from 'app/config';
 import { <%= cassandraNoPagination ? 'EntityArrayResponseType, ' : '' %><%= cassandraComposite ? 'EntityResponseType, ' : '' %><%= entityAngularName %>Service } from '../service/<%= entityFileName %>.service';
 <%_ if (!readOnly) { _%>
 import { <%= entityAngularName %>DeleteDialogComponent } from '../delete/<%= entityFileName %>-delete-dialog';
