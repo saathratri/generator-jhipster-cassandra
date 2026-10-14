@@ -448,6 +448,25 @@ Infinite Scroll Styles
           });
         }
 
+        // The date helpers above import 'dayjs/esm/plugin/utc'. JHipster's federation config shares only the dayjs entry
+        // points its own app/config/dayjs uses, so a gateway loading this microfrontend had no import-map entry for the
+        // plugin and stopped on its error page ("Unable to resolve specifier 'dayjs/esm/plugin/utc'"). Share it too. A
+        // federation config whose dayjs list no longer looks like this fails the generation instead of shipping that page.
+        if (application.microfrontend && !application.applicationTypeGateway) {
+          this.editFile('federation.config.ts', { ignoreNonExisting: true }, content => {
+            if (content.includes("'dayjs/esm/plugin/utc'")) {
+              return content;
+            }
+            const anchor = "'dayjs/esm/plugin/relativeTime']";
+            if (!content.includes(anchor)) {
+              throw new Error(
+                "cassandra-angular: federation.config.ts no longer lists the dayjs plugins as expected - share 'dayjs/esm/plugin/utc' (imported by shared/date) another way",
+              );
+            }
+            return content.replace(anchor, "'dayjs/esm/plugin/relativeTime', 'dayjs/esm/plugin/utc']");
+          });
+        }
+
         // Replace display="dynamic" (Popper.js) with display="static" (CSS) on ALL
         // navbar dropdowns. Cassandra microfrontends inject Angular Material/CDK CSS
         // that breaks Popper.js positioning for every dropdown on the page.
